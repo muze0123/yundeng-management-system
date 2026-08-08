@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>云登后台 · 数据埋点</title>
+  <script src="https://cdn.tailwindcss.com"></script><script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>tailwind.config={theme:{extend:{colors:{primary:{DEFAULT:'#0066FF',hover:'#0052CC',active:'#0047B3',bg:'#E6F0FF'},ink:{title:'#1A1D24',body:'#3A3F4A',sub:'#6E7685',muted:'#9DA2AC'},line:{DEFAULT:'#DFE1E5',light:'#E8EAED',lighter:'#F0F1F3'},bg:{page:'#F7F8FA',card:'#FFFFFF',hover:'#F3F4F6'},success:{DEFAULT:'#0FC060',bg:'#E7F9F0'},warning:{DEFAULT:'#E7772D',bg:'#FDF2E9'},danger:{DEFAULT:'#D9001B',bg:'#FFE8EB'},info:{DEFAULT:'#0091D5',bg:'#E4F4FB'}},borderRadius:{DEFAULT:'4px',md:'6px',lg:'8px'},fontFamily:{sans:['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','system-ui','sans-serif'],mono:['JetBrains Mono','monospace']}}}};</script>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;color:#3A3F4A}.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+    .sidebar{width:220px;transition:width .22s}.sidebar.compact{width:68px}.sidebar.compact .brand-name,.sidebar.compact .menu-text,.sidebar.compact .chev{display:none}.sidebar.compact .nav-item,.sidebar.compact .brand{justify-content:center;padding-left:0;padding-right:0}.sidebar.compact .submenu{display:none}
+    .nav-item{height:38px;border-radius:4px;display:flex;align-items:center;gap:10px;padding:0 12px;color:#3A3F4A;transition:.15s}.nav-item:hover{background:#F3F4F6}.nav-item.group{color:#0066FF;font-weight:600}.submenu a{height:34px;padding-left:44px;font-size:12px}.submenu a.active{color:#0066FF;background:#E6F0FF;font-weight:600}
+    .health-rail{display:grid;grid-template-columns:repeat(4,1fr);position:relative}.health-rail:before{content:'';position:absolute;left:10%;right:10%;top:18px;height:2px;background:#E8EAED}.health-node{position:relative;z-index:1;text-align:center}.health-dot{width:36px;height:36px;margin:auto;border:4px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px #DFE1E5}
+    .module-card{transition:transform .16s,box-shadow .16s}.module-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(26,29,36,.08)}
+    .anno-badge{position:fixed;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font:700 11px/20px 'JetBrains Mono';text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.15);pointer-events:auto;cursor:pointer;transition:.15s}.anno-badge:hover{transform:scale(1.2)}
+    @media(max-width:1023px){.sidebar{width:68px}.sidebar .brand-name,.sidebar .menu-text,.sidebar .chev{display:none}.sidebar .nav-item,.sidebar .brand{justify-content:center;padding-left:0;padding-right:0}.sidebar .submenu{display:none}.health-rail{grid-template-columns:repeat(2,1fr);gap:24px}.health-rail:before{display:none}}
+  </style>
+</head>
+<body class="bg-bg-page text-[13px]">
+<div class="flex min-h-screen">
+  <aside id="sidebar" class="sidebar sticky top-0 h-screen bg-bg-card flex flex-col shrink-0 overflow-hidden">
+    <div class="brand h-14 px-5 flex items-center gap-2 shrink-0"><span class="w-7 h-7 rounded-md bg-primary text-white flex items-center justify-center font-bold">云</span><span class="brand-name text-[16px] font-semibold text-ink-title">云登后台</span><button id="collapse" class="ml-auto w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-sub" aria-label="收起侧栏"><i data-lucide="panel-left-close" class="w-[18px]"></i></button></div>
+    <nav class="px-3 flex-1 overflow-y-auto pt-3">
+      <button class="nav-item group w-full" id="dataGroup"><i data-lucide="chart-no-axes-combined" class="w-[18px]"></i><span class="menu-text flex-1 text-left">数据埋点</span><i data-lucide="chevron-down" class="chev w-4"></i></button>
+      <div class="submenu mt-1 space-y-1">
+        <a class="nav-item active" href="数据总览.html">数据总览</a><a class="nav-item" href="事件管理.html">事件管理</a><a class="nav-item" href="事件明细.html">事件明细</a><a class="nav-item" href="分析中心.html">分析中心</a><a class="nav-item" href="实时调试.html">实时调试</a><a class="nav-item" href="数据质量告警.html">数据质量告警</a>
+      </div>
+    </nav>
+    <div class="p-3 border-t border-line-light"><button class="nav-item w-full"><i data-lucide="settings-2" class="w-[18px]"></i><span class="menu-text">系统设置</span></button></div>
+  </aside>
+  <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+    <header class="h-14 shrink-0 bg-bg-card shadow-[0_4px_12px_rgba(26,29,36,.10)] z-10 flex items-center justify-between px-6"><span class="text-ink-sub">云登后台管理系统 / 数据埋点</span><div class="flex items-center gap-2"><button class="w-8 h-8 rounded hover:bg-bg-hover flex items-center justify-center text-ink-sub"><i data-lucide="bell" class="w-[18px]"></i></button><span class="h-5 border-l border-line mx-1"></span><button class="flex items-center gap-2 p-1 rounded hover:bg-bg-hover"><span class="w-7 h-7 rounded-full bg-primary-bg text-primary flex items-center justify-center font-semibold">数</span><span>数据管理员</span><i data-lucide="chevron-down" class="w-3.5 text-ink-muted"></i></button></div></header>
+    <main id="mainContent" class="p-4 flex-1 overflow-auto">
+      <section class="bg-bg-card rounded-lg p-6 mb-4">
+        <div class="flex justify-between items-center gap-4 mb-6"><div><h1 data-anno="1" class="inline-block text-[20px] font-semibold text-ink-title">数据埋点运行中枢</h1><p class="mt-2 text-ink-sub">从事件定义到业务决策，统一管理数据链路的可信度与可用性。</p></div><a href="数据总览.html" class="h-8 px-4 bg-primary text-white rounded flex items-center gap-2 hover:bg-primary-hover"><i data-lucide="arrow-right" class="w-4"></i>进入数据总览</a></div>
+        <div data-anno="2" class="health-rail py-2">
+          <div class="health-node"><span class="health-dot bg-success-bg text-success"><i data-lucide="braces" class="w-4"></i></span><strong class="block mt-2 text-ink-title">事件定义</strong><span class="text-[12px] text-success">110 项已治理</span></div>
+          <div class="health-node"><span class="health-dot bg-success-bg text-success"><i data-lucide="radio-tower" class="w-4"></i></span><strong class="block mt-2 text-ink-title">实时上报</strong><span class="text-[12px] text-success">99.72% 到达</span></div>
+          <div class="health-node"><span class="health-dot bg-warning-bg text-warning"><i data-lucide="shield-check" class="w-4"></i></span><strong class="block mt-2 text-ink-title">质量监控</strong><span class="text-[12px] text-warning">3 项待处理</span></div>
+          <div class="health-node"><span class="health-dot bg-info-bg text-info"><i data-lucide="chart-spline" class="w-4"></i></span><strong class="block mt-2 text-ink-title">分析消费</strong><span class="text-[12px] text-info">28 个活跃分析</span></div>
+        </div>
+      </section>
+      <section class="bg-bg-card rounded-lg p-6">
+        <div class="flex justify-between items-center mb-4"><div><h2 data-anno="3" class="inline-block text-[18px] font-semibold text-ink-title">工作台模块</h2><p class="text-ink-sub mt-1">按数据生产链路组织，而不是按工具堆叠。</p></div><span class="text-[12px] text-ink-muted mono">更新于 2026-08-07 17:40</span></div>
+        <div id="moduleGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+      </section>
+    </main>
+  </div>
+</div>
+<div id="toast" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-ink-title text-white rounded px-4 py-2 shadow-lg"></div>
+<div id="annoLayer" style="position:fixed;inset:0;pointer-events:none;z-index:9998"></div>
+<button id="annoToggle" class="fixed z-[9997] right-2 top-[120px] h-8 px-3 rounded-full bg-primary text-white shadow flex items-center gap-1.5"><i data-lucide="tags" class="w-4"></i><span class="text-[12px]">交互标注</span></button>
+<div id="annoPopup" class="hidden fixed inset-0 z-[9999] bg-black/30 flex items-center justify-center p-4"><div class="w-[520px] bg-white rounded-lg shadow-xl"><div class="px-5 py-4 border-b border-line flex justify-between"><h2 id="annoTitle" class="font-semibold text-[16px]"></h2><button id="annoClose">×</button></div><div id="annoDesc" class="p-5 text-[14px] leading-relaxed"></div></div></div>
+<script>
+const modules=[
+ {name:'数据总览',icon:'gauge',file:'数据总览.html',desc:'经营指标、实名漏斗、代理购后与环境质量总览',stat:'9 项核心指标',tone:'primary'},
+ {name:'事件管理',icon:'braces',file:'事件管理.html',desc:'事件字典、属性结构、版本和发布治理',stat:'110 个事件',tone:'info'},
+ {name:'事件明细',icon:'list-tree',file:'事件明细.html',desc:'查询脱敏事件、还原会话序列并创建受控导出',stat:'12,486 条 / 24 小时',tone:'success'},
+ {name:'分析中心',icon:'chart-scatter',file:'分析中心.html',desc:'事件、漏斗、留存、路径与用户分群分析',stat:'5 类分析模型',tone:'primary'},
+ {name:'实时调试',icon:'radio-tower',file:'实时调试.html',desc:'监听测试事件、校验数据结构与脱敏载荷',stat:'当前未连接',tone:'success'},
+ {name:'数据质量告警',icon:'shield-alert',file:'数据质量告警.html',desc:'监控到达、完整、重复、延迟与敏感误采',stat:'3 项待处理',tone:'warning'}];
+const toneClass={primary:'bg-primary-bg text-primary',info:'bg-info-bg text-info',success:'bg-success-bg text-success',warning:'bg-warning-bg text-warning'};
+document.getElementById('moduleGrid').innerHTML=modules.map((m,i)=>`<a data-anno="${i+4}" href="${m.file}" class="module-card border border-line-light rounded-lg p-5 block focus:outline-none focus:ring-2 focus:ring-primary-bg"><div class="flex items-start justify-between"><span class="w-10 h-10 rounded-lg ${toneClass[m.tone]} flex items-center justify-center"><i data-lucide="${m.icon}" class="w-5"></i></span><i data-lucide="arrow-up-right" class="w-4 text-ink-muted"></i></div><h3 class="mt-4 text-[16px] font-semibold text-ink-title">${m.name}</h3><p class="mt-1 text-ink-sub leading-relaxed h-10">${m.desc}</p><div class="mt-4 pt-3 border-t border-line-lighter text-[12px] text-ink-muted mono">${m.stat}</div></a>`).join('');
+document.getElementById('collapse').onclick=()=>document.getElementById('sidebar').classList.toggle('compact');
+document.getElementById('dataGroup').onclick=()=>document.querySelector('.submenu').classList.toggle('hidden');
+const annotations={1:{title:'数据埋点运行中枢',desc:['统一入口不承担具体分析操作。','点击进入数据总览，公共导航状态在各独立页面保持一致。']},2:{title:'数据链路健康轨迹',desc:['按事件定义→实时上报→质量监控→分析消费展示链路状态。','黄色节点表示存在待处理问题，不等同于系统不可用。']},3:{title:'模块工作台',desc:['六个当前可用模块按数据链路依赖排列。','看板管理在画布编辑能力完成前保持隐藏。']}};
+modules.forEach((m,i)=>annotations[i+4]={title:m.name,desc:[m.desc,`点击：进入 ${m.file}。`,`当前摘要：${m.stat}。`]});
+let annoVisible=true;function renderAnno(){const layer=document.getElementById('annoLayer');layer.innerHTML='';if(!annoVisible)return;document.querySelectorAll('[data-anno]').forEach(el=>{const r=el.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)return;const b=document.createElement('button');b.className='anno-badge';b.textContent=el.dataset.anno;b.style.top=(r.top-10)+'px';b.style.left=(r.right-10)+'px';b.onclick=()=>showAnno(el.dataset.anno);layer.appendChild(b)})}function showAnno(id){const a=annotations[id];document.getElementById('annoTitle').textContent=a.title;document.getElementById('annoDesc').innerHTML=a.desc.map(x=>`<p class="mb-2">• ${x}</p>`).join('');document.getElementById('annoPopup').classList.remove('hidden')}document.getElementById('annoClose').onclick=()=>document.getElementById('annoPopup').classList.add('hidden');document.getElementById('annoPopup').onclick=e=>{if(e.target.id==='annoPopup')e.currentTarget.classList.add('hidden')};document.getElementById('annoToggle').onclick=()=>{annoVisible=!annoVisible;renderAnno()};document.getElementById('mainContent').onscroll=renderAnno;window.onresize=renderAnno;
+lucide.createIcons();setTimeout(renderAnno,100);
+</script><script src="侧栏交互.js"></script><script src="标注交互.js"></script>
+</body></html>

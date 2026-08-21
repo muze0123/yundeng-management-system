@@ -57,9 +57,11 @@
 
 | 用途 | 字体 |
 |------|------|
-| UI 文本（sans） | `-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Hiragino Sans GB', 'Segoe UI', system-ui, sans-serif` |
+| UI 文本（sans） | `-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif` |
 | 数字/编号/金额/代码（mono） | `'JetBrains Mono', monospace` |
 
+> 全局实现：在 `body`（或应用全局容器）应用上述 sans 字体栈，并同时设置 `-webkit-font-smoothing: antialiased;` 与 `-moz-osx-font-smoothing: grayscale;`。表单控件继承全局字体；数字、编号、金额、代码与时间戳仍由 mono 规则覆盖。
+>
 > 数字、订单号、金额、编码、时间戳等**必须**用 mono 字体，增强数据感与对齐。
 > JetBrains Mono 通过 CDN 引入：`https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap`
 
@@ -67,7 +69,7 @@
 
 | 层级 | 字号 / 字重 | 用途 |
 |------|-------------|------|
-| 主标题 | 20–30px / 700 | 页面主标题 |
+| 主标题 | 20–30px / 700 | 弹窗、抽屉或详情内容内部主标题；不用于 App Shell 路由业务页面标题 |
 | 区块标题 | 16–19px / 600 | 卡片/区块标题 |
 | 正文（主） | 13px / 400–500 | 表格、正文、表单 |
 | 正文（次） | 12px / 400 | 密集信息 |
@@ -75,7 +77,7 @@
 
 ### 2.3 界面语言规范
 
-云登后台管理系统的用户界面以简体中文为唯一主展示语言，页面标题、区块标题、卡片标题、字段标签、表头、按钮、状态名称、辅助说明和空/错状态文案必须使用准确、简洁的中文。
+云登后台管理系统的用户界面以简体中文为唯一主展示语言。允许展示的区块标题、卡片标题、字段标签、表头、按钮、状态名称、辅助说明和空/错状态文案必须使用准确、简洁的中文；App Shell 路由业务页面仍遵守 §5.0，不展示页面标题和页面副标题。
 
 - **禁止装饰性英文标题**：不得使用 `DATA GOVERNANCE CONSOLE`、`DELIVERY MAP` 等英文眉题、副标题或氛围文案；此类内容没有独立业务信息时直接删除，不需要中文占位替代。
 - **禁止中英双标题或字段翻译**：不得展示“中文标题 / English Title”“负责人（Owner）”“数据结构（Schema）”等并列翻译；统一保留中文名称。
@@ -124,85 +126,97 @@
 
 ### 5.0 页面标准布局
 
-> **核心原则**：所有后台列表/管理页面采用统一的两区块结构。**不设独立的页面主标题区块**（标题整合进数据区标题行）。
+> **核心原则**：后台列表/管理页面不展示面包屑、页面标题或页面副标题，业务内容直接从一级 Tab、状态切换、筛选条件或数据内容开始。一级 Tab 下方的内容区块不得重复展示与当前 Tab 同名的标题和副标题。
 
 **标准结构**：
 
 ```
-┌─ 区块1：筛选区 ─────────────────────────────┐
-│  [状态Tab]（可选）                            │
-│  filter-flow（400px 筛选项，最多 4 项/行）       │
-│  …… [最后一个条件] [查询] [重置]               │
-└────────────────────────────────────────────┘
-┌─ 区块2：数据区 ─────────────────────────────┐
-│  工单列表（h2, 左）       [操作按钮]（右）      │
-│  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐            │
-│  │ KPI │ │ KPI │ │ KPI │ │ KPI │ ← 有则显示  │
-│  └─────┘ └─────┘ └─────┘ └─────┘            │
-│  ┌─ 表格 ──────────────────────────┐         │
-│  │ ...data rows...                 │         │
-│  └─────────────────────────────────┘         │
-│  分页器（表格右下方）                           │
-└────────────────────────────────────────────┘
+┌─ 业务模块（左右各 16px）─────────────────────┐
+│  ┌─ 筛选区块（100% 宽、无描边）──────────────┐ │
+│  │  [一级 Tab]                               │ │
+│  │  ─────────────────────────────── 分割线   │ │
+│  │  filter-flow（300px 控件，字段内 gap: 0px）│ │
+│  │  …… [最后一个条件] [查询] [重置]           │ │
+│  └──────────────────────────────────────────┘ │
+│  ┌─ 数据区块（100% 宽、无描边）──────────────┐ │
+│  │  [语义列表标题] [总数]                       │ │
+│  │  [状态 Tab]                  [列表上下文操作]│ │
+│  │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐        │ │
+│  │  │ KPI │ │ KPI │ │ KPI │ │ KPI │ 可选   │ │
+│  │  └─────┘ └─────┘ └─────┘ └─────┘        │ │
+│  │  data-table                               │ │
+│  │  分页器（表格右下方）                       │ │
+│  └──────────────────────────────────────────┘ │
+└───────────────────────────────────────────────┘
 ```
 
 **布局规则**：
 
 | 区域 | 规则 |
 |------|------|
-| 区块1 筛选区 | `bg-white rounded-lg border border-line p-5 md:p-6 mb-4` |
-| 区块2 数据区 | `bg-white rounded-lg border border-line p-5 md:p-6` |
-| 数据区标题 | `h2`，`text-[16px]`（有指标卡）或 `text-[18px]`（无指标卡），`font-semibold`，左对齐 |
-| 操作按钮 | 与标题同行，右对齐，`flex items-center justify-between flex-wrap gap-3` |
-| 数据指标卡 | 有则放在标题行下方、表格上方（`mb-4`），无则不显示 |
-| 指标卡样式 | `grid grid-cols-2 lg:grid-cols-4 gap-3`，每卡 `p-3 rounded-md border border-line bg-bg-page` |
-| 筛选字段 | 使用可换行的 `filter-flow` 布局；控件基准宽度 400px，单行最多 4 项（见 §5.4） |
+| 业务模块 | `width:100%; max-width:none; padding:16px`；不得通过固定最大宽度居中，内容左右边缘与主内容区各保持 16px |
+| 内容区块 | `width:100%; max-width:none; margin:0; bg-white rounded-lg p-5 md:p-6 border-0` |
+| 多内容区块 | 纵向堆叠，区块间距 16px；每个区块均保持无外描边 |
+| 一级 Tab | 作为筛选区块的首个业务导航，Tab 自身不附加装饰性图标；Tab 与筛选条件之间使用 `line-light` 分割线 |
+| Tab 下内容 | 不展示当前 Tab 的重复标题或副标题；筛选条件位于 Tab 分割线下方 |
+| 数据区标题 | 仅在需要区分独立数据容器时展示语义列表标题，如“申请列表”“票据列表”；不得使用“数据列表”等泛化占位名，也不得重复当前一级 Tab 名称 |
+| 列表工具栏 | 标题行左侧为语义列表标题，当前结果总数紧邻标题右侧（间距 8px）；下一行左侧为状态 Tab，右侧放刷新、导出等仅作用于当前列表的操作；分割线位于状态 Tab 上方。没有状态 Tab 时，分割线直接位于标题统计行与指标卡或表格之间 |
+| 数据指标卡 | 有则放在筛选区之后、表格上方（`mb-4`），无则不显示 |
+| 指标卡样式 | `grid grid-cols-2 lg:grid-cols-4 gap-3`，每卡 `p-3 rounded-md bg-bg-page`；默认可使用 `border border-line`，列表汇总型指标使用 `.is-borderless` 去掉外描边，单个页面内不得混用两种样式 |
+| 状态信息归属 | 状态摘要必须归属于当前 Tab 的查询结果或当前业务对象；对象级多维状态放在列表行或详情标题区，不得跨无关主 Tab 固定展示为全局状态轨；仅真实线性流程使用连接线或步骤条 |
+| 筛选字段 | 使用可换行的 `filter-flow` 布局；控件基准宽度 300px，字段名称与组件间距 0px，单行最多 4 项（见 §5.4） |
 | 查询/重置 | 作为末尾操作组紧跟最后一个查询条件，不另起独立按钮行；容器不足时随筛选项整体换行 |
 
 **页面标题处理**：
-- ❌ **禁止**设置独立的页面标题卡片（如单独的 `<h1>订单管理</h1>` 卡片区块）
-- ✅ 页面标题语义整合到数据区的 `h2` 标题中（如"工单列表"、"订单列表"）
-- ✅ 必要的页面级操作按钮（如"标记异常"、"新增"）放在数据区标题行右侧
+- ❌ 禁止在业务内容区展示面包屑、页面 `<h1>`、页面副标题或装饰性眉题。
+- ❌ 禁止在一级 Tab 内容区再次展示“申请管理”“票据管理”“数据列表”等重复标题及其说明副标题。
+- ✅ 页面名称由 App Shell 路由、浏览器文档标题和业务模块 `aria-label` 提供语义，不新增可见标题占位。
+- ✅ 一级 Tab 位于筛选区块首行；筛选相关操作跟随查询条件，列表相关操作放在列表工具栏右侧；无一级 Tab 时，使用无标题的右对齐操作行。
+- 同一业务命令在同一视图只保留一个入口。仅当动作在所有主 Tab 下具有相同数据范围、权限和结果语义时，才可作为模块级常驻操作；依赖当前查询或业务对象的导出、新增等动作应放在当前 Tab 工具区，并用“导出查询结果”“导出票据清单”等文案明确作用域。
 
-**区块1 筛选区 HTML 结构参考**：
-
-```html
-<div class="bg-white rounded-lg border border-line p-5 md:p-6 mb-4">
-  <!-- 状态 Tab（按需） -->
-  <div class="flex items-center gap-2 mb-4 flex-wrap">
-    <span class="text-[13px] text-ink-sub mr-1">状态：</span>
-    <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
-      <span class="filter-tab active">全部</span>...
-    </div>
-  </div>
-  <!-- filter-flow：筛选项与操作组共用同一换行流 -->
-  <div class="filter-flow">
-    <div class="filter-item">...</div>
-    ...
-    <div class="filter-actions">
-      <button class="btn btn-primary btn-sm">查询</button>
-      <button class="btn btn-default btn-sm">重置</button>
-    </div>
-  </div>
-</div>
-```
-
-**区块2 数据区 HTML 结构参考**：
+**标准 HTML 结构参考**：
 
 ```html
-<div class="bg-white rounded-lg border border-line p-5 md:p-6">
-  <!-- 标题行 -->
-  <div class="flex items-center justify-between flex-wrap gap-3 mb-4">
-    <h2 class="text-[18px] font-semibold text-ink-title inline-block">数据列表</h2>
-    <button class="btn btn-primary"><i ...></i> 操作</button>
-  </div>
-  <!-- 数据指标卡（有则放，无则跳过） -->
-  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">...</div>
-  <!-- 表格 -->
-  <div class="overflow-x-auto"><table class="data-table">...</table></div>
-  <!-- 分页 -->
-  <div class="flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]" id="pagination"></div>
-</div>
+<main class="app-business-module w-full max-w-none p-4" aria-label="订单管理">
+  <section class="w-full max-w-none bg-white rounded-lg border-0 p-5 md:p-6 mb-4">
+    <!-- 一级 Tab 位于筛选区块内，不附加装饰性图标 -->
+    <div class="primary-tabs border-b border-line-light" role="tablist">...</div>
+    <div class="filter-flow">
+      <div class="filter-item">...</div>
+      ...
+      <div class="filter-actions">
+        <button class="btn btn-primary btn-sm">查询</button>
+        <button class="btn btn-default btn-sm">重置</button>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="w-full max-w-none bg-white rounded-lg border-0 p-5 md:p-6">
+    <div class="flex items-center justify-start gap-2 mb-3">
+      <h2 class="text-[16px] font-semibold text-ink-title">申请列表</h2>
+      <span class="text-[12px] text-ink-muted">共 N 条</span>
+    </div>
+    <div class="flex items-center justify-between gap-3 flex-wrap mb-4 border-t border-line-light pt-3">
+      <div class="flex items-center gap-1 flex-wrap" id="statusTabs">
+        <button class="filter-tab active">全部</button>...
+      </div>
+      <div class="flex items-center gap-2">...</div>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">...</div>
+    <div class="overflow-x-auto"><table class="data-table">...</table></div>
+    <div class="pagination" id="pagination">
+      <div class="pg-nav">...</div>
+      <label class="pg-select-wrap">
+        <select class="pg-select" aria-label="每页条数">...</select>
+      </label>
+      <div class="pg-jump">
+        跳至 <input class="pg-jump-input" value="1" aria-label="跳转页码"> 页
+        <span class="pg-stats">共 N 条记录　第 a/b 页</span>
+      </div>
+    </div>
+  </section>
+</main>
 ```
 
 ### 5.1 按钮
@@ -215,12 +229,16 @@
 | 禁用 | 底色/文字置灰（ink-muted），不可点 |
 | hover/active | 主按钮用 primary-hover / primary-active |
 
+**列表内状态 Tab**：状态筛选使用紧凑分段控件。未选中项为白底、`ink-sub` 字色，相邻项以 `line` 分隔；选中项必须同时使用完整四边 `1px solid primary` 描边、`primary` 字色、`#E6F0FF` 背景和 600 字重。不得只使用底线表示选中状态；相邻边线通过 `margin-left:-1px` 折叠，选中项提高层级，确保四边均清晰且总高度不抖动。
+
 ### 5.2 表格
 
 | 区域 | 样式 |
 |------|------|
 | 表格整体 | `width:100%; border-collapse:collapse; font-size:13px` |
+| 表格外层 | 仅负责 `overflow-x:auto`，不增加外描边、圆角或额外卡片包裹 |
 | 表头 | `line-lighter` 底色（`#F0F1F3`）+ `ink-sub` 字色（`#6E7685`），字重 600，字号 12px，padding `9px 12px`，下边框 `1px solid line`，不换行 |
+| 可排序表头 | 字段名与排序图标水平排列，间距 4px；图标固定 `10×14px`，由上下两个 `10×6px` 实心三角组成，中间间距 2px。未排序时字段名使用 `ink-sub`、上下三角使用 `ink-muted`；升序时字段名与上三角使用 `primary`，降序时字段名与下三角使用 `primary`，另一方向保持 `ink-muted`。使用原生按钮，默认业务顺序可直接显示为激活降序；点击同一字段在升序/降序间切换，点击新字段先进入降序。所属 `th` 必须同步 `aria-sort="none/ascending/descending"`，且字段名与激活方向必须同步高亮。 |
 | 数据行 | 字号 13px，`ink-body` 字色，padding `9px 12px`，下边框 `1px solid line-lighter`，行高约 44–52px |
 | hover 行 | `bg-hover`（`#F3F4F6`）高亮底色；斑马纹可选 |
 | 对齐 | **所有列左对齐**（含数字列）；列头与数据水平 padding 一致，保持上下对齐 |
@@ -228,51 +246,60 @@
 | 响应式 | 表格外层容器 `overflow-x: auto`，窄屏横向滚动 |
 | 操作列 | 操作链接之间 12px 水平间距（如"编辑 删除"），危险操作（删除）用 danger 色 |
 
-> **实现参考**：所有原型页面中表格使用 `.data-table` 类统一以上样式。新页面从框架模板复制后，表格 CSS 已内置。
+> **实现要求**：所有原型页面中的数据列表必须使用 `.data-table` 类统一以上样式。可以追加业务语义类，但不得以 `.xxx-table` 自建另一套表头、行高、间距、hover 或对齐规则；新页面直接复用框架模板内置样式。
+
+> **票据列表字段规则**：票据状态、文件、交付状态、收件人、开具时间分别使用独立列，不得通过“票据 / 文件”或“收件人 / 开具时间”复合表头和单元格合并展示。
+
+> **红冲与配置工作台规则**：红冲任务（含更正申请）和开票配置沿用“筛选/导航区块 + 数据列表区块”的双区结构。红冲任务与更正申请通过筛选项“数据范围”后的连续描边分段控件切换，不额外设置带下分割线的二级导航；红冲任务列表的“状态”“负责人”使用独立列。红冲任务列表使用“红冲任务列表 / 更正申请列表”及紧邻总数；红冲任务的“刷新、导出、发起财务纠错”作为当前列表上下文操作，和“红冲任务列表 + 共 N 条”处于同一标题行并在区块右侧对齐，标题行下保留唯一分割线；红冲指标卡采用 `.is-borderless` 汇总样式。开票配置的受控发布提示独立位于主 Tab 下方；五个配置分类 Tab（开票主体、发票内容、SKU 映射、第三方服务商、通知与 SLA）组成左侧分类导航区，当前分类列表组成右侧数据区。桌面端左侧区块固定宽度 `300px`，左右区块间距 `0px`，交界处使用贯穿区块高度的 `1px line-light` 竖向分割线；左右区块等高，底部与页面内容安全边距保持 `16px`，两个区块均无外描边。右侧列表标题使用“分类名称 + 列表”及紧邻总数，“新增配置、发布变更”与标题处于同一行并在区块右侧对齐，标题下保留唯一分割线；窄屏时导航区与列表区上下堆叠，以横向分割线替代竖线，操作组允许换行但保持右对齐，不产生页面级横向滚动。
 
 ### 5.3 状态 Badge
 
 - 圆角标签（4px），主色字/描边 + 对应浅底；
 - 进行中 success / 临期超时 warning / 异常 danger / 终态 ink-muted 灰。
+- 表格中的参数型状态在明确要求弱化视觉权重时使用纯文字状态：不设置描边、背景、圆角或额外内边距，仅保留 12px 语义色文字与 500 字重；同一列统一使用 Badge 或纯文字，不得混用。
 
 ### 5.4 筛选区
 
-> 筛选区统一采用“定宽筛选项 + 流式换行”的响应式布局。查询控件基准宽度固定为 400px，单行最多展示 4 个查询条件；可用宽度不足时按 4→3→2→1 项自然换行，不产生页面级横向滚动。
+> 筛选区统一采用“右对齐标签 + 300px 定宽控件 + 流式换行”的响应式布局。查询控件基准宽度固定为 300px，字段名称与组件之间不留水平间距；单行最多展示 4 个查询条件，可用宽度不足时按 4→3→2→1 项自然换行，不产生页面级横向滚动。
 
-**容器 `.filter-flow`**：`display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px 24px;`。横向间距 24px 用于区分不同查询维度，纵向间距 16px 用于保持换行后的扫描节奏。
+**容器 `.filter-flow`**：`display:flex; flex-wrap:wrap; align-items:center; column-gap:16px; row-gap:12px; max-width:1776px;`。横向间距 16px 用于区分不同查询维度；换行后的上下两行保持 12px 间距。最大宽度可容纳 4 个完整筛选项及末尾查询操作组，但不能容纳第 5 个筛选项。
 
-**筛选项 `.filter-item`**：`flex:0 0 400px; width:400px; display:flex; flex-direction:column; gap:6px;`。
+**筛选项 `.filter-item`**：`flex:0 0 388px; width:388px; display:flex; flex-direction:row; align-items:center; gap:0;`。388px 由 88px 标签和 300px 控件组成，标签与组件直接相邻，不增加 margin 或 padding 形成额外间距。
 
-**标签 `.filter-label`**：标签位于控件上方，左对齐，`font-size:13px; line-height:18px; color:#3A3F4A;`，不追加中文冒号。
+**标签 `.filter-label`**：标签位于控件左侧并右对齐，`width:88px; flex:none; text-align:right; font-size:13px; line-height:18px; color:#3A3F4A;`；通过 `::after` 统一追加中文冒号 `：`。控件起始边缘在同一筛选项内左对齐。
 
-**控件 `.control`**：`width:400px; max-width:100%;`
+**控件 `.control`**：筛选区内使用 `width:300px; max-width:100%;`。非筛选表单继续按对应组件规范确定宽度。
 
 - 内部 `input` / `select`：`width:100%; height:32px; font-size:14px; padding:0 8px; border-radius:4px; border:1px solid #DFE1E5; color:#3A3F4A; outline:none; font-family:inherit; background:#fff;`
 - placeholder 样式：`color:#9DA2AC; font-size:14px;`
 - focus 态：`border-color:#0066FF; box-shadow:0 0 0 2px rgba(0,102,255,.12);`
 - select 下拉箭头使用内联 SVG background-image 替代浏览器默认样式，`padding-right:24px;`
 
-**日期范围 `.date-range`**：`display:flex; align-items:center; gap:4px;`
+**日期范围 `.date-range`**：筛选区使用一个 300px 组合输入组件，`display:flex; align-items:center; gap:4px; position:relative;`，内部依次为日历图标、开始日期、分隔符和结束日期；字段名与该组件间距仍为 0px。
 
 - 分隔符 `.date-sep`：`font-size:14px; color:#9DA2AC; flex-shrink:0; margin:0 2px;`
-- 日期输入框使用 `type="text"` + `placeholder` 展示提示文字，focus 时切换 `type="date"` 调用原生日期选择器，blur 无值时恢复 `type="text"` 显示 placeholder。
+- 日期输入框使用只读 `type="text"` + `placeholder` 展示提示文字，点击组件任意输入区域展开自定义日期范围下拉框，不再依赖浏览器原生单日期面板。
+- 桌面端日期下拉框宽度 640px，连续展示左右两个月；月标题居中，外侧提供上月/下月图标按钮，星期标题和日期网格均为 7 列。窄屏下拉框宽度为 `calc(100vw - 32px)`，两个月改为纵向排列，不产生页面级横向滚动。
+- 下拉框根据触发组件与视口的可用空间自动向左或向右对齐；无法完整容纳时以视口左右 16px 安全边距为边界，禁止被表格或页面边缘裁切。
+- 第一次点击日期设为开始日期，第二次点击设为结束日期；如果第二次日期早于开始日期则自动交换。区间内部使用 `#E6F0FF` 背景，起止日期使用 `primary` 实底和白字；同一天范围同时作为起止日期。
+- 下拉框底部左侧显示已选范围或下一步提示，右侧提供“清空”“确定”；点击外部或按 `Escape` 收起，月切换、清空和确定不得触发列表查询。确定后仍由筛选区“查询”按钮统一提交全部筛选条件。
 - 空状态文字色 `#9DA2AC`，有值后切换为 `#3A3F4A`。
 
 **查询/重置按钮**使用 `.filter-actions` 作为一个不可拆分的末尾操作组，紧跟最后一个查询条件右侧；按钮间距 12px，高度 32px。操作组不得通过绝对定位或空标签占位实现，容器不足时应整体换行。
 
 **筛选字段顺序建议**：搜索框放第一位，日期范围合并为一个字段（`创建时间：[开始时间 - 结束时间]`），其余按业务优先级排列。单行最多 4 个查询条件，超过 4 个从下一行继续；查询/重置始终位于全部条件之后。
 
-**响应式降级**：当筛选区可用宽度小于 720px 时，`.filter-item` 与 `.control` 均切换为 `width:100%`，操作组保持左对齐并整组换行。桌面及大屏保持 400px 基准宽度，由 Flex 容器依据实际可用宽度决定每行展示数量。
+**响应式降级**：当筛选区可用宽度不足 388px 时，`.filter-item` 切换为 `width:100%`，仍保持标签在左、控件在右；控件使用剩余宽度并允许小于 300px，操作组保持左对齐并整组换行。其余宽度保持 300px 控件基准宽度，由 Flex 容器依据实际可用宽度决定每行展示数量。
 
 **搜索框清空按钮**：搜索输入框在有内容时，右侧显示清空按钮 `✕`（位于搜索图标对面），点击后清空输入内容并保持焦点；无内容时按钮隐藏。清空按钮样式：`position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;font-size:12px;color:#9DA2AC;cursor:pointer`，hover 时颜色变深 `#6E7685`。
 
 ### 5.5 分页
 
-> 严格对齐设计系统.html 中的分页器组件。
+> 所有分页数据列表必须严格复用设计系统.html 中的完整分页器 DOM、class 和页码逻辑，不得输出仅含总数、上一页/下一页或条数选择的简化版分页器。
 
 **容器**：`display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:16px;font-size:12px`。
 
-**位置**：分页器放在数据表格所在区块卡片（`.bg-white.rounded-lg.border`）内部，位于表格（`.overflow-x-auto`）的右下方，通过 `pt-5`（20px）与上方表格区域保持间距。分页器**不是**独立的区块卡片，而应与表格同属一个卡片区块。
+**位置**：分页器放在数据表格所在无描边内容区块（`.bg-white.rounded-lg.border-0`）内部，位于表格（`.overflow-x-auto`）的右下方，通过 `pt-5`（20px）与上方表格区域保持间距。分页器**不是**独立区块，也不得增加外描边，应与表格同属一个内容区块。
 
 **布局（三区，居右）**：
 
@@ -290,6 +317,7 @@
 **省略号 `.pg-ellipsis`**：`min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC;font-size:13px`
 
 **条/页下拉 `.pg-select`**：`font:12px inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none`
+- 选项固定为 `10 / 20 / 50 条/页`，默认 `20 条/页`；不得另行添加与其他列表不一致的 `100 条/页`。
 - `.pg-select-wrap`：`position:relative;display:inline-flex;align-items:center`
 - `.pg-select-wrap::after`：`content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none`
 
@@ -300,6 +328,8 @@
 **统计文字 `.pg-stats`**：`color:#9DA2AC;white-space:nowrap`
 
 **页码逻辑**：≤7 页全显示；>7 页时始终显示首页和末页，当前页 ±1 范围显示，其余用 `…` 折叠。
+
+**响应式**：桌面端三区整体居右；窄屏允许自然换行，小于 520px 时分页器改为纵向排列并左对齐。分页器自身不得造成页面级横向滚动。
 
 ### 5.6 弹窗 Modal
 
@@ -392,7 +422,7 @@
 ### 5.10 卡片
 
 - 通用数据卡片：`bg-card` + `line` 边框 + 圆角 8px + 内边距 16–20px；
-- App Shell 路由承载卡片和配置页主要业务区块：使用 `bg-card`、圆角与留白分层，默认不使用外描边；内部标题/内容分隔可继续使用 `line-lighter`；
+- App Shell 路由承载卡片和配置页主要业务区块：使用 `width:100%; max-width:none; bg-card; border:0`、圆角与留白分层；业务内容区块不得使用外描边，内部标题/内容分隔可继续使用 `line-lighter`；
 - 强调型配置命令区可使用浅主色背景与 `1px` 浅蓝描边，但同一页面只保留一个此类强调容器。
 
 ### 5.11 图标
@@ -420,7 +450,7 @@
 
 **标准悬浮开关**：使用“tags 图标 + 交互标注”文字的 32px 高胶囊按钮，右侧间距 8px。单击切换标注显隐；长按 350ms 后可沿页面右侧上下拖拽，位置限制在视口安全区并持久化。拖拽完成不得误触发显隐切换。
 
-**业务页面标注隔离**：复用 App Shell 的业务页面只渲染当前业务内容区及该页面固定操作栏的标注，侧栏、顶部导航和系统级浮层不显示编号。编号从 1 开始，按上→下、左→右连续排列；折叠区或子流程编号仅在对应内容可见时显示。任何会改变文档流高度的控件开合后必须重新计算标注位置。
+**业务页面标注隔离**：复用 App Shell 的业务模块只渲染当前业务内容区及业务浮层的标注，侧栏、顶部导航和系统级浮层由框架标注独立负责。业务标注开关恢复为页面右侧悬浮胶囊按钮，不得由 App Shell 自动创建“页面工具”区块或将浮标移入工具栏；浮标支持拖拽调整位置、限制在视口安全区并持久化，拖拽结束不得误触显隐切换。框架标注开关继续使用 TopBar 图标按钮。业务编号从 1 开始，按上→下、左→右连续排列；折叠区或子流程编号仅在对应内容可见时显示。任何会改变文档流高度的控件开合后必须重新计算标注位置。
 
 ---
 
@@ -431,21 +461,29 @@
 经典三段布局：
 
 ```
-顶部栏 TopBar（系统名 / 用户 / 退出；无描边、底部轻阴影）
+顶部栏 TopBar（平台 Logo 与名称 / 移动导航 / 框架标注 / 通知 / 账号；不显示功能模块名称，无描边、仅底部轻阴影）
 ├─ 侧边导航 Sidebar（220px，可折叠，当前页高亮；容器无描边）
-│   ├─ 一级菜单 .menu-item.l1：padding-left 20px，含 28×28 图标 + 10px 间距，文字起始 58px
+│   ├─ 一级菜单 .menu-item.l1：左侧 Lucide 图标统一 16×16px，图标与文字间距 12px
 │   └─ 二级菜单 .menu-item.l2：padding-left 64px（比一级文字右缩 6px，形成层级缩进）
-└─ 主内容区 MainContent（flex-1，bg-page 背景，p-4 内边距，自适应宽度）
-    ├─ App Shell 内容承载卡片：bg-white rounded-lg p-5 md:p-6，无描边；卡片内部所需分隔仍使用 line
+└─ 主内容区 MainContent（flex-1，bg-page 背景，唯一纵向滚动容器，自适应宽度）
+    ├─ Router Outlet 本身不重复添加内边距；业务模块使用 `width:100%; max-width:none; padding-inline:16px`（p-4），框架不自动插入“页面工具”区块，历史模块根级 `.app-module-toolbar` 统一不展示
+    ├─ App Shell 内容承载卡片：width:100%; max-width:none; bg-white rounded-lg p-5 md:p-6，无描边；卡片内部所需分隔仍使用 line
     ├─ 单区块：卡片最小高度 = 内容区高度 − 16px（`min-h-full` + `flex-1` 撑满），内容超过时自适应增高，main 滚动
     ├─ 多区块（≥2）：卡片高度由内容决定，垂直堆叠，间距 16px（mb-4）
-    └─ 无面包屑，页面标题内嵌于首张卡片中
+    └─ 无面包屑、页面标题和页面副标题；有一级 Tab 时直接以 Tab 作为业务内容起点，Tab 下不重复展示标题/副标题
 ```
 
 **App Shell 导航栏细则**：
 
-- Logo 区块与侧边栏容器均不使用边框；完整态显示 Logo，并将“收起侧栏”按钮置于右侧；紧凑态隐藏 Logo，仅将“展开侧栏”按钮居中显示，避免 68px 宽度内发生重叠；
-- TopBar 不使用底部描边，使用 `0 4px 12px rgba(26,29,36,.10)` 向下阴影与正文分层；保持 sticky/固定时阴影不得被主内容裁切；
+- 平台 Logo 与平台名称固定放置于全宽 TopBar 左侧，不在侧栏内重复展示；TopBar 不显示功能模块名称，阴影只向下投射，左侧不得出现阴影；
+- 侧栏收起/展开按钮固定在侧栏右边缘垂直居中，尺寸为 12×50px，鼠标移入或键盘聚焦侧栏时显示；默认背景为 `#E5E6ED`，按钮 hover 背景为 `#ACB0BA`，按钮内使用白色实心方向箭头。完整态点击“收起”后侧栏切换为 68px 图标态，图标态点击“展开”后恢复 220px；
+- 侧栏功能模块左侧 Lucide 图标统一为 16×16px；折叠按钮、二级菜单 Chevron、顶部栏与业务内容图标按各自组件规范执行；
+- 侧栏所有可点击模块文字（一级菜单、唯一展开组及二级菜单）统一使用 13px，字距为 0；仅静态分组标题使用 11px 辅助字号；
+- `系统框架.html` 是后台唯一 App Shell，只有它可以渲染 TopBar、Sidebar、全局通知、账号入口和菜单路由；业务模块只交付内容区 DOM、页面工具栏、业务浮层与业务脚本，禁止再次声明侧栏或顶部栏；
+- 已完成业务模块统一注册到 `系统框架.js`，使用 `系统框架.html#route-id` 深链；旧业务 HTML 仅保留兼容跳转并透传查询参数，不再维护任何公共导航结构；
+- 工作台是无 hash 或 `#home` 的默认内容；切换模块必须支持浏览器前进/后退，并在会话内恢复模块筛选值、当前 Tab、分页和有效滚动位置，侧栏折叠态使用本地持久化；
+- 页面专属操作由业务模块放置在自身内容区内；TopBar 只保留全局操作，App Shell 不为业务模块自动生成页面工具栏，历史模块根级 `.app-module-toolbar` 统一隐藏，避免因业务模块差异造成公共框架分叉；
+- TopBar 不使用底部描边，使用仅向下可见的轻阴影与正文分层，并裁掉顶部及左右阴影；保持固定时底部阴影不得被主内容裁切；
 - 页面底部固定操作栏使用方向相反的向上阴影，正文底部需预留其高度，避免最后一项表单被遮挡；
 - 本规则仅适用于后台 App Shell 的顶栏、侧栏与路由内容承载容器。表格、表单控件、弹窗与卡片内部信息分隔仍按各自组件规范使用 `line` 边框。
 
@@ -475,7 +513,7 @@ tailwind.config = {
       },
       borderRadius: { DEFAULT: '4px', md: '6px', lg: '8px' },
       fontFamily: {
-        sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI','system-ui','sans-serif'],
+        sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue','Helvetica','Arial','sans-serif'],
         mono: ['JetBrains Mono','monospace'],
       },
     }

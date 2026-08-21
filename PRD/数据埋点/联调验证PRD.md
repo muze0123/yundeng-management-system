@@ -1,19 +1,19 @@
-# 实时调试 PRD
+# 联调验证 PRD
 
-> 所属模块：数据埋点 / 实时调试  
+> 所属模块：数据埋点 / 联调验证
 > 路由：`/data-tracking/debug`  
 > 优先级：P0  
 > 状态：可直接用于 Vibecoding
 
-## 1. Problem Statement
+## 1. 问题陈述
 
 研发和 QA 缺少安全的实时上报检查工具，难以验证事件是否触发、次数是否正确、Schema 是否匹配、request_id/trace_id 是否贯通。直接查看日志容易泄露敏感载荷；高频事件还会导致页面卡顿和重要事件被淹没。
 
-## 2. Solution
+## 2. 解决方案
 
 提供有时限的调试会话：按测试标识连接、实时监听、暂停、过滤、固定、展开脱敏属性、复制脱敏 JSON，并为事件记录 Schema 校验与 QA 结论。界面最多保留 500 条，服务端负责权限、脱敏和敏感扫描。
 
-## 3. User Stories
+## 3. 用户故事
 
 1. 作为 QA，我想按测试 user/session/event/request/trace 标识监听事件。
 2. 作为研发，我想查看端、版本、时间和链路 ID。
@@ -72,7 +72,7 @@ stateDiagram-v2
 
 自动重连 1/2/5/10 秒退避，最多 5 次；重连成功后显示断线区间和服务端补发数量。无法补发时明确“断线期间可能缺失 N 秒数据”。
 
-## 7. Schema 校验与详情
+## 7. 数据结构校验与详情
 
 校验结果：valid、missing_required、type_mismatch、invalid_enum、unknown_property、deprecated_schema、sensitive_detected。详情显示期望类型/实际类型类别、规则和字段 key，但 sensitive_detected 不显示原值。
 
@@ -80,7 +80,7 @@ stateDiagram-v2
 
 QA 验证状态：unverified/pass/fail。pass 必须所有 P0 必填属性 valid；fail 必须选择原因码，备注 ≤300 字且经过敏感扫描。
 
-## 8. 交互与 State Management
+## 8. 交互与状态管理
 
 1. 开始监听创建 debugSessionId，成功后锁定标识条件；
 2. incomingQueue 每 200ms 批量写入 UI，避免逐事件重绘；
@@ -93,7 +93,7 @@ QA 验证状态：unverified/pass/fail。pass 必须所有 P0 必填属性 valid
 9. 标记验证成功后刷新事件管理的发布检查证据；
 10. 切路由时活动会话提示“后台继续/停止并离开/取消”。
 
-## 9. Loading、Empty、Error 与边界
+## 9. 加载中、空状态、错误 与边界
 
 | 状态 | 表现 |
 |---|---|
@@ -133,13 +133,13 @@ QA 验证状态：unverified/pass/fail。pass 必须所有 P0 必填属性 valid
 - 脱敏复制：“已复制脱敏数据”
 - 敏感命中：“检测到禁止采集的数据，原值已隐藏”
 
-## 13. Mock 与 Portal 标注
+## 13. 模拟数据与门户标注
 
 原型每 300–1200ms 生成事件，覆盖 20 个事件名、四端、七类校验结果、断线/重连/到期、500 条上限和敏感扫描。不得生成真实敏感值，统一用 `[REDACTED]`。
 
 标注覆盖标识选择、开始/停止、连接状态、暂停、清空、过滤、固定、校验状态、属性树、复制、QA 验证和断线恢复。
 
-## 14. Testing Decisions
+## 14. 测试决策
 
 以 `debugSessionState + incomingQueue + currentView` 测试。验收：
 
@@ -152,7 +152,34 @@ QA 验证状态：unverified/pass/fail。pass 必须所有 P0 必填属性 valid
 7. QA 证据同步事件管理；
 8. 权限、生产二次确认和审计正确。
 
-## 15. Out of Scope
+## 15. 非目标范围
 
 修改/重放生产事件、显示原始敏感载荷、长期日志检索、网络抓包和客户端远程控制。
 
+## 16. 页面布局详细规格（V1.1 补充）
+
+```text
+Main / PageContainer（24px）
+├─ SessionControlBar（72px）
+│  ├─ 测试用户/设备/端/版本
+│  ├─ 开始或停止会话
+│  └─ 连接状态 / 剩余时间 / 已接收数
+└─ DebugWorkspace（高度至少 680px）
+   ├─ EventStream（42%）
+   │  ├─ FilterToolbar（48px）
+   │  └─ VirtualEventList（独立滚动）
+   └─ Inspector（58%）
+      ├─ Tabs：概要 / 属性 / Schema 校验 / 脱敏载荷 / 链路
+      ├─ InspectorBody（独立滚动）
+      └─ ValidationActions（64px，sticky）
+GlobalLayer
+├─ StartSessionDialog（640px）
+├─ EndSessionDialog（520px）
+└─ SensitiveRuleDrawer（720px）
+```
+
+会话控制条始终可见；running 时锁定调试目标但允许停止。事件行高 56px，最多保留 500 条；用户向上查看时不强制滚底。Inspector 未选择事件时显示引导，选中后不因新事件到达自动跳走。属性表展示 key、脱敏值、类型、必填、校验结果。
+
+1024–1279px 时 EventStream 36%、Inspector 64%，不得把 Inspector 改成弹窗。断线横幅位于控制条下，不覆盖事件流。连接中、运行中、重连中、已停止、已过期五种状态不得造成布局跳动。
+
+布局验收：选中事件被淘汰时有明确提示；敏感命中只显示规则和字段名；Drawer/Dialog 叠加时 Portal、焦点和滚动锁配对；500 条事件、超长属性、空流和网络重连均可演示。

@@ -1,7 +1,9 @@
 (function () {
   'use strict';
 
-  const MODULE_VERSION = '20260821-invoice-sort';
+  const MODULE_VERSION = '20260822-index-shell';
+  const APP_ENTRY = 'index.html';
+  const RESOURCE_ROOT = 'Prototype/';
   const SIDEBAR_STATE_KEY = 'yundeng-app-shell-sidebar-compact';
   const GROUP_STATE_KEY = 'yundeng-app-shell-group-state';
   const MODULE_STATE_PREFIX = 'yundeng-app-shell-module-state:';
@@ -75,6 +77,7 @@
 
   const legacyRoutes = {
     'index.html': 'home',
+    '系统框架.html': 'home',
     '用户统计.html': 'user-statistics',
     '团队列表.html': 'team-list',
     '企业列表.html': 'enterprise-list',
@@ -151,7 +154,7 @@
   }
 
   function routeHref(routeId, search = '') {
-    const target = new URL('系统框架.html', location.href);
+    const target = new URL(APP_ENTRY, location.href);
     target.search = search;
     target.hash = routeId;
     return `${target.pathname.split('/').pop()}${target.search}${target.hash}`;
@@ -341,12 +344,17 @@
     });
   }
 
+  function moduleResource(src) {
+    return /^(?:[a-z]+:|\/|data:)/i.test(src) ? src : `${RESOURCE_ROOT}${src}`;
+  }
+
   function loadStyle(href) {
-    const absolute = new URL(href, document.baseURI).href;
+    const resourceHref = /^(?:[a-z]+:|\/|data:)/i.test(href) ? href : `${RESOURCE_ROOT}${href}`;
+    const absolute = new URL(resourceHref, document.baseURI).href;
     if ([...document.styleSheets].some((sheet) => sheet.href === absolute)) return;
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = href;
+    link.href = resourceHref;
     link.dataset.appModuleStyle = currentRoute.id;
     document.head.append(link);
   }
@@ -366,7 +374,7 @@
     if (url.origin !== location.origin && location.protocol !== 'file:') return;
     const file = decodeURIComponent(url.pathname.split('/').pop() || '');
     let routeId = legacyRoutes[file];
-    if (file === '系统框架.html' && url.hash) routeId = decodeURIComponent(url.hash.slice(1));
+    if ((file === '系统框架.html' || file === 'index.html') && url.hash) routeId = decodeURIComponent(url.hash.slice(1));
     if (!routeId) return;
     anchor.href = routeHref(routeId, url.search);
     anchor.dataset.appRoute = routeId;
@@ -383,7 +391,7 @@
       return;
     }
 
-    await loadScript(`modules/${route.module}.js?v=${MODULE_VERSION}`, 'module-bundle');
+    await loadScript(`${RESOURCE_ROOT}modules/${route.module}.js?v=${MODULE_VERSION}`, 'module-bundle');
     const bundle = window.YundengModuleBundles?.[route.module];
     if (!bundle) throw new Error(`模块 ${route.module} 未注册`);
 
@@ -395,7 +403,7 @@
       document.head.append(style);
     });
 
-    for (const scriptSrc of bundle.externalScripts) await loadScript(scriptSrc, 'module-dependency');
+    for (const scriptSrc of bundle.externalScripts) await loadScript(moduleResource(scriptSrc), 'module-dependency');
 
     outlet.innerHTML = bundle.html;
     rewriteLegacyLinks();
@@ -411,7 +419,7 @@
 
     window.lucide?.createIcons();
     bundle.scripts.forEach(runInlineScript);
-    if (bundle.usesAnnotations) await loadScript(`标注交互.js?v=${MODULE_VERSION}`, 'module-annotations');
+    if (bundle.usesAnnotations) await loadScript(`${RESOURCE_ROOT}标注交互.js?v=${MODULE_VERSION}`, 'module-annotations');
     window.lucide?.createIcons();
     moduleReady = true;
     restoreModuleState();

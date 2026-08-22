@@ -3,117 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>云登后台 · 工作台</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <title>正在进入云登后台</title>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            primary: { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
-            ink: { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
-            line: { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
-            page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6',
-            bg: { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6', subtle: '#F5F8FF' },
-            success: { DEFAULT: '#0FC060', bg: '#E7F9F0' },
-            warning: { DEFAULT: '#E7772D', bg: '#FDF2E9' },
-            danger: { DEFAULT: '#D9001B', bg: '#FFE8EB' },
-            info: { DEFAULT: '#0091D5', bg: '#E4F4FB' },
-            primaryBg: '#E6F0FF'
-          },
-          fontFamily: { mono: ['JetBrains Mono', 'monospace'] }
-        }
-      }
-    };
+    (function () {
+      var target = new URL('../index.html', location.href);
+      target.search = location.search;
+      target.hash = location.hash || '#home';
+      location.replace(target.href);
+    })();
   </script>
-  <link rel="stylesheet" href="系统框架.css?v=20260821-fonts">
 </head>
 <body>
-  <div class="app-shell">
-    <header id="appTopbar" class="app-topbar" data-app-anno="3">
-      <div class="app-topbar-left">
-        <button id="appMobileMenu" class="app-icon-button app-mobile-menu" type="button" aria-label="展开导航" aria-controls="appSidebar" aria-expanded="false">
-          <i data-lucide="menu" class="w-5 h-5"></i>
-        </button>
-        <a class="app-brand-link" href="系统框架.html#home" data-app-route="home" aria-label="云登后台工作台">
-          <span class="app-brand-mark">云</span>
-          <span class="app-brand-copy">云登后台</span>
-        </a>
-      </div>
-      <div class="app-topbar-right">
-        <button id="appShellAnnoToggle" class="app-icon-button app-shell-anno-toggle" type="button" aria-label="显示框架交互标注" aria-pressed="false" title="框架交互标注">
-          <i data-lucide="tags" class="w-[18px] h-[18px]"></i>
-        </button>
-        <button id="appNoticeButton" class="app-icon-button relative" type="button" aria-label="通知" aria-haspopup="dialog">
-          <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
-          <span id="appNoticeDot" class="app-notice-dot"></span>
-        </button>
-        <span class="app-topbar-separator" aria-hidden="true"></span>
-        <button id="appAccountButton" class="app-account-button" type="button" aria-label="管理员账号" aria-haspopup="menu">
-          <span class="app-avatar">数</span>
-          <span class="app-account-name">数据管理员</span>
-          <i data-lucide="chevron-down" class="app-account-chevron w-3.5 h-3.5 text-ink-muted"></i>
-        </button>
-      </div>
-    </header>
-
-    <div class="app-shell-body">
-      <aside id="appSidebar" class="app-sidebar" aria-label="主导航">
-        <nav id="appPrimaryNav" class="app-primary-nav" data-app-anno="2" aria-label="后台功能导航"></nav>
-
-        <div class="app-sidebar-footer">
-          <div class="app-sidebar-divider" aria-hidden="true"></div>
-          <button class="app-bottom-link" type="button" data-app-global-action="settings">
-            <i data-lucide="settings-2" class="app-menu-icon"></i>
-            <span class="app-bottom-label">系统设置</span>
-          </button>
-        </div>
-
-        <button id="appCollapseButton" class="app-collapse-button" type="button" data-app-anno="1" aria-label="收起侧栏" aria-controls="appSidebar" aria-expanded="true" title="收起侧栏">
-        </button>
-      </aside>
-
-      <button id="appMobileOverlay" class="app-mobile-overlay" type="button" aria-label="关闭导航" hidden></button>
-
-      <div class="app-workspace">
-        <main id="appContent" class="app-content" tabindex="-1">
-          <div id="appRouteOutlet" class="app-route-outlet" aria-live="polite"></div>
-        </main>
-      </div>
-    </div>
-  </div>
-
-  <div id="appNoticePopover" class="app-popover app-notice-popover" role="dialog" aria-label="通知" hidden>
-    <div class="app-popover-header">
-      <strong>通知</strong>
-      <button id="appReadAll" class="app-link-button" type="button">全部已读</button>
-    </div>
-    <div id="appNoticeList"></div>
-    <button class="app-account-action justify-center" type="button" data-app-global-action="notice-center">查看全部通知</button>
-  </div>
-
-  <div id="appAccountPopover" class="app-popover app-account-popover" role="menu" aria-label="管理员账号菜单" hidden>
-    <div class="app-account-meta">角色：数据管理员<br>数据范围：全部授权团队</div>
-    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="profile"><i data-lucide="user-round" class="w-4 h-4"></i>账号资料</button>
-    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="security"><i data-lucide="shield-check" class="w-4 h-4"></i>安全设置</button>
-  </div>
-
-  <div id="appCompactFlyout" class="app-compact-flyout" role="menu" aria-label="口径治理二级菜单" hidden></div>
-  <div id="appToastContainer" class="app-toast-container" aria-live="polite"></div>
-
-  <div id="appShellAnnoLayer" class="app-shell-anno-layer"></div>
-  <div id="appShellAnnoDialog" class="app-shell-anno-dialog" role="dialog" aria-modal="true" aria-labelledby="appShellAnnoTitle" hidden>
-    <div class="app-shell-anno-panel">
-      <div class="app-shell-anno-header">
-        <h2 id="appShellAnnoTitle"></h2>
-        <button id="appShellAnnoClose" class="app-icon-button" type="button" aria-label="关闭标注说明"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-      <div id="appShellAnnoBody" class="app-shell-anno-body"></div>
-    </div>
-  </div>
-
-  <script src="系统框架.js?v=20260821-invoice-sort"></script>
+  <noscript><a href="../index.html#home">进入云登后台</a></noscript>
 </body>
 </html>

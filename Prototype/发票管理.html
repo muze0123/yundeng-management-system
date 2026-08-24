@@ -1199,18 +1199,16 @@ a { -webkit-tap-highlight-color: transparent; }
   padding: 16px;
 }
 
-/* 表单型 Modal 使用纯文字按钮，底部操作组按标准顺序靠右对齐。 */
-.invoice-module #invoiceDialog[data-dialog-type="correction"] .invoice-dialog-footer,
-.invoice-module #invoiceDialog[data-dialog-type="red-retry"] .invoice-dialog-footer {
+/* 弹窗底部统一使用纯文字按钮：取消在左，核心操作在右，整组居右。 */
+.invoice-module #invoiceDialog .invoice-dialog-footer {
   justify-content: flex-end;
   flex-direction: row;
   gap: 12px;
+  padding: 16px 24px;
 }
 
-.invoice-module #invoiceDialog[data-dialog-type="correction"] .invoice-dialog-footer [data-lucide],
-.invoice-module #invoiceDialog[data-dialog-type="correction"] .invoice-dialog-footer .lucide,
-.invoice-module #invoiceDialog[data-dialog-type="red-retry"] .invoice-dialog-footer [data-lucide],
-.invoice-module #invoiceDialog[data-dialog-type="red-retry"] .invoice-dialog-footer .lucide {
+.invoice-module #invoiceDialog .invoice-dialog-footer [data-lucide],
+.invoice-module #invoiceDialog .invoice-dialog-footer .lucide {
   display: none !important;
 }
 
@@ -1380,14 +1378,12 @@ a { -webkit-tap-highlight-color: transparent; }
   var footer = root.querySelector('#invoiceDialogFooter');
   if (!dialog || !title || !footer) return;
 
-  function normalizeDialogFooter(type) {
-    if (type !== 'correction' && type !== 'red-retry') return;
+  function normalizeDialogFooter() {
     footer.querySelectorAll('[data-lucide], .lucide').forEach(function (icon) {
       icon.remove();
     });
-    if (type !== 'red-retry') return;
-    var cancel = footer.querySelector('[data-action="close-dialog"]');
-    var confirm = footer.querySelector('[data-action="confirm-dialog"]');
+    var cancel = footer.querySelector('[data-direct-review-close], [data-invoice-config-action="cancel"], [data-action="close-dialog"]');
+    var confirm = footer.querySelector('[data-direct-review-confirm], [data-invoice-config-action="save"], [data-action="confirm-dialog"]');
     if (cancel && confirm && cancel.nextElementSibling !== confirm) footer.insertBefore(cancel, confirm);
   }
 
@@ -1400,7 +1396,7 @@ a { -webkit-tap-highlight-color: transparent; }
       if (nextType) dialog.dataset.dialogType = nextType;
       else delete dialog.dataset.dialogType;
     }
-    normalizeDialogFooter(nextType);
+    normalizeDialogFooter();
     removeProductionVersionCopy();
   }
 
@@ -1480,10 +1476,14 @@ a { -webkit-tap-highlight-color: transparent; }
   display: grid;
   grid-template-columns: 120px minmax(0, 500px);
   align-items: start;
-  gap: 16px;
+  column-gap: 16px;
+  row-gap: 6px;
 }
 
 .invoice-module .invoice-config-editor-field > label:first-child {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
   padding-top: 7px;
   color: var(--invoice-body);
   font-size: 13px;
@@ -1495,9 +1495,28 @@ a { -webkit-tap-highlight-color: transparent; }
   content: '：';
 }
 
+.invoice-module .invoice-config-required {
+  margin-right: 4px;
+  color: var(--invoice-danger);
+  font-weight: 600;
+}
+
 .invoice-module .invoice-config-editor-field .invoice-control {
   width: 500px;
   max-width: 100%;
+}
+
+.invoice-module .invoice-config-editor-field .invoice-control.is-error {
+  border-color: var(--invoice-danger);
+  box-shadow: 0 0 0 2px rgba(217, 0, 27, .08);
+}
+
+.invoice-module .invoice-config-field-error {
+  grid-column: 2;
+  margin: 0;
+  color: var(--invoice-danger);
+  font-size: 12px;
+  line-height: 18px;
 }
 
 .invoice-module .invoice-config-editor-dialog .invoice-dialog-footer {
@@ -1532,13 +1551,6 @@ a { -webkit-tap-highlight-color: transparent; }
 .invoice-module .invoice-config-editor-help {
   margin: -6px 0 0 136px;
   color: var(--invoice-muted);
-  font-size: 12px;
-  line-height: 18px;
-}
-
-.invoice-module .invoice-config-editor-error {
-  margin-left: 136px;
-  color: var(--invoice-danger);
   font-size: 12px;
   line-height: 18px;
 }
@@ -1691,13 +1703,17 @@ a { -webkit-tap-highlight-color: transparent; }
   }
 
   .invoice-module .invoice-config-editor-field > label:first-child {
+    justify-content: flex-start;
     padding-top: 0;
     text-align: left;
   }
 
-  .invoice-module .invoice-config-editor-help,
-  .invoice-module .invoice-config-editor-error {
+  .invoice-module .invoice-config-editor-help {
     margin-left: 0;
+  }
+
+  .invoice-module .invoice-config-field-error {
+    grid-column: 1;
   }
 
   .invoice-module .invoice-red-detail-header {
@@ -1725,13 +1741,17 @@ a { -webkit-tap-highlight-color: transparent; }
   }
 
   .invoice-module .invoice-config-editor-field > label:first-child {
+    justify-content: flex-start;
     padding-top: 0;
     text-align: left;
   }
 
-  .invoice-module .invoice-config-editor-help,
-  .invoice-module .invoice-config-editor-error {
+  .invoice-module .invoice-config-editor-help {
     margin-left: 0;
+  }
+
+  .invoice-module .invoice-config-field-error {
+    grid-column: 1;
   }
 
   .invoice-module .invoice-red-detail-grid {
@@ -1755,31 +1775,31 @@ a { -webkit-tap-highlight-color: transparent; }
     entities: {
       label: '开票主体',
       fields: [
-        { id: 'name', label: '主体名称', type: 'text', placeholder: '请输入企业或个人主体名称', required: true },
-        { id: 'taxId', label: '纳税人识别号', type: 'text', placeholder: '请输入纳税人识别号或个人证件号', required: true },
-        { id: 'scope', label: '适用范围', type: 'text', placeholder: '例如：代理服务、API/RPA 服务', required: true },
+        { id: 'name', label: '主体名称', type: 'text', placeholder: '请输入企业或个人主体名称', errorMessage: '请输入主体名称', required: true },
+        { id: 'taxId', label: '纳税人识别号', type: 'text', placeholder: '请输入纳税人识别号或个人证件号', errorMessage: '请输入纳税人识别号', required: true },
+        { id: 'scope', label: '适用范围', type: 'text', placeholder: '例如：代理服务、API/RPA 服务', errorMessage: '请输入适用范围', required: true },
         { id: 'provider', label: '服务商', type: 'select', options: ['百望云', '航信云'], required: true },
-        { id: 'types', label: '支持票种', type: 'choice', options: ['数电普票', '数电专票'] }
+        { id: 'types', label: '支持票种', type: 'choice', options: ['数电普票', '数电专票'], required: true }
       ]
     },
     contents: {
       label: '发票内容',
       fields: [
-        { id: 'label', label: '展示名称', type: 'text', placeholder: '例如：信息技术服务*技术服务费', required: true },
-        { id: 'standardName', label: '标准名称', type: 'text', placeholder: '请输入税务标准名称', required: true },
-        { id: 'taxCode', label: '税收分类编码', type: 'text', placeholder: '请输入税收分类编码', required: true },
+        { id: 'label', label: '展示名称', type: 'text', placeholder: '例如：信息技术服务*技术服务费', errorMessage: '请输入展示名称', required: true },
+        { id: 'standardName', label: '标准名称', type: 'text', placeholder: '请输入税务标准名称', errorMessage: '请输入标准名称', required: true },
+        { id: 'taxCode', label: '税收分类编码', type: 'text', placeholder: '请输入税收分类编码', errorMessage: '请输入税收分类编码', required: true },
         { id: 'taxRate', label: '税率', type: 'select', options: ['6%', '9%', '13%', '免税'], required: true },
-        { id: 'types', label: '适用票种', type: 'choice', options: ['数电普票', '数电专票'] }
+        { id: 'types', label: '适用票种', type: 'choice', options: ['数电普票', '数电专票'], required: true }
       ]
     },
     sku: {
       label: 'SKU 映射',
       fields: [
-        { id: 'skuId', label: 'SKU', type: 'text', placeholder: '请输入 SKU 编号', required: true },
+        { id: 'skuId', label: 'SKU', type: 'text', placeholder: '请输入 SKU 编号', errorMessage: '请输入 SKU 编号', required: true },
         { id: 'businessType', label: '业务类型', type: 'select', options: ['代理服务', '平台服务', '增值服务'], required: true },
         { id: 'seller', label: '开票主体', type: 'select', options: ['云登网络科技（上海）有限公司', '云登信息技术（深圳）有限公司'], required: true },
-        { id: 'content', label: '默认内容', type: 'text', placeholder: '请输入发票内容配置 ID', required: true },
-        { id: 'paymentScope', label: '支付范围', type: 'choice', options: ['法币支付'] }
+        { id: 'content', label: '默认内容', type: 'text', placeholder: '请输入发票内容配置 ID', errorMessage: '请输入默认内容', required: true },
+        { id: 'paymentScope', label: '支付范围', type: 'choice', options: ['法币支付'], required: true }
       ]
     },
     providers: {
@@ -1787,19 +1807,19 @@ a { -webkit-tap-highlight-color: transparent; }
       fields: [
         { id: 'name', label: '服务商', type: 'select', options: ['百望云', '航信云'], required: true },
         { id: 'environment', label: '环境', type: 'select', options: ['生产', '沙箱'], required: true },
-        { id: 'apiVersion', label: '接口版本', type: 'text', placeholder: '例如：v2.1', required: true },
+        { id: 'apiVersion', label: '接口版本', type: 'text', placeholder: '例如：v2.1', errorMessage: '请输入接口版本', required: true },
         { id: 'timeout', label: '请求超时', type: 'select', options: ['15 秒', '30 秒', '60 秒'], required: true },
-        { id: 'capabilities', label: '能力开关', type: 'choice', options: ['蓝票开具', '红冲', '文件补拉'] }
+        { id: 'capabilities', label: '能力开关', type: 'choice', options: ['蓝票开具', '红冲', '文件补拉'], required: true }
       ]
     },
     notifications: {
       label: '通知与 SLA',
       fields: [
         { id: 'scene', label: '通知场景', type: 'select', options: ['审核超时提醒', '交付失败告警', '第三方 UNKNOWN 告警'], required: true },
-        { id: 'target', label: '接收组', type: 'text', placeholder: '请输入接收人或团队', required: true },
-        { id: 'threshold', label: '触发阈值', type: 'text', placeholder: '例如：24 小时', required: true },
-        { id: 'channels', label: '通知渠道', type: 'choice', options: ['站内通知', '邮件', '短信'] },
-        { id: 'template', label: '模板版本', type: 'text', placeholder: '例如：v3', required: true }
+        { id: 'target', label: '接收组', type: 'text', placeholder: '请输入接收人或团队', errorMessage: '请输入接收人或团队', required: true },
+        { id: 'threshold', label: '触发阈值', type: 'text', placeholder: '例如：24 小时', errorMessage: '请输入触发阈值', required: true },
+        { id: 'channels', label: '通知渠道', type: 'choice', options: ['站内通知', '邮件', '短信'], required: true },
+        { id: 'template', label: '模板版本', type: 'text', placeholder: '例如：v3', errorMessage: '请输入模板版本', required: true }
       ]
     }
   };
@@ -1821,18 +1841,74 @@ a { -webkit-tap-highlight-color: transparent; }
   function fieldMarkup(field, prefix, editValues) {
     var id = prefix + field.id;
     var value = editValues[field.id] || '';
-    var required = field.required ? ' required' : '';
+    var required = field.required ? ' required aria-required="true"' : '';
+    var requiredMark = field.required ? '<span class="invoice-config-required" aria-hidden="true">*</span>' : '';
+    var errorId = id + 'Error';
+    var errorMessage = field.errorMessage || '请输入' + field.label;
+    var fieldAttrs = ' data-required="' + String(Boolean(field.required)) + '" data-field-type="' + esc(field.type) + '" data-error-message="' + esc(errorMessage) + '"';
+    var describedBy = field.required ? ' aria-describedby="' + esc(errorId) + '"' : '';
+    var fieldError = field.required ? '<p id="' + esc(errorId) + '" class="invoice-config-field-error" hidden>' + esc(errorMessage) + '</p>' : '';
     if (field.type === 'choice') {
-      return '<div class="invoice-config-editor-field"><label>' + esc(field.label) + '</label><div class="invoice-config-editor-choice-row">' + field.options.map(function (option, index) {
+      return '<div class="invoice-config-editor-field"' + fieldAttrs + '><label>' + requiredMark + '<span>' + esc(field.label) + '</span></label><div id="' + esc(id) + '" class="invoice-config-editor-choice-row" role="group" aria-label="' + esc(field.label) + '"' + (field.required ? ' aria-required="true"' : '') + describedBy + '>' + field.options.map(function (option, index) {
         return '<label class="invoice-config-editor-choice"><input type="checkbox" name="' + esc(field.id) + '" value="' + esc(option) + '"' + (index === 0 ? ' checked' : '') + '><span>' + esc(option) + '</span></label>';
-      }).join('') + '</div></div>';
+      }).join('') + '</div>' + fieldError + '</div>';
     }
     if (field.type === 'select') {
-      return '<div class="invoice-config-editor-field"><label for="' + esc(id) + '">' + esc(field.label) + '</label><select id="' + esc(id) + '" class="invoice-control"' + required + '>' + field.options.map(function (option, index) {
+      return '<div class="invoice-config-editor-field"' + fieldAttrs + '><label for="' + esc(id) + '">' + requiredMark + '<span>' + esc(field.label) + '</span></label><select id="' + esc(id) + '" class="invoice-control"' + required + describedBy + '>' + field.options.map(function (option, index) {
         return '<option value="' + esc(option) + '"' + (value ? (value === option ? ' selected' : '') : (index === 0 ? ' selected' : '')) + '>' + esc(option) + '</option>';
-      }).join('') + '</select></div>';
+      }).join('') + '</select>' + fieldError + '</div>';
     }
-    return '<div class="invoice-config-editor-field"><label for="' + esc(id) + '">' + esc(field.label) + '</label><input id="' + esc(id) + '" class="invoice-control" type="text" value="' + esc(value) + '" placeholder="' + esc(field.placeholder || '') + '" maxlength="100"' + required + '></div>';
+    return '<div class="invoice-config-editor-field"' + fieldAttrs + '><label for="' + esc(id) + '">' + requiredMark + '<span>' + esc(field.label) + '</span></label><input id="' + esc(id) + '" class="invoice-control" type="text" value="' + esc(value) + '" placeholder="' + esc(field.placeholder || '') + '" maxlength="100"' + required + describedBy + '>' + fieldError + '</div>';
+  }
+
+  function configFieldControl(field) {
+    return field.dataset.fieldType === 'choice' ? field.querySelector('.invoice-config-editor-choice-row') : field.querySelector('.invoice-control');
+  }
+
+  function configFieldHasValue(field) {
+    if (field.dataset.required !== 'true') return true;
+    if (field.dataset.fieldType === 'choice') {
+      return Array.from(field.querySelectorAll('input[type="checkbox"], input[type="radio"]')).some(function (input) { return input.checked; });
+    }
+    var control = field.querySelector('.invoice-control');
+    return Boolean(control && String(control.value || '').trim());
+  }
+
+  function setConfigFieldError(field, visible) {
+    var error = field.querySelector('.invoice-config-field-error');
+    var control = configFieldControl(field);
+    if (error) {
+      error.textContent = field.dataset.errorMessage || '请输入必填内容';
+      error.hidden = !visible;
+    }
+    if (control) {
+      control.classList.toggle('is-error', visible);
+      control.setAttribute('aria-invalid', String(visible));
+    }
+  }
+
+  function validateConfigField(field) {
+    var valid = configFieldHasValue(field);
+    setConfigFieldError(field, !valid);
+    return valid;
+  }
+
+  function validateConfigForm(form) {
+    var invalidFields = Array.from(form.querySelectorAll('.invoice-config-editor-field[data-required="true"]')).filter(function (field) {
+      return !validateConfigField(field);
+    });
+    if (!invalidFields.length) return true;
+    var firstControl = configFieldControl(invalidFields[0]);
+    if (firstControl) {
+      var focusTarget = firstControl.matches('input,select,textarea,button,[tabindex]') ? firstControl : firstControl.querySelector('input,select,textarea,button,[tabindex]');
+      if (focusTarget) focusTarget.focus();
+    }
+    return false;
+  }
+
+  function clearResolvedConfigFieldError(event) {
+    var field = event.target.closest('.invoice-config-editor-field[data-required="true"]');
+    if (field && configFieldHasValue(field)) setConfigFieldError(field, false);
   }
 
   function readEditValues(target) {
@@ -1861,13 +1937,18 @@ a { -webkit-tap-highlight-color: transparent; }
     dialog.removeAttribute('data-dialog-type');
     configEditorLastFocus = target;
     dialogTitle.textContent = (editing ? '编辑' : '新增') + spec.label + '配置';
-    dialogBody.innerHTML = '<form id="invoiceConfigEditorForm" class="invoice-config-editor-form" novalidate>' + spec.fields.map(function (field) { return fieldMarkup(field, 'invoiceConfigEditor_', editValues); }).join('') + '<p class="invoice-config-editor-help">保存后先生成草稿，发布前仍需完成配置校验与影响预览。</p><p id="invoiceConfigEditorError" class="invoice-config-editor-error" hidden></p></form>';
+    dialogBody.innerHTML = '<form id="invoiceConfigEditorForm" class="invoice-config-editor-form" novalidate>' + spec.fields.map(function (field) { return fieldMarkup(field, 'invoiceConfigEditor_', editValues); }).join('') + '<p class="invoice-config-editor-help">保存后先生成草稿，发布前仍需完成配置校验与影响预览。</p></form>';
     dialogFooter.innerHTML = '<button type="button" class="invoice-btn invoice-btn-default" data-invoice-config-action="cancel">取消</button><button type="button" class="invoice-btn invoice-btn-primary" data-invoice-config-action="save">保存草稿</button>';
     dialog.hidden = false;
     document.body.classList.add('invoice-lock-scroll');
     window.lucide && window.lucide.createIcons();
     var first = dialogBody.querySelector('input,select');
     if (first) first.focus();
+    var form = dialogBody.querySelector('#invoiceConfigEditorForm');
+    if (form) {
+      form.addEventListener('input', clearResolvedConfigFieldError);
+      form.addEventListener('change', clearResolvedConfigFieldError);
+    }
   }
 
   function closeConfigEditor(restoreFocus) {
@@ -1967,12 +2048,7 @@ a { -webkit-tap-highlight-color: transparent; }
       if (configAction === 'cancel' || closingConfigEditor) { closeConfigEditor(); return; }
       if (configAction === 'save') {
         var form = root.querySelector('#invoiceConfigEditorForm');
-        var error = root.querySelector('#invoiceConfigEditorError');
-        if (form && !form.checkValidity()) {
-          if (error) { error.textContent = '请补充所有必填配置项。'; error.hidden = false; }
-          form.reportValidity();
-          return;
-        }
+        if (form && !validateConfigForm(form)) return;
         closeConfigEditor();
         showLocalToast('配置草稿已保存，发布前请完成校验与影响预览', 'success');
         return;
@@ -2689,11 +2765,11 @@ a { -webkit-tap-highlight-color: transparent; }
     if (action === 'approve-application') {
       title.textContent = '审核通过并提交开具';
       body.innerHTML = '<p class="invoice-dialog-copy">确认通过申请 <strong>' + escapeHtml(id) + '</strong>？服务端会重新校验权限、对象版本、金额、主体快照和税务配置。</p><div class="invoice-config-callout" style="margin-top:14px"><i data-lucide="shield-check" class="w-4 h-4"></i><div>确认后将原子写入审核决定与唯一开具任务。</div></div>';
-      footer.innerHTML = '<button type="button" class="invoice-btn invoice-btn-default" data-direct-review-close>取消</button><button type="button" class="invoice-btn invoice-btn-primary" data-direct-review-confirm><i data-lucide="check-circle-2" class="w-4 h-4"></i><span>确认通过</span></button>';
+      footer.innerHTML = '<button type="button" class="invoice-btn invoice-btn-default" data-direct-review-close>取消</button><button type="button" class="invoice-btn invoice-btn-primary" data-direct-review-confirm>确认通过</button>';
     } else {
       title.textContent = '驳回开票申请';
       body.innerHTML = '<p class="invoice-dialog-copy">驳回后当前申请将结束，用户修改后需以新申请编号重新提交。</p><label for="directRejectReason" class="invoice-filter-label">结构化驳回原因</label><textarea id="directRejectReason" class="invoice-textarea" maxlength="200" placeholder="请输入具体驳回原因"></textarea><div id="directRejectError" class="invoice-form-error" hidden>请填写驳回原因。</div>';
-      footer.innerHTML = '<button type="button" class="invoice-btn invoice-btn-default" data-direct-review-close>取消</button><button type="button" class="invoice-btn invoice-btn-danger" data-direct-review-confirm><i data-lucide="x-circle" class="w-4 h-4"></i><span>确认驳回</span></button>';
+      footer.innerHTML = '<button type="button" class="invoice-btn invoice-btn-default" data-direct-review-close>取消</button><button type="button" class="invoice-btn invoice-btn-danger" data-direct-review-confirm>确认驳回</button>';
     }
     dialog.hidden = false;
     window.lucide && window.lucide.createIcons();

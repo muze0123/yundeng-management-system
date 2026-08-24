@@ -339,6 +339,7 @@
 
 - 居中；遮罩 `rgba(0,0,0,.3)`；圆角 8px；宽度 **760px**（`max-width:92vw` 响应式）；
 - 结构：标题栏（16px/600）+ 关闭 ×（20px，ink-muted，右上角）+ 内容区（padding 32px 24px）+ 底部操作区（border-top 分隔，按钮居右）；
+- 底部操作按钮统一使用纯文字，不展示 ICO；双按钮时“取消/次级操作”在左、“确认/核心操作”在右，按钮组整体居右，间距 12px；该规则不影响标题栏关闭图标或内容区语义图标；
 - 表单字段：label 90px 右对齐（标签文字末尾带中文冒号 `：`）+ 控件 400px 宽 30px 高（`border-radius:4px;border:1px solid line`）；字段区块在弹窗内容区居中。
 
 ### 5.7 抽屉 Drawer
@@ -379,6 +380,8 @@
 | 底部按钮区 | `padding:0 24px 20px;display:flex;justify-content:flex-end;gap:12px` |
 | 取消按钮 | `font:500 13px inherit;padding:6px 20px;border-radius:4px;background:#fff;color:#3A3F4A;border:1px solid #DFE1E5;cursor:pointer` |
 | 确定按钮 | `font:500 13px inherit;padding:6px 20px;border-radius:4px;border:1px solid transparent;cursor:pointer;background:primary;color:#fff` |
+
+底部操作按钮与 Modal 保持一致：仅使用纯文字，不展示 ICO；取消/次级操作在左，确定/核心操作在右，按钮组整体居右。内容区的 Dialog 类型 ICO 按语义保留。
 
 **6 种 Dialog 类型**：
 

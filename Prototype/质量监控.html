@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>云登后台 · 工作台</title>
+  <title>云登后台 · 质量监控</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -293,7 +293,279 @@ a { -webkit-tap-highlight-color: transparent; }
   .app-spinner,
   .app-toast { transition: none; animation: none; }
 }
-</style></head>
+</style><script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script data-inline="pagination">/* 通用分页器组件 JS · 遵循《分页器PRD》规范
+ * 用法：
+ *   <link rel="stylesheet" href="分页器.css">
+ *   <div id="pager"></div>
+ *   <script src="分页器.js"><\/script>
+ *   <script>
+ *     const pager = new YDPager(document.getElementById('pager'), {
+ *       total_count: 12486,
+ *       current_page: 1,
+ *       page_size: 10,
+ *       page_size_options: [10, 20, 50, 100],
+ *       onChange(state){
+ *         console.log('分页变化', state);
+ *       },
+ *       toast(msg){ 自定义toast，可选 }
+ *     });
+ *     // 外部更新总条数：pager.setState({ total_count: 200, current_page: 1 });
+ *   <\/script>
+ */
+(function (global) {
+  const DEFAULT_OPTIONS = {
+    total_count: 0,
+    current_page: 1,
+    page_size: 10,
+    page_size_options: [10, 20, 50, 100]
+  };
+
+  function calc_total_pages(total_count, page_size) {
+    if (!total_count || total_count <= 0) return 1;
+    return Math.max(1, Math.ceil(total_count / page_size));
+  }
+
+  function format_total_label(total_count) {
+    if (total_count > 1000) return '1000+';
+    return String(total_count);
+  }
+
+  /**
+   * 生成页码序列（含省略号 -1 表示）
+   * 规则（PRD 5.1）：
+   *  - 总页数 <=5：全部展示
+   *  - 总页数 >5：根据当前页码显示前几、当前附近、最后一页 + 省略号
+   */
+  function build_page_sequence(current, total) {
+    const seq = [];
+    if (total <= 5) {
+      for (let i = 1; i <= total; i++) seq.push(i);
+      return seq;
+    }
+    // 总页数>5时：总是展示 1、最后一页；展示当前页附近；中间用 -1(省略号) 过渡
+    const push = (v) => { if (seq[seq.length - 1] !== v) seq.push(v); };
+    push(1);
+    const left = Math.max(2, current - 1);
+    const right = Math.min(total - 1, current + 1);
+    if (left > 2) push(-1);
+    for (let i = left; i <= right; i++) push(i);
+    if (right < total - 1) push(-1);
+    push(total);
+    return seq;
+  }
+
+  function is_valid_int(v) {
+    return /^\d+$/.test(String(v));
+  }
+
+  class YDPager {
+    constructor(root, options) {
+      this.root = typeof root === 'string' ? document.querySelector(root) : root;
+      if (!this.root) throw new Error('[YDPager] 挂载根元素不存在');
+      this.options = Object.assign({}, DEFAULT_OPTIONS, options || {});
+      // 规范化
+      this.options.page_size = Math.max(1, parseInt(this.options.page_size) || 10);
+      this.options.current_page = Math.max(1, parseInt(this.options.current_page) || 1);
+      this.options.total_count = Math.max(0, parseInt(this.options.total_count) || 0);
+      this.options.total_pages = calc_total_pages(this.options.total_count, this.options.page_size);
+      if (this.options.current_page > this.options.total_pages) this.options.current_page = this.options.total_pages;
+      this._handlers = {};
+      this._render();
+    }
+
+    /** 外部更新状态 */
+    setState(patch, { silent = false } = {}) {
+      Object.assign(this.options, patch || {});
+      this.options.page_size = Math.max(1, parseInt(this.options.page_size) || 10);
+      this.options.total_count = Math.max(0, parseInt(this.options.total_count) || 0);
+      this.options.total_pages = calc_total_pages(this.options.total_count, this.options.page_size);
+      this.options.current_page = Math.max(1, Math.min(
+        parseInt(this.options.current_page) || 1,
+        this.options.total_pages
+      ));
+      this._render();
+      if (!silent && this.options.onChange) {
+        this.options.onChange(this.getState());
+      }
+    }
+
+    getState() {
+      return {
+        current_page: this.options.current_page,
+        page_size: this.options.page_size,
+        total_count: this.options.total_count,
+        total_pages: this.options.total_pages
+      };
+    }
+
+    destroy() {
+      this.root.innerHTML = '';
+      this._handlers = {};
+    }
+
+    _toast(msg) {
+      if (typeof this.options.toast === 'function') { this.options.toast(msg); return; }
+      // 兜底 toast：与项目现有 toastBox 结构兼容
+      let box = document.getElementById('toastBox');
+      if (!box) {
+        box = document.createElement('div');
+        box.id = 'toastBox';
+        Object.assign(box.style, {
+          position: 'fixed', top: '16px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 10000, background: '#1A1D24', color: '#fff', padding: '8px 16px',
+          borderRadius: '4px', fontSize: '13px', display: 'none'
+        });
+        document.body.appendChild(box);
+      }
+      box.textContent = msg;
+      box.style.display = 'block';
+      clearTimeout(this._toastT);
+      this._toastT = setTimeout(() => { box.style.display = 'none'; }, 1800);
+    }
+
+    _fireChange() {
+      if (typeof this.options.onChange === 'function') {
+        this.options.onChange(this.getState());
+      }
+    }
+
+    _goToPage(page, { fromJumpInput = false } = {}) {
+      page = parseInt(page);
+      if (!is_valid_int(page) || isNaN(page)) {
+        if (fromJumpInput) this._toast('请输入有效页码');
+        return { ok: false, reason: 'invalid' };
+      }
+      if (page < 1 || page > this.options.total_pages) {
+        if (fromJumpInput) this._toast('页码超出范围');
+        return { ok: false, reason: 'out_of_range' };
+      }
+      if (page === this.options.current_page) return { ok: true };
+      this.options.current_page = page;
+      this._render();
+      this._fireChange();
+      if (fromJumpInput) this._toast('跳转成功');
+      return { ok: true };
+    }
+
+    _onSizeChange(newSize) {
+      newSize = parseInt(newSize);
+      if (newSize === this.options.page_size) return;
+      this.options.page_size = newSize;
+      this.options.total_pages = calc_total_pages(this.options.total_count, this.options.page_size);
+      this.options.current_page = 1; // 切换每页条数时重置到第一页（PRD 5.2.3）
+      this._render();
+      this._fireChange();
+    }
+
+    _render() {
+      // 清理旧事件绑定引用
+      this._handlers = {};
+      const { current_page, page_size, total_count, total_pages } = this.options;
+      const page_seq = build_page_sequence(current_page, total_pages);
+
+      // === 核心分页导航区 ===
+      let nav_html = '<div class="yd-pager-nav">';
+      // 上一页
+      nav_html += `<button type="button" class="yd-pager-btn is-icon" data-act="prev" aria-label="上一页" ${current_page === 1 ? 'disabled' : ''}>` +
+        `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>` +
+        `</button>`;
+      // 页码 + 省略号
+      page_seq.forEach((p) => {
+        if (p === -1) {
+          nav_html += `<span class="yd-pager-ellipsis">···</span>`;
+        } else {
+          const is_active = p === current_page;
+          nav_html += `<button type="button" class="yd-pager-btn ${is_active ? 'is-active' : ''}" data-act="page" data-page="${p}" ${is_active ? 'disabled' : ''}>${p}</button>`;
+        }
+      });
+      // 下一页
+      nav_html += `<button type="button" class="yd-pager-btn is-icon" data-act="next" aria-label="下一页" ${current_page === total_pages ? 'disabled' : ''}>` +
+        `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>` +
+        `</button>`;
+      nav_html += '</div>';
+
+      // === 每页条数选择区 ===
+      let size_html = '<div class="yd-pager-size"><select data-act="size" aria-label="每页显示条数">';
+      (this.options.page_size_options || []).forEach((n) => {
+        size_html += `<option value="${n}" ${n === page_size ? 'selected' : ''}>${n}条/页</option>`;
+      });
+      size_html += '</select></div>';
+
+      // === 跳转与数据统计区 ===
+      const total_label = format_total_label(total_count);
+      // jump error tip: 初始空
+      const right_html = `<div class="yd-pager-right">` +
+        `<div class="yd-pager-jump">` +
+        `<span>跳至</span>` +
+        `<input type="text" inputmode="numeric" data-act="jump" value="1" aria-label="跳转页码">` +
+        `<span>页</span>` +
+        `<span class="yd-pager-error-tip" data-act="jump-err"></span>` +
+        `</div>` +
+        `<div class="yd-pager-stats">共<b>${total_label}</b>条记录 第<b>${current_page}</b>/<b>${total_pages}</b>页</div>` +
+        `</div>`;
+
+      this.root.className = (this.root.className ? this.root.className + ' ' : '') + 'yd-pagination';
+      this.root.setAttribute('data-yd-pager', '');
+      this.root.innerHTML = nav_html + size_html + right_html;
+
+      // 事件绑定
+      this._bind();
+    }
+
+    _bind() {
+      const root = this.root;
+      // 页码按钮（prev/next/page）
+      root.addEventListener('click', this._h_click = (e) => {
+        const btn = e.target.closest('button[data-act]');
+        if (!btn) return;
+        const act = btn.dataset.act;
+        if (act === 'prev') this._goToPage(this.options.current_page - 1);
+        else if (act === 'next') this._goToPage(this.options.current_page + 1);
+        else if (act === 'page') this._goToPage(btn.dataset.page);
+      });
+      // 每页条数
+      const sizeSel = root.querySelector('select[data-act="size"]');
+      if (sizeSel) {
+        sizeSel.addEventListener('change', this._h_size = (e) => {
+          this._onSizeChange(e.target.value);
+        });
+      }
+      // 跳转输入框
+      const jumpInput = root.querySelector('input[data-act="jump"]');
+      const jumpErr = root.querySelector('[data-act="jump-err"]');
+      if (jumpInput) {
+        jumpInput.addEventListener('keydown', this._h_jump_key = (e) => {
+          if (e.key === 'Enter') {
+            const v = (jumpInput.value || '').trim();
+            // 校验
+            let err = '';
+            if (!is_valid_int(v)) err = '请输入有效页码';
+            else {
+              const n = parseInt(v);
+              if (n < 1 || n > this.options.total_pages) err = '页码超出范围';
+            }
+            jumpErr.textContent = err;
+            if (err) {
+              jumpInput.classList.add('is-error');
+              this._toast(err);
+              return;
+            }
+            jumpInput.classList.remove('is-error');
+            const r = this._goToPage(v, { fromJumpInput: true });
+            if (r.ok) { jumpInput.value = '1'; }
+          }
+        });
+        jumpInput.addEventListener('input', this._h_jump_input = () => {
+          jumpInput.classList.remove('is-error');
+          if (jumpErr) jumpErr.textContent = '';
+        });
+      }
+    }
+  }
+
+  global.YDPager = YDPager;
+})(typeof window !== 'undefined' ? window : this);
+</script></head>
 <body>
 
   <div class="app-shell">
@@ -302,7 +574,7 @@ a { -webkit-tap-highlight-color: transparent; }
         <button id="appMobileMenu" class="app-icon-button app-mobile-menu" type="button" aria-label="展开导航" aria-controls="appSidebar" aria-expanded="false">
           <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
-        <a class="app-brand-link" href="index.html#home" data-app-route="home" aria-label="云登后台工作台">
+        <a class="app-brand-link" href="../index.html#home" data-app-route="home" aria-label="云登后台工作台">
           <span class="app-brand-mark">云</span>
           <span class="app-brand-copy">云登后台</span>
         </a>
@@ -365,7 +637,7 @@ a { -webkit-tap-highlight-color: transparent; }
   <div id="appToastContainer" class="app-toast-container" aria-live="polite"></div>
 </div>
 
-<script>window.__YundengInlineRoute="home";window.__YundengInlineBundle={"id":"home","file":"index.html","title":"工作台","html":"<section class=\"app-business-module\" data-module-root=\"home\" aria-label=\"工作台\"><main id=\"mainContent\" class=\"p-4 flex-1 overflow-auto\">\n      <section class=\"bg-bg-card rounded-lg p-6 mb-4\">\n        <div class=\"flex justify-between items-center gap-4 mb-6\"><div><h1  class=\"inline-block text-[20px] font-semibold text-ink-title\">数据埋点运行中枢</h1><p class=\"mt-2 text-ink-sub\">从事件定义到业务决策，统一管理数据链路的可信度与可用性。</p></div><a href=\"数据概览.html\" class=\"h-8 px-4 bg-primary text-white rounded flex items-center gap-2 hover:bg-primary-hover\"><i data-lucide=\"arrow-right\" class=\"w-4\"></i>进入数据概览</a></div>\n        <div  class=\"health-rail py-2\">\n          <div class=\"health-node\"><span class=\"health-dot bg-success-bg text-success\"><i data-lucide=\"braces\" class=\"w-4\"></i></span><strong class=\"block mt-2 text-ink-title\">事件定义</strong><span class=\"text-[12px] text-success\">110 项已治理</span></div>\n          <div class=\"health-node\"><span class=\"health-dot bg-success-bg text-success\"><i data-lucide=\"radio-tower\" class=\"w-4\"></i></span><strong class=\"block mt-2 text-ink-title\">实时上报</strong><span class=\"text-[12px] text-success\">99.72% 到达</span></div>\n          <div class=\"health-node\"><span class=\"health-dot bg-warning-bg text-warning\"><i data-lucide=\"shield-check\" class=\"w-4\"></i></span><strong class=\"block mt-2 text-ink-title\">质量监控</strong><span class=\"text-[12px] text-warning\">3 项待处理</span></div>\n          <div class=\"health-node\"><span class=\"health-dot bg-info-bg text-info\"><i data-lucide=\"chart-spline\" class=\"w-4\"></i></span><strong class=\"block mt-2 text-ink-title\">分析消费</strong><span class=\"text-[12px] text-info\">28 个活跃分析</span></div>\n        </div>\n      </section>\n      <section class=\"bg-bg-card rounded-lg p-6\">\n        <div class=\"flex justify-between items-center mb-4\"><div><h2  class=\"inline-block text-[18px] font-semibold text-ink-title\">工作台模块</h2><p class=\"text-ink-sub mt-1\">按数据生产链路组织，而不是按工具堆叠。</p></div><span class=\"text-[12px] text-ink-muted mono\">更新于 2026-08-07 17:40</span></div>\n        <div id=\"moduleGrid\" class=\"grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4\"></div>\n      </section>\n    </main><div id=\"toast\" class=\"hidden fixed top-4 left-1/2 -translate-x-1/2 z-50 bg-ink-title text-white rounded px-4 py-2 shadow-lg\"></div><div id=\"annoDesc\" class=\"p-5 text-[14px] leading-relaxed\"></div></div></div><div class=\"app-module-compat\" hidden aria-hidden=\"true\"><aside id=\"sidebar\" class=\"sidebar sticky top-0 h-screen bg-bg-card flex flex-col shrink-0 overflow-hidden\">\n    <div class=\"brand h-14 px-5 flex items-center gap-2 shrink-0\"><span class=\"w-7 h-7 rounded-md bg-primary text-white flex items-center justify-center font-bold\">云</span><span class=\"brand-name text-[16px] font-semibold text-ink-title\">云登后台</span><button id=\"collapse\" class=\"ml-auto w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover text-ink-sub\" aria-label=\"收起侧栏\"><i data-lucide=\"panel-left-close\" class=\"w-[18px]\"></i></button></div>\n    <nav class=\"px-3 flex-1 overflow-y-auto pt-3\">\n      <button class=\"nav-item group w-full\" id=\"dataGroup\"><i data-lucide=\"chart-no-axes-combined\" class=\"w-[18px]\"></i><span class=\"menu-text flex-1 text-left\">数据埋点</span><i data-lucide=\"chevron-down\" class=\"chev w-4\"></i></button>\n      <div class=\"submenu mt-1 space-y-1\">\n        <a class=\"nav-item active\" href=\"数据概览.html\">数据概览</a><a class=\"nav-item\" href=\"事件管理.html\">事件管理</a><a class=\"nav-item\" href=\"明细排查.html\">明细排查</a><a class=\"nav-item\" href=\"数据分析.html\">数据分析</a><a class=\"nav-item\" href=\"联调验证.html\">联调验证</a><a class=\"nav-item\" href=\"质量监控.html\">质量监控</a>\n      </div>\n    </nav>\n    <div class=\"p-3 border-t border-line-light\"><button class=\"nav-item w-full\"><i data-lucide=\"settings-2\" class=\"w-[18px]\"></i><span class=\"menu-text\">系统设置</span></button></div>\n  </aside><header class=\"h-14 shrink-0 bg-bg-card shadow-[0_4px_12px_rgba(26,29,36,.10)] z-10 flex items-center justify-between px-6\"><span class=\"text-ink-sub\">云登后台管理系统 / 数据埋点</span><div class=\"flex items-center gap-2\"><button class=\"w-8 h-8 rounded hover:bg-bg-hover flex items-center justify-center text-ink-sub\"><i data-lucide=\"bell\" class=\"w-[18px]\"></i></button><span class=\"h-5 border-l border-line mx-1\"></span><button class=\"flex items-center gap-2 p-1 rounded hover:bg-bg-hover\"><span class=\"w-7 h-7 rounded-full bg-primary-bg text-primary flex items-center justify-center font-semibold\">数</span><span>数据管理员</span><i data-lucide=\"chevron-down\" class=\"w-3.5 text-ink-muted\"></i></button></div></header></div></section>","styles":["\n    *{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;color:#3A3F4A}.mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}\n    .sidebar{width:220px;transition:width .22s}.sidebar.compact{width:68px}.sidebar.compact .brand-name,.sidebar.compact .menu-text,.sidebar.compact .chev{display:none}.sidebar.compact .nav-item,.sidebar.compact .brand{justify-content:center;padding-left:0;padding-right:0}.sidebar.compact .submenu{display:none}\n    .nav-item{height:38px;border-radius:4px;display:flex;align-items:center;gap:10px;padding:0 12px;color:#3A3F4A;transition:.15s}.nav-item:hover{background:#F3F4F6}.nav-item.group{color:#0066FF;font-weight:600}.submenu a{height:34px;padding-left:44px;font-size:13px}.submenu a.active{color:#0066FF;background:#E6F0FF;font-weight:600}\n    .health-rail{display:grid;grid-template-columns:repeat(4,1fr);position:relative}.health-rail:before{content:'';position:absolute;left:10%;right:10%;top:18px;height:2px;background:#E8EAED}.health-node{position:relative;z-index:1;text-align:center}.health-dot{width:36px;height:36px;margin:auto;border:4px solid white;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1px #DFE1E5}\n    .module-card{transition:transform .16s,box-shadow .16s}.module-card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(26,29,36,.08)}\n    .anno-badge{position:fixed;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font:700 11px/20px 'JetBrains Mono';text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.15);pointer-events:auto;cursor:pointer;transition:.15s}.anno-badge:hover{transform:scale(1.2)}\n    @media(max-width:1023px){.sidebar{width:68px}.sidebar .brand-name,.sidebar .menu-text,.sidebar .chev{display:none}.sidebar .nav-item,.sidebar .brand{justify-content:center;padding-left:0;padding-right:0}.sidebar .submenu{display:none}.health-rail{grid-template-columns:repeat(2,1fr);gap:24px}.health-rail:before{display:none}}\n  "],"styleLinks":[],"externalScripts":[],"scripts":["\nconst modules=[\n {name:'用户统计',icon:'chart-no-axes-column',file:'用户统计.html',desc:'按 user_id 去重查看平台注册账号规模、活跃、结构与留存',stat:'4 项核心指标 · 3 类分析',tone:'primary'},\n {name:'团队列表',icon:'users-round',file:'团队列表.html',desc:'查询和维护团队主体、负责人、成员规模及活跃状态',stat:'3 个业务视图',tone:'primary'},\n {name:'企业列表',icon:'building-2',file:'企业列表.html',desc:'核验企业认证主体、主账号关系与服务状态',stat:'企业主体运营',tone:'primary'},\n {name:'成员列表',icon:'contact-round',file:'成员列表.html',desc:'按业务视图查询成员与团队、企业、角色及账号状态关系',stat:'5 个业务视图',tone:'primary'},\n {name:'订单列表',icon:'receipt-text',file:'订单列表.html',desc:'统一查询业务订单、支付事实与履约状态，支持详情和受控处理',stat:'12 条示例订单 · 9 种状态',tone:'primary'},\n {name:'套餐订单',icon:'package-check',file:'套餐订单.html',desc:'查询套餐购买、续费、履约与退款处理状态',stat:'套餐权益闭环',tone:'primary'},\n {name:'环境管理',icon:'monitor-cog',file:'环境管理.html',desc:'筛选、分组、启动与批量管理浏览器环境',stat:'12 个环境 · 3 个运行中',tone:'primary'},\n {name:'数据概览',icon:'gauge',file:'数据概览.html',desc:'经营指标、实名漏斗、代理购后与环境质量总览',stat:'9 项核心指标',tone:'primary'},\n {name:'事件管理',icon:'braces',file:'事件管理.html',desc:'事件字典、属性结构、版本和发布治理',stat:'110 个事件',tone:'info'},\n {name:'指标管理',icon:'sigma',file:'指标管理.html',desc:'指标口径、计算规则、维度、血缘和版本治理',stat:'18 个指标 · 8 个维度',tone:'info'},\n {name:'联调验证',icon:'radio-tower',file:'联调验证.html',desc:'监听测试事件、校验数据结构与脱敏载荷',stat:'实时事件流',tone:'success'},\n {name:'质量监控',icon:'shield-alert',file:'质量监控.html',desc:'监控到达、完整、重复、延迟与敏感误采',stat:'3 项待处理',tone:'warning'},\n {name:'明细排查',icon:'list-tree',file:'明细排查.html',desc:'查询脱敏事件、还原会话序列并创建受控导出',stat:'12,486 条 / 24 小时',tone:'success'},\n {name:'数据分析',icon:'chart-scatter',file:'数据分析.html',desc:'事件、漏斗、留存、路径与用户分群分析',stat:'5 类分析模型',tone:'primary'},\n {name:'资产沉淀',icon:'panels-top-left',file:'资产沉淀.html',desc:'沉淀团队看板、分析快照和可复用业务资产',stat:'8 个看板',tone:'primary'},\n {name:'决策复盘',icon:'lightbulb',file:'决策复盘.html',desc:'以证据、行动和效果复盘闭合产品决策链路',stat:'16 条洞察 · 20 个行动',tone:'warning'}];\nconst toneClass={primary:'bg-primary-bg text-primary',info:'bg-info-bg text-info',success:'bg-success-bg text-success',warning:'bg-warning-bg text-warning'};\ndocument.getElementById('moduleGrid').innerHTML=modules.map((m,i)=>`<a data-anno=\"${i+4}\" href=\"${m.file}\" class=\"module-card border border-line-light rounded-lg p-5 block focus:outline-none focus:ring-2 focus:ring-primary-bg\"><div class=\"flex items-start justify-between\"><span class=\"w-10 h-10 rounded-lg ${toneClass[m.tone]} flex items-center justify-center\"><i data-lucide=\"${m.icon}\" class=\"w-5\"></i></span><i data-lucide=\"arrow-up-right\" class=\"w-4 text-ink-muted\"></i></div><h3 class=\"mt-4 text-[16px] font-semibold text-ink-title\">${m.name}</h3><p class=\"mt-1 text-ink-sub leading-relaxed h-10\">${m.desc}</p><div class=\"mt-4 pt-3 border-t border-line-lighter text-[12px] text-ink-muted mono\">${m.stat}</div></a>`).join('');\ndocument.getElementById('collapse').onclick=()=>document.getElementById('sidebar').classList.toggle('compact');\ndocument.getElementById('dataGroup').onclick=()=>document.querySelector('.submenu').classList.toggle('hidden');\nfunction renderAnno(){}\nlucide.createIcons();setTimeout(renderAnno,100);\n"],"usesAnnotations":false};</script>
+<script>window.__YundengInlineRoute="tracking-quality";window.__YundengInlineBundle={"id":"tracking-quality","file":"质量监控.html","title":"质量监控","html":"<section class=\"app-business-module\" data-module-root=\"tracking-quality\" aria-label=\"质量监控\"><div class=\"app-module-toolbar\" aria-label=\"页面工具\"><span class=\"app-module-toolbar-label\">页面工具</span><div class=\"flex gap-2 app-module-actions\"><button id=\"stateBtn\" class=\"btn btn-default\">模拟状态</button></div></div><main id=\"main\" class=\"p-4 flex-1 overflow-auto relative\"><div id=\"stateMenu\" class=\"hidden absolute right-10 top-2 z-20 bg-white border rounded shadow p-1\"></div><section class=\"bg-white rounded-lg p-5 mb-4\"><div class=\"tabs-underline\"><button class=\"tab active\" data-tab=\"instances\">告警实例</button><button class=\"tab\" data-tab=\"rules\">规则管理</button></div><div class=\"filter-flow\"><div class=\"filter-item\"><label class=\"filter-label\">搜索</label><input class=\"control\" placeholder=\"告警或规则名称\"></div><div class=\"filter-item\"><label class=\"filter-label\">级别</label><select class=\"control\"><option>全部级别</option><option>严重</option><option>高</option></select></div><div class=\"filter-item\"><label class=\"filter-label\">状态</label><select class=\"control\"><option>全部状态</option><option>触发中</option><option>已确认</option><option>已恢复</option></select></div><div class=\"filter-actions\"><button class=\"btn btn-primary\">查询</button><button class=\"btn btn-default\">重置</button></div></div></section><section class=\"bg-white rounded-lg p-5 min-h-[650px]\"><div class=\"flex justify-between items-start mb-4\"><div><h2  id=\"title\" class=\"inline-block text-[18px] font-semibold text-ink-title\">告警实例</h2><p id=\"desc\" class=\"text-ink-sub mt-1\">确认不等于恢复，系统将持续监控指标状态。</p></div><button id=\"create\"  class=\"btn btn-primary hidden\">+ 新建规则</button></div><div id=\"content\"></div><div id=\"pager\" class=\"mt-5 flex justify-end items-center gap-3 text-[12px]\"></div></section></main><div id=\"drawerOverlay\" class=\"hidden fixed inset-0 z-50 bg-black/30\"><section id=\"drawerPanel\" class=\"drawer ml-auto w-[800px] h-full bg-white flex flex-col\"><header class=\"h-14 p-4 border-b flex justify-between\"><h2  id=\"drawerTitle\" class=\"font-semibold\">告警详情</h2><button onclick=\"closeDrawer()\">×</button></header><div id=\"drawerBody\" class=\"p-6 overflow-auto flex-1\"></div><footer id=\"drawerFoot\" class=\"p-4 border-t flex justify-end gap-3\"></footer></section></div><div id=\"dialog\" class=\"hidden fixed inset-0 z-[60] bg-black/30 flex items-center justify-center\"><div id=\"dialogPanel\" class=\"w-[600px] h-[250px] bg-white rounded-lg flex flex-col\"><div class=\"flex-1 flex items-center p-6\"><span class=\"w-5 h-5 rounded-full bg-warning-bg text-warning flex justify-center items-center mr-3\">?</span><div><h2 class=\"font-semibold text-[16px]\">确认告警？</h2><p class=\"text-ink-sub mt-2\">确认表示已开始处理，系统仍会继续监控恢复状态。</p><select id=\"ackState\" class=\"control w-[300px] mt-3\"><option>处理中</option><option>已知问题</option></select></div></div><div class=\"p-5 flex justify-end gap-3\"><button onclick=\"closeDialog()\" class=\"btn btn-default\">取消</button><button onclick=\"ack()\" class=\"btn btn-primary\">确认告警</button></div></div></div><div id=\"toastBox\" class=\"hidden fixed top-4 left-1/2 -translate-x-1/2 z-80 bg-ink-title text-white px-4 py-2 rounded\"></div><div class=\"app-module-compat\" hidden aria-hidden=\"true\"><aside id=\"sidebar\" class=\"sidebar sticky top-0 h-screen bg-white flex flex-col shrink-0 overflow-hidden\"><div class=\"brand h-14 px-5 flex items-center gap-2\"><a href=\"index.html\" class=\"flex gap-2 items-center\"><span class=\"w-7 h-7 rounded-md bg-primary text-white flex justify-center items-center font-bold\">云</span><span class=\"brand-name font-semibold text-[16px] text-ink-title\">云登后台</span></a><button id=\"collapse\" class=\"ml-auto w-8 h-8 flex items-center justify-center rounded hover:bg-bg-hover\"><i data-lucide=\"panel-left-close\" class=\"w-[18px]\"></i></button></div><nav class=\"px-3 flex-1 pt-3\"><button class=\"nav-item group w-full\"><i data-lucide=\"chart-no-axes-combined\" class=\"w-[18px]\"></i><span class=\"menu-text flex-1 text-left\">数据埋点</span><i data-lucide=\"chevron-down\" class=\"chev w-4\"></i></button><div class=\"submenu mt-1 space-y-1\"><a class=\"nav-item\" href=\"数据概览.html\">数据概览</a><a class=\"nav-item\" href=\"事件管理.html\">事件管理</a><a class=\"nav-item\" href=\"明细排查.html\">明细排查</a><a class=\"nav-item\" href=\"数据分析.html\">数据分析</a><a class=\"nav-item\" href=\"联调验证.html\">联调验证</a><a class=\"nav-item active\" href=\"质量监控.html\">质量监控</a></div></nav><div class=\"p-3 border-t border-line-light\"><button class=\"nav-item w-full\"><i data-lucide=\"settings-2\" class=\"w-[18px]\"></i><span class=\"menu-text\">系统设置</span></button></div></aside><header class=\"h-14 shrink-0 bg-white shadow-[0_4px_8px_-4px_rgba(0,0,0,.12)] z-10 flex justify-between items-center px-4 md:px-6\" style=\"clip-path: inset(0 0 -12px 0);\"><span class=\"text-ink-sub\">数据埋点 / 质量监控</span><div class=\"flex gap-2\"><span class=\"w-7 h-7 rounded-full bg-primary-bg text-primary flex justify-center items-center\">数</span></div></header></div></section>","styles":["\n*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;color:#3A3F4A}.mono{font-family:'JetBrains Mono',monospace}.sidebar{width:220px}.nav-item{height:38px;border-radius:4px;display:flex;align-items:center;gap:10px;padding:0 12px}.nav-item:hover{background:#F3F4F6}.nav-item.group{color:#0066FF;font-weight:600}.submenu a{height:34px;padding-left:44px;font-size:13px}.submenu a.active{color:#0066FF;background:#E6F0FF;font-weight:600}.btn{height:32px;padding:0 14px;border-radius:4px;font-weight:500}.btn-primary{background:#0066FF;color:#fff}.btn-default{border:1px solid #DFE1E5;background:#fff}.control{height:32px;border:1px solid #DFE1E5;border-radius:4px;padding:0 8px;width:100%;outline:none}.tabs-underline{display:flex;gap:32px;border-bottom:1px solid #DFE1E5;margin-bottom:16px}.tab{height:40px;padding:0 8px;margin:0;border-radius:0;background:transparent;color:#3A3F4A;font-weight:400;font-size:14px;border:none;position:relative;cursor:pointer;font-family:inherit}.tab:hover:not(.active){color:#0066FF}.tab.active{color:#0066FF;font-weight:600;background:transparent}.tab.active::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#0066FF;border-radius:2px 2px 0 0}.data-table{width:100%;border-collapse:collapse}.data-table th{background:#F0F1F3;color:#6E7685;font-size:12px;text-align:left;padding:9px 12px}.data-table td{padding:10px 12px;border-bottom:1px solid #F0F1F3;text-align:left;white-space:nowrap}.data-table tr:hover{background:#F3F4F6}.badge{padding:2px 7px;border-radius:4px;font-size:12px;display:inline-flex}.toggle{width:40px;height:22px;border-radius:11px;background:#C7CAD1;padding:2px;transition:.2s}.toggle:after{content:'';display:block;width:18px;height:18px;background:white;border-radius:50%;transition:.2s}.toggle.on{background:#0066FF}.toggle.on:after{transform:translateX(18px)}.drawer{animation:in .22s}@keyframes in{from{transform:translateX(100%)}to{transform:none}}.field{display:flex;gap:14px;margin-bottom:16px}.field label{width:120px;text-align:right;line-height:32px;flex:none}.anno-badge{position:fixed;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font:700 11px/20px 'JetBrains Mono';text-align:center;pointer-events:auto}@media(max-width:1100px){.sidebar{width:68px}.brand-name,.menu-text,.submenu,.chev{display:none}.sidebar .brand > a{display:none!important}#collapse{margin-left:0!important}.nav-item,.brand{justify-content:center}}",".filter-flow{display:flex;flex-wrap:wrap;align-items:center;gap:16px 16px;max-width:2184px}.filter-flow .filter-item{display:flex;flex:0 0 500px;width:500px;flex-direction:row;align-items:center;gap:12px}.filter-flow .filter-label{width:88px;min-width:88px;max-width:88px;flex:none;text-align:right;color:#3A3F4A;font-size:13px;line-height:18px}.filter-flow .filter-label::after{content:'：'}.filter-flow .control{width:400px;max-width:400px}.filter-actions{display:flex;flex:0 0 auto;align-items:center;gap:12px;min-height:32px}@media(max-width:720px){.filter-flow{gap:12px;align-items:stretch}.filter-flow .filter-item{flex:1 1 100%;width:100%;gap:12px}.filter-flow .control{width:calc(100% - 100px);max-width:none}}\n","/* 通用分页器组件 · 分页器PRD规范\n * 主色：沿用项目设计系统 #0066FF（与PRD #1677ff等价色阶）\n * 使用：\n *  <div class=\"yd-pagination\" data-yd-pager></div>\n *  实例化 new YDPager(el, options)\n */\n.yd-pagination{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;color:#3A3F4A;line-height:1}\n/* 核心分页导航区 */\n.yd-pager-nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap}\n.yd-pager-btn{min-width:32px;height:32px;padding:0 10px;border:1px solid #DFE1E5;border-radius:4px;background:#fff;color:#3A3F4A;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;font:inherit;transition:all .15s ease;box-sizing:border-box}\n.yd-pager-btn:hover:not(:disabled):not(.is-active){border-color:#0066FF;color:#0066FF;background:#E6F0FF}\n.yd-pager-btn:disabled{cursor:not-allowed;color:#9DA2AC;background:#F0F1F3;border-color:#DFE1E5}\n.yd-pager-btn.is-icon{padding:0 8px}\n.yd-pager-btn.is-active{background:#0066FF;border-color:#0066FF;color:#fff;cursor:default}\n.yd-pager-btn.is-active:hover{background:#0066FF;color:#fff;border-color:#0066FF}\n.yd-pager-ellipsis{min-width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;color:#6E7685;user-select:none}\n/* 每页条数选择区 */\n.yd-pager-size{position:relative}\n.yd-pager-size select{height:32px;padding:0 26px 0 10px;border:1px solid #DFE1E5;border-radius:4px;background:#fff url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236E7685' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\") no-repeat right 8px center;color:#3A3F4A;cursor:pointer;font:inherit;-webkit-appearance:none;appearance:none;outline:none}\n.yd-pager-size select:hover{border-color:#0066FF}\n.yd-pager-size select:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12)}\n/* 跳转与数据统计区 */\n.yd-pager-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}\n.yd-pager-jump{display:flex;align-items:center;gap:6px;color:#6E7685}\n.yd-pager-jump input{width:56px;height:32px;padding:0 8px;border:1px solid #DFE1E5;border-radius:4px;background:#fff;color:#3A3F4A;text-align:center;font:inherit;outline:none;font-family:'JetBrains Mono',monospace;box-sizing:border-box}\n.yd-pager-jump input:hover{border-color:#0066FF}\n.yd-pager-jump input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12)}\n.yd-pager-jump input.is-error{border-color:#D9001B;color:#D9001B}\n.yd-pager-stats{color:#6E7685;margin-left:4px;white-space:nowrap}\n.yd-pager-stats b{font-weight:500;color:#3A3F4A}\n.yd-pager-error-tip{color:#D9001B;min-width:0;transition:all .15s}\n/* 窄屏适配 */\n@media(max-width:720px){\n  .yd-pagination{gap:10px;justify-content:flex-start}\n  .yd-pager-right{order:3;width:100%;justify-content:flex-start}\n  .yd-pager-stats{margin-left:0}\n}\n"],"styleLinks":[],"externalScripts":[],"scripts":["\nconst incidents=[['ALT-240807-019','Critical','P0事件10分钟无数据','identity_complete','到达率','0.00%','≥99.5%','firing','16:42','1h 12m','李楠'],['ALT-240807-018','High','必填属性完整率下降','environment_launch_result','完整率','98.74%','≥99.5%','acknowledged','15:38','2h 16m','赵越'],['ALT-240807-017','High','重复事件超出阈值','proxy_test_result','重复率','0.62%','<0.1%','firing','14:20','3h 34m','周方'],['ALT-240807-016','Medium','数据延迟升高','payment_result','延迟 P95','8m 12s','<5m','silenced','13:06','4h 48m','陈宁'],['ALT-240807-015','Critical','敏感字段扫描命中','account_bind_result','敏感命中','3','0','resolved','11:42','42m','安全组'],['ALT-240806-042','Low','枚举值未注册','config_field_change','非法枚举','12','0','resolved','昨天','18m','李楠']];\nconst rules=[['P0 事件到达率','到达率','P0 全部事件','固定阈值','<99.5%','10 分钟','Critical','飞书值班群',true,'16:42'],['敏感字段实时检测','敏感命中','全部事件','固定阈值','>0','立即','Critical','安全告警群',true,'11:42'],['客户端流量异常','事件量','PC 全版本','7日基线','±50%','10 分钟','High','研发值班群',true,'昨天'],['必填属性完整率','完整率','P0 全部事件','固定阈值','<99.5%','5 分钟','High','数据质量群',true,'15:38'],['数据延迟 P95','延迟','全部事件','固定阈值','>5m','10 分钟','Medium','数据质量群',true,'13:06'],['非法枚举值','非法枚举','全部事件','固定阈值','>0','5 分钟','Medium','研发值班群',false,'08-06'],['支付双端差异','双端差异','PAY','固定阈值','>0.5%','30 分钟','High','支付业务群',true,'08-05'],['历史低优事件','到达率','P3 事件','7日基线','-80%','60 分钟','Low','邮件',false,'从未']];\nlet tab='instances',state='normal',chart,active,annoVisible=false,annoScopeStack=[],pagerInstance=null;const tone={Critical:'bg-danger-bg text-danger',High:'bg-warning-bg text-warning',Medium:'bg-info-bg text-info',Low:'bg-bg-page text-ink-muted'},levelLabel={Critical:'严重',High:'高',Medium:'中',Low:'低'};const stat={firing:'bg-danger-bg text-danger',acknowledged:'bg-warning-bg text-warning',silenced:'bg-info-bg text-info',resolved:'bg-success-bg text-success'};\nfunction render(){if(chart){chart.destroy();chart=null}if(state==='loading'){content.innerHTML='<div class=\"grid grid-cols-4 gap-3 mb-4\">'+Array(4).fill('<div class=\"h-20 bg-line-lighter animate-pulse rounded\"></div>').join('')+'</div>'+Array(7).fill('<div class=\"h-11 bg-line-lighter animate-pulse rounded mb-2\"></div>').join('');if(pagerInstance){pagerInstance.destroy();pagerInstance=null;}pager.innerHTML='';return}if(state==='empty'){content.innerHTML=empty(tab==='instances'?'当前没有质量监控':'暂无告警规则');if(pagerInstance){pagerInstance.destroy();pagerInstance=null;}pager.innerHTML='';return}if(state==='error'){content.innerHTML=empty('告警数据加载失败');if(pagerInstance){pagerInstance.destroy();pagerInstance=null;}pager.innerHTML='';return}tab==='instances'?renderInstances():renderRules();lucide.createIcons();setTimeout(renderAnno,30)}\nfunction empty(t){return `<div class=\"h-[480px] flex flex-col justify-center items-center\"><i data-lucide=\"shield-check\" class=\"w-10 text-ink-muted\"></i><h3 class=\"mt-4 text-[16px] font-semibold\">${t}</h3><p class=\"mt-2 text-ink-sub\">当前筛选条件下暂无需要处理的数据</p></div>`}\nfunction renderInstances(){content.innerHTML=`<div data-anno=\"3\" class=\"grid grid-cols-4 gap-3 mb-4\"><div class=\"p-3 bg-danger-bg rounded\"><span>触发中</span><strong class=\"block mono text-[22px] text-danger mt-1\">3</strong></div><div class=\"p-3 bg-warning-bg rounded\"><span>未确认</span><strong class=\"block mono text-[22px] text-warning mt-1\">2</strong></div><div class=\"p-3 bg-bg-page rounded\"><span>平均确认时长</span><strong class=\"block mono text-[22px] mt-1\">12 分钟</strong></div><div class=\"p-3 bg-bg-page rounded\"><span>平均恢复时长</span><strong class=\"block mono text-[22px] mt-1\">1 小时 48 分钟</strong></div></div><div class=\"overflow-x-auto\"><table class=\"data-table\"><thead><tr><th>级别</th><th>告警标题</th><th>事件</th><th>指标</th><th>当前值</th><th>阈值</th><th>状态</th><th>开始时间</th><th>持续</th><th>负责人</th><th>操作</th></tr></thead><tbody>${incidents.map((x,i)=>`<tr><td><span class=\"badge ${tone[x[1]]}\">${levelLabel[x[1]]}</span></td><td><button data-i=\"${i}\" class=\"view text-primary\">${x[2]}</button><div class=\"mono text-[11px] text-ink-muted\">${x[0]}</div></td><td class=\"mono\">${x[3]}</td><td>${x[4]}</td><td class=\"mono\">${x[5]}</td><td class=\"mono\">${x[6]}</td><td><span class=\"badge ${stat[x[7]]}\">${x[7]}</span></td><td class=\"mono\">${x[8]}</td><td class=\"mono\">${x[9]}</td><td>${x[10]}</td><td><button data-i=\"${i}\" class=\"view text-primary\">查看</button></td></tr>`).join('')}</tbody></table></div>`;const total=127;if(pagerInstance){pagerInstance.setState({total_count:total,current_page:1,page_size:10},{silent:true});}else{pagerInstance=new YDPager(pager,{total_count:total,current_page:1,page_size:10,page_size_options:[10,20,50,100],toast:toast,onChange(s){toast('已切换至第 '+s.current_page+' 页 · '+s.page_size+' 条/页');}});}document.querySelectorAll('.view').forEach(x=>x.onclick=()=>openIncident(+x.dataset.i))}\nfunction renderRules(){content.innerHTML=`<table class=\"data-table\"><thead><tr><th>规则名称</th><th>指标</th><th>事件范围</th><th>比较方式</th><th>阈值</th><th>持续时间</th><th>级别</th><th>通知渠道</th><th>状态</th><th>最近触发</th><th>操作</th></tr></thead><tbody>${rules.map((x,i)=>`<tr><td class=\"font-medium text-ink-title\">${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[3]}</td><td class=\"mono\">${x[4]}</td><td>${x[5]}</td><td><span class=\"badge ${tone[x[6]]}\">${levelLabel[x[6]]}</span></td><td>${x[7]}</td><td><button data-toggle=\"${i}\" class=\"toggle ${x[8]?'on':''}\"></button></td><td class=\"mono\">${x[9]}</td><td><button data-edit=\"${i}\" class=\"text-primary\">编辑</button></td></tr>`).join('')}</tbody></table>`;const total=68;if(pagerInstance){pagerInstance.setState({total_count:total,current_page:1,page_size:10},{silent:true});}else{pagerInstance=new YDPager(pager,{total_count:total,current_page:1,page_size:10,page_size_options:[10,20,50,100],toast:toast,onChange(s){toast('已切换至第 '+s.current_page+' 页 · '+s.page_size+' 条/页');}});}document.querySelectorAll('[data-toggle]').forEach(b=>b.onclick=()=>{b.disabled=true;setTimeout(()=>{rules[b.dataset.toggle][8]=!rules[b.dataset.toggle][8];render();toast('规则状态已更新')},450)});document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>openRule(+b.dataset.edit))}\nfunction openIncident(i){active=i;const x=incidents[i];drawerTitle.textContent='告警详情 · '+x[0];drawerBody.innerHTML=`<div class=\"p-4 rounded ${tone[x[1]]}\"><strong class=\"text-[16px]\">${x[2]}</strong><p class=\"mt-2\">${x[3]} · ${x[4]} · 当前 ${x[5]}</p></div><div class=\"grid grid-cols-3 gap-3 mt-4\"><div class=\"p-3 bg-bg-page rounded\"><span>开始时间</span><strong class=\"block mono mt-1\">${x[8]}</strong></div><div class=\"p-3 bg-bg-page rounded\"><span>持续时间</span><strong class=\"block mono mt-1\">${x[9]}</strong></div><div class=\"p-3 bg-bg-page rounded\"><span>负责人</span><strong class=\"block mt-1\">${x[10]}</strong></div></div><h3 class=\"font-semibold mt-6\">指标趋势与阈值</h3><div class=\"h-[240px] mt-3\"><canvas id=\"alertChart\"></canvas></div><h3 class=\"font-semibold mt-6\">处置时间线</h3><div class=\"mt-3 border-l-2 border-line pl-4 space-y-4\"><p><b>17:24</b> · 重复通知已发送</p><p><b>16:42</b> · 持续 10 分钟，告警触发</p><p><b>16:32</b> · 指标首次越过阈值</p></div>`;drawerFoot.innerHTML=x[7]==='firing'?'<button onclick=\"silence()\" class=\"btn btn-default\">静默 1 小时</button><button onclick=\"openAck()\" class=\"btn btn-primary\">确认告警</button>':'<button onclick=\"closeDrawer()\" class=\"btn btn-default\">关闭</button>';drawerOverlay.classList.remove('hidden');annoScopeStack.push(drawerPanel);setTimeout(()=>{chart=new Chart(alertChart,{type:'line',data:{labels:['16:20','16:30','16:40','16:50','17:00','17:10','17:20'],datasets:[{label:'当前值',data:[99.8,99.6,98.4,72,20,0,0],borderColor:'#D9001B',tension:.25},{label:'阈值',data:[99.5,99.5,99.5,99.5,99.5,99.5,99.5],borderColor:'#E7772D',borderDash:[5,5]}]},options:{maintainAspectRatio:false}});renderAnno()},50)}\nfunction openRule(i){const x=rules[i]||['','','','','','','','',''];drawerTitle.textContent=i>=0?'编辑告警规则':'新建告警规则';drawerBody.innerHTML=`<div class=\"field\"><label>* 规则名称</label><input class=\"control w-[500px]\" value=\"${x[0]||''}\"></div><div class=\"field\"><label>* 质量指标</label><select class=\"control w-[500px]\"><option>到达率</option><option>完整率</option><option>重复率</option><option>敏感命中</option></select></div><div class=\"field\"><label>* 事件范围</label><select class=\"control w-[500px]\"><option>P0 全部事件</option><option>全部事件</option><option>单个事件</option></select></div><div class=\"field\"><label>* 比较方式</label><select class=\"control w-[500px]\"><option>固定阈值</option><option>7日同时间基线</option></select></div><div class=\"field\"><label>* 阈值</label><input class=\"control w-[500px] mono\" value=\"99.5%\"></div><div class=\"field\"><label>* 持续时间</label><select class=\"control w-[500px]\"><option>10 分钟</option><option>5 分钟</option><option>立即</option></select></div><div class=\"field\"><label>通知渠道</label><select class=\"control w-[500px]\"><option>数据质量群</option><option>研发值班群</option></select></div>`;drawerFoot.innerHTML='<button onclick=\"closeDrawer()\" class=\"btn btn-default\">取消</button><button onclick=\"saveRule()\" class=\"btn btn-primary\">保存规则</button>';drawerOverlay.classList.remove('hidden');annoScopeStack.push(drawerPanel);renderAnno()}\nfunction closeDrawer(){drawerOverlay.classList.add('hidden');annoScopeStack=[];if(chart){chart.destroy();chart=null}renderAnno()}function openAck(){dialog.classList.remove('hidden');annoScopeStack.push(dialogPanel);renderAnno()}function closeDialog(){dialog.classList.add('hidden');annoScopeStack=annoScopeStack.filter(x=>x!==dialogPanel);renderAnno()}function ack(){incidents[active][7]='acknowledged';closeDialog();closeDrawer();render();toast('告警已确认，系统将继续监控恢复状态')}function silence(){incidents[active][7]='silenced';closeDrawer();render();toast('告警已静默 1 小时')}function saveRule(){closeDrawer();toast('告警规则已保存')}Object.assign(window,{closeDrawer,openAck,closeDialog,ack,silence,saveRule});\ndocument.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));title.textContent=tab==='instances'?'告警实例':'规则管理';desc.textContent=tab==='instances'?'确认不等于恢复，系统将持续监控指标状态。':'规则支持固定阈值与 7 日同时间基线。';create.classList.toggle('hidden',tab!=='rules');render()});create.onclick=()=>openRule(-1);\nconst states=['normal','loading','empty','error'];stateMenu.innerHTML=states.map(s=>`<button data-s=\"${s}\" class=\"block px-3 py-2 w-full text-left hover:bg-bg-hover mono\">${s}</button>`).join('');stateBtn.onclick=()=>stateMenu.classList.toggle('hidden');stateMenu.onclick=e=>{if(e.target.dataset.s){state=e.target.dataset.s;render();stateMenu.classList.add('hidden')}};function toast(m){toastBox.textContent=m;toastBox.classList.remove('hidden');setTimeout(()=>toastBox.classList.add('hidden'),1800)}\nfunction renderAnno(){}\nfunction init(){if(typeof YDPager==='undefined'){setTimeout(init,50);return}render();lucide.createIcons()}init();\n"],"usesAnnotations":false};</script>
 <script data-inline="app-shell">(function () {
   'use strict';
 

@@ -1,9 +1,9 @@
 # 数据概览 PRD
 
 > 所属模块：数据埋点 / 数据概览
-> 路由：`/data-tracking/overview`  
-> 优先级：P0  
-> 依赖：《数据埋点PRD.md》《云登指纹浏览器数据埋点.md》  
+> 路由：`/data-tracking/overview` 
+> 优先级：P0 
+> 依赖：《数据埋点PRD.md》《云登指纹浏览器数据埋点.md》 
 > 状态：可直接用于 Vibecoding
 
 ## 1. 问题陈述
@@ -112,12 +112,6 @@ KPI：DAU、WAU、MAU、激活用户、WSLE、代理购买成功用户、GMV、�
 
 区块接口失败独立返回 requestId/code；前端只渲染匹配当前过滤快照的响应。
 
-## 11. 模拟数据与标注
-
-Mock 至少 9 张 KPI、3 组 30 日趋势、personal/enterprise 两组实名漏斗、5 个代理服务商、10 个失败码和 6 项质量指标。覆盖正常、0 值、分母 0、超大数、局部失败和未成熟周期。
-
-Portal 标注至少覆盖：全局筛选、刷新、指标定义、KPI 下钻、实名类型切换、漏斗步骤、代理下钻、环境失败码、质量跳转和数据表切换。
-
 ## 12. 测试决策
 
 通过 `appState.globalFilters + overviewSections` 测试可见行为；每张卡片是独立错误边界。验收：
@@ -142,15 +136,15 @@ AppShell
 ├─ TopBar（56px，固定）
 ├─ Sidebar（220px 展开 / 64px 折叠，固定）
 └─ Main（唯一纵向滚动容器）
-   └─ PageContainer（max-width: 1600px；padding: 24px）
-      ├─ FilterSection（白色卡片，4 列筛选）
-      ├─ QueryStatusBar（截止时间 / 时区 / 质量状态）
-      ├─ KPIGrid（≥1440px 4 列；1024–1279px 2 列）
-      ├─ TrendSection（核心趋势，通栏）
-      ├─ FunnelRow（激活漏斗 1/2 + 实名漏斗 1/2）
-      ├─ ValueRow（代理购后价值 1/2 + 环境质量 1/2）
-      ├─ FeatureAdoption（通栏）
-      └─ QualitySummary（通栏）
+ └─ PageContainer（max-width: 1600px；padding: 24px）
+ ├─ FilterSection（白色卡片，4 列筛选）
+ ├─ QueryStatusBar（截止时间 / 时区 / 质量状态）
+ ├─ KPIGrid（≥1440px 4 列；1024–1279px 2 列）
+ ├─ TrendSection（核心趋势，通栏）
+ ├─ FunnelRow（激活漏斗 1/2 + 实名漏斗 1/2）
+ ├─ ValueRow（代理购后价值 1/2 + 环境质量 1/2）
+ ├─ FeatureAdoption（通栏）
+ └─ QualitySummary（通栏）
 ```
 
 | 区块 | 尺寸/布局 | 滚动与固定 | 验收重点 |

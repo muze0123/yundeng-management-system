@@ -1,8 +1,8 @@
 # 资产沉淀 PRD
 
 > 所属模块：数据埋点 / 资产沉淀
-> 路由：`/data-tracking/dashboards`  
-> 优先级：P1  
+> 路由：`/data-tracking/dashboards` 
+> 优先级：P1 
 > 状态：可直接用于 Vibecoding
 
 ## 1. 问题陈述
@@ -112,12 +112,6 @@ GlobalLayer：新建/权限/删除/冲突 Dialog
 - 离开：“当前布局尚未保存”
 - 冲突：“看板已被他人更新，请查看最新版本后继续”
 
-## 11. 模拟数据与门户标注
-
-至少 8 张看板：2 系统、3 团队、2 私有、1 无权限；每张 0–12 卡片，覆盖 KPI、趋势、漏斗、留存、路径、表格、局部失败、废弃源和超长标题。实现 Pointer Events 简化拖拽和键盘替代。
-
-标注覆盖筛选、新建、收藏、复制、可见范围、编辑、组件库、拖拽/缩放、卡片菜单、全局筛选、保存、取消、删除和冲突。
-
 ## 12. 测试决策
 
 使用 `serverDashboard → layoutDraft → save(version)` 测试。验收：
@@ -150,11 +144,11 @@ GlobalLayer：新建/权限/删除/冲突 Dialog
 ├─ StickyHeader（64px）：返回 / 名称 / 更新时间 / 分享 / 编辑
 ├─ GlobalFilterBar（56px）：日期 / 团队 / 端 / 版本 / 刷新
 └─ Canvas（12 列栅格，row-height 80px，gap 16px）
-   ├─ DashboardCard × N
-   │  ├─ CardHeader：标题 / 口径 / 更多
-   │  ├─ CardBody：图表或数据表
-   │  └─ CardErrorBoundary
-   └─ AddCardPlaceholder（编辑态）
+ ├─ DashboardCard × N
+ │ ├─ CardHeader：标题 / 口径 / 更多
+ │ ├─ CardBody：图表或数据表
+ │ └─ CardErrorBoundary
+ └─ AddCardPlaceholder（编辑态）
 GlobalLayer：编辑 Drawer / 选卡 Dialog / 分享 Dialog / 冲突 Dialog
 ```
 

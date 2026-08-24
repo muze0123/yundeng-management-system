@@ -1,8 +1,8 @@
 # 数据分析 PRD
 
 > 所属模块：数据埋点 / 数据分析
-> 路由：`/data-tracking/analysis`  
-> 优先级：P0  
+> 路由：`/data-tracking/analysis` 
+> 优先级：P0 
 > 状态：可直接用于 Vibecoding
 
 ## 1. 问题陈述
@@ -34,9 +34,9 @@ DataSection
 ├─ Tab：事件 / 漏斗 / 留存 / 路径 / 分群
 ├─ AnalysisBuilder（左 360px）
 └─ ResultPanel（右侧自适应）
-   ├─ QueryStatus
-   ├─ Chart / Table
-   └─ 保存分析 / 保存到看板 / 导出聚合
+ ├─ QueryStatus
+ ├─ Chart / Table
+ └─ 保存分析 / 保存到看板 / 导出聚合
 ```
 
 1024–1279px 配置区改为顶部折叠面板；结果区保持至少 640px。配置区和结果区各自滚动，但页面仍只有主内容为纵向主滚动容器。
@@ -120,12 +120,6 @@ DataSection
 
 错误：QUERY_TOO_LARGE、QUERY_TIMEOUT、INVALID_EVENT_WINDOW、PROPERTY_DEPRECATED、PRIVACY_THRESHOLD、TASK_EXPIRED。
 
-## 15. 模拟数据与门户标注
-
-至少 12 个事件、20 个属性、6 个漏斗模板、8 个 cohort 周期、15 条路径边、6 个分群示例；覆盖成功、空、部分失败、超时、取消、过期和隐私阈值。
-
-标注覆盖五个 Tab、事件选择、条件构建、分群、步骤排序、最大间隔、运行、取消、结果口径、图表/表格、保存分析和保存到看板。
-
 ## 16. 测试决策
 
 使用 `analysisDraft → querySnapshot → asyncTask → result` 作为测试接缝。验收：
@@ -150,16 +144,16 @@ DataSection
 Main（高度 = viewport - TopBar）
 ├─ AnalysisTypeBar（48px）：事件 / 漏斗 / 留存 / 路径 / 分群
 └─ Workspace（最小高 720px）
-   ├─ BuilderPanel（360px，左侧独立滚动）
-   │  ├─ 模板选择 / 事件或步骤配置
-   │  ├─ 属性筛选与分群 / 窗口与去重
-   │  └─ 运行分析
-   └─ ResultPanel（剩余宽度）
-      ├─ ResultHeader：保存 / 创建洞察
-      ├─ QueryStatusBar
-      ├─ Visualization（图表/数据表）
-      ├─ BreakdownTable
-      └─ DefinitionPanel（口径与限制）
+ ├─ BuilderPanel（360px，左侧独立滚动）
+ │ ├─ 模板选择 / 事件或步骤配置
+ │ ├─ 属性筛选与分群 / 窗口与去重
+ │ └─ 运行分析
+ └─ ResultPanel（剩余宽度）
+ ├─ ResultHeader：保存 / 创建洞察
+ ├─ QueryStatusBar
+ ├─ Visualization（图表/数据表）
+ ├─ BreakdownTable
+ └─ DefinitionPanel（口径与限制）
 ```
 
 BuilderPanel 在 ≥1280px 固定左侧；1024–1279px 改为顶部可折叠配置区。事件、漏斗、留存、路径、分群的主可视化最小高度分别为 360、440、420、480、360px，全部提供同数据源表格替代。

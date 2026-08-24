@@ -1,8 +1,8 @@
 # 联调验证 PRD
 
 > 所属模块：数据埋点 / 联调验证
-> 路由：`/data-tracking/debug`  
-> 优先级：P0  
+> 路由：`/data-tracking/debug` 
+> 优先级：P0 
 > 状态：可直接用于 Vibecoding
 
 ## 1. 问题陈述
@@ -58,16 +58,16 @@ DataSection
 
 ```mermaid
 stateDiagram-v2
-  [*] --> idle
-  idle --> connecting: 开始监听
-  connecting --> listening: 连接成功
-  connecting --> error: 失败
-  listening --> paused: 暂停
-  paused --> listening: 继续
-  listening --> disconnected: 网络断开
-  disconnected --> connecting: 自动重连
-  listening --> expired: 到期
-  listening --> stopped: 手动停止
+ [*] --> idle
+ idle --> connecting: 开始监听
+ connecting --> listening: 连接成功
+ connecting --> error: 失败
+ listening --> paused: 暂停
+ paused --> listening: 继续
+ listening --> disconnected: 网络断开
+ disconnected --> connecting: 自动重连
+ listening --> expired: 到期
+ listening --> stopped: 手动停止
 ```
 
 自动重连 1/2/5/10 秒退避，最多 5 次；重连成功后显示断线区间和服务端补发数量。无法补发时明确“断线期间可能缺失 N 秒数据”。
@@ -133,12 +133,6 @@ QA 验证状态：unverified/pass/fail。pass 必须所有 P0 必填属性 valid
 - 脱敏复制：“已复制脱敏数据”
 - 敏感命中：“检测到禁止采集的数据，原值已隐藏”
 
-## 13. 模拟数据与门户标注
-
-原型每 300–1200ms 生成事件，覆盖 20 个事件名、四端、七类校验结果、断线/重连/到期、500 条上限和敏感扫描。不得生成真实敏感值，统一用 `[REDACTED]`。
-
-标注覆盖标识选择、开始/停止、连接状态、暂停、清空、过滤、固定、校验状态、属性树、复制、QA 验证和断线恢复。
-
 ## 14. 测试决策
 
 以 `debugSessionState + incomingQueue + currentView` 测试。验收：
@@ -161,17 +155,17 @@ QA 验证状态：unverified/pass/fail。pass 必须所有 P0 必填属性 valid
 ```text
 Main / PageContainer（24px）
 ├─ SessionControlBar（72px）
-│  ├─ 测试用户/设备/端/版本
-│  ├─ 开始或停止会话
-│  └─ 连接状态 / 剩余时间 / 已接收数
+│ ├─ 测试用户/设备/端/版本
+│ ├─ 开始或停止会话
+│ └─ 连接状态 / 剩余时间 / 已接收数
 └─ DebugWorkspace（高度至少 680px）
-   ├─ EventStream（42%）
-   │  ├─ FilterToolbar（48px）
-   │  └─ VirtualEventList（独立滚动）
-   └─ Inspector（58%）
-      ├─ Tabs：概要 / 属性 / Schema 校验 / 脱敏载荷 / 链路
-      ├─ InspectorBody（独立滚动）
-      └─ ValidationActions（64px，sticky）
+ ├─ EventStream（42%）
+ │ ├─ FilterToolbar（48px）
+ │ └─ VirtualEventList（独立滚动）
+ └─ Inspector（58%）
+ ├─ Tabs：概要 / 属性 / Schema 校验 / 脱敏载荷 / 链路
+ ├─ InspectorBody（独立滚动）
+ └─ ValidationActions（64px，sticky）
 GlobalLayer
 ├─ StartSessionDialog（640px）
 ├─ EndSessionDialog（520px）

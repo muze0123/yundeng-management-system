@@ -1,9 +1,385 @@
-(function () {
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云登后台 · 用户列表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink: { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line: { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6',
+            bg: { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6', subtle: '#F5F8FF' },
+            success: { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning: { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger: { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info: { DEFAULT: '#0091D5', bg: '#E4F4FB' },
+            primaryBg: '#E6F0FF'
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'monospace'] }
+        }
+      }
+    };
+  </script>
+<style data-inline="app-shell">* { box-sizing: border-box; }
+
+:root {
+  color-scheme: light;
+  --app-sidebar-width: 220px;
+  --app-sidebar-compact-width: 68px;
+  --app-topbar-height: 56px;
+}
+
+html,
+body { min-height: 100%; }
+
+body {
+  margin: 0;
+  background: #f7f8fa;
+  color: #3a3f4a;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea { font: inherit; letter-spacing: 0; }
+
+button,
+a { -webkit-tap-highlight-color: transparent; }
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell { display: flex; width: 100%; height: 100vh; min-height: 100vh; flex-direction: column; overflow: hidden; }
+.app-shell-body { display: flex; min-height: 0; flex: 1; overflow: hidden; }
+
+.app-sidebar {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  width: var(--app-sidebar-width);
+  height: 100%;
+  flex: 0 0 auto;
+  flex-direction: column;
+  overflow: visible;
+  background: #fff;
+  transition: width .2s ease, transform .2s ease;
+}
+
+.app-sidebar.is-compact { width: var(--app-sidebar-compact-width); }
+
+.app-brand-link { display: flex; min-width: 0; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
+.app-brand-mark { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 6px; background: #0066ff; color: #fff; font-size: 15px; font-weight: 700; }
+.app-brand-copy { overflow: hidden; color: #1a1d24; font-size: 16px; font-weight: 600; white-space: nowrap; }
+
+.app-icon-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #6e7685;
+  cursor: pointer;
+}
+
+.app-icon-button:hover { background: #f3f4f6; color: #3a3f4a; }
+.app-icon-button:focus-visible,
+.app-menu-link:focus-visible,
+.app-account-button:focus-visible,
+.app-collapse-button:focus-visible,
+.app-brand-link:focus-visible { outline: 2px solid #0066ff; outline-offset: 2px; }
+.app-collapse-button {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 3;
+  display: grid;
+  width: 12px;
+  height: 50px;
+  padding: 0;
+  transform: translate(50%, -50%);
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: #e5e6ed;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+}
+.app-collapse-button::before {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-right: 7px solid currentColor;
+  border-bottom: 6px solid transparent;
+  content: "";
+}
+.app-collapse-button[aria-expanded="false"]::before {
+  border-right: 0;
+  border-left: 7px solid currentColor;
+}
+.app-sidebar:hover .app-collapse-button,
+.app-sidebar:focus-within .app-collapse-button,
+.app-collapse-button:focus-visible { opacity: 1; pointer-events: auto; }
+.app-collapse-button:hover { background: #acb0ba; }
+
+.app-primary-nav { min-height: 0; flex: 1; overflow: auto; padding: 12px 12px; }
+.app-section-label { padding: 8px 8px 0; color: #9da2ac; font-size: 11px; line-height: 28px; }
+
+.app-menu-link,
+.app-bottom-link {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 4px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #3a3f4a;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-menu-link:hover,
+.app-bottom-link:hover { background: #f3f4f6; }
+.app-menu-link.is-active { background: #e6f0ff; color: #0066ff; font-weight: 600; }
+.app-menu-link.is-group-active { background: #f3f4f6; color: #0066ff; font-weight: 600; }
+.app-menu-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+.app-menu-label { min-width: 0; flex: 1; font-size: 13px; }
+.app-group-chevron { width: 16px; height: 16px; transition: transform .2s ease; }
+.app-group-toggle[aria-expanded="false"] .app-group-chevron { transform: rotate(-90deg); }
+.app-submenu { overflow: hidden; max-height: 240px; opacity: 1; transition: max-height .2s ease, opacity .15s ease; }
+.app-submenu.is-collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+.app-submenu .app-menu-link { min-height: 34px; padding-left: 36px; font-size: 13px; }
+.app-sidebar-footer { padding: 12px; }
+.app-sidebar-divider { height: 1px; margin-bottom: 12px; background: #dfe1e5; }
+
+.app-sidebar.is-compact .app-menu-label,
+.app-sidebar.is-compact .app-group-chevron,
+.app-sidebar.is-compact .app-section-label,
+.app-sidebar.is-compact .app-bottom-label { display: none; }
+.app-sidebar.is-compact .app-menu-link,
+.app-sidebar.is-compact .app-bottom-link { justify-content: center; padding-right: 0; padding-left: 0; }
+.app-sidebar.is-compact .app-submenu { display: none; }
+
+.app-workspace { display: flex; min-width: 0; height: 100%; min-height: 0; flex: 1; flex-direction: column; overflow: hidden; }
+.app-topbar {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  width: 100%;
+  min-height: var(--app-topbar-height);
+  flex: 0 0 var(--app-topbar-height);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: #fff;
+  box-shadow: 0 4px 12px -4px rgba(26, 29, 36, .16);
+  clip-path: inset(0 0 -16px 0);
+}
+.app-topbar-left,
+.app-topbar-right { display: flex; min-width: 0; align-items: center; gap: 8px; }
+.app-topbar-left { gap: 12px; }
+.app-mobile-menu { display: none; }
+.app-notice-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border: 1px solid #fff; border-radius: 50%; background: #d9001b; }
+.app-topbar-separator { width: 1px; height: 20px; margin: 0 4px; background: #dfe1e5; }
+.app-account-button { display: flex; align-items: center; gap: 8px; padding: 4px; border: 0; border-radius: 4px; background: transparent; color: #3a3f4a; cursor: pointer; }
+.app-account-button:hover { background: #f3f4f6; }
+.app-avatar { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #e6f0ff; color: #0066ff; font-weight: 600; }
+
+.app-content { min-height: 0; flex: 1; overflow: auto; background: #f7f8fa; }
+.app-route-outlet { min-height: 100%; }
+.app-route-loading { display: grid; min-height: calc(100vh - var(--app-topbar-height)); place-items: center; color: #6e7685; }
+.app-route-loading > div { display: flex; align-items: center; gap: 8px; }
+.app-spinner { width: 16px; height: 16px; border: 2px solid #dfe1e5; border-top-color: #0066ff; border-radius: 50%; animation: app-spin .7s linear infinite; }
+@keyframes app-spin { to { transform: rotate(360deg); } }
+
+.app-business-module > .app-module-toolbar { display: none !important; }
+.app-business-module > main { height: auto !important; min-height: calc(100vh - var(--app-topbar-height)) !important; overflow: visible !important; }
+.app-business-module .app-module-compat { display: none !important; }
+
+.app-popover {
+  position: fixed;
+  z-index: 70;
+  border: 1px solid #dfe1e5;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(26, 29, 36, .14);
+}
+.app-popover[hidden] { display: none; }
+.app-notice-popover { top: 48px; right: 72px; width: min(340px, calc(100vw - 32px)); }
+.app-account-popover { top: 48px; right: 16px; width: 184px; padding: 4px; }
+.app-popover-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #dfe1e5; }
+.app-popover-header strong { color: #1a1d24; font-size: 15px; }
+.app-link-button { border: 0; background: transparent; color: #0066ff; cursor: pointer; }
+.app-notice-item { display: flex; width: 100%; gap: 8px; padding: 12px 16px; border: 0; border-bottom: 1px solid #f0f1f3; background: #fff; text-align: left; cursor: pointer; }
+.app-notice-item:hover { background: #f3f4f6; }
+.app-notice-item-dot { width: 8px; height: 8px; flex: 0 0 8px; margin-top: 6px; border-radius: 50%; background: #0066ff; }
+.app-notice-item-dot.is-read { background: #dfe1e5; }
+.app-notice-title { color: #1a1d24; font-weight: 500; }
+.app-notice-desc { overflow: hidden; margin-top: 4px; color: #6e7685; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.app-notice-time { margin-top: 4px; color: #9da2ac; font-size: 11px; }
+.app-account-meta { padding: 10px 12px; border-bottom: 1px solid #f0f1f3; color: #6e7685; font-size: 12px; line-height: 1.7; }
+.app-account-action { display: flex; width: 100%; min-height: 34px; align-items: center; gap: 8px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: #3a3f4a; cursor: pointer; }
+.app-account-action:hover { background: #f3f4f6; }
+
+.app-mobile-overlay { position: fixed; inset: var(--app-topbar-height) 0 0; z-index: 38; border: 0; background: rgba(26, 29, 36, .28); }
+.app-mobile-overlay[hidden] { display: none; }
+.app-compact-flyout { position: fixed; z-index: 65; left: 76px; width: 176px; padding: 4px; border: 1px solid #dfe1e5; border-radius: 8px; background: #fff; box-shadow: 0 6px 24px rgba(26, 29, 36, .14); }
+.app-compact-flyout[hidden] { display: none; }
+
+.app-planning { min-height: calc(100vh - var(--app-topbar-height)); padding: 16px; }
+.app-planning-inner { display: grid; min-height: 420px; place-items: center; background: #fff; }
+.app-planning-copy { max-width: 460px; padding: 32px; text-align: center; }
+.app-planning-icon { display: grid; width: 48px; height: 48px; margin: 0 auto; place-items: center; border-radius: 8px; background: #fdf2e9; color: #e7772d; }
+.app-planning h1 { margin: 16px 0 8px; color: #1a1d24; font-size: 20px; }
+.app-planning p { margin: 0; color: #6e7685; line-height: 1.7; }
+
+.app-toast-container { position: fixed; top: 16px; left: 50%; z-index: 100; transform: translateX(-50%); pointer-events: none; }
+.app-toast { margin-bottom: 8px; padding: 8px 16px; border-radius: 4px; background: #3a3f4a; color: #fff; box-shadow: 0 2px 8px rgba(26, 29, 36, .16); animation: app-toast-in .18s ease both; }
+@keyframes app-toast-in { from { opacity: 0; transform: translateY(-8px); } }
+
+@media (min-width: 768px) {
+  .app-topbar { padding: 0 24px; }
+}
+
+@media (max-width: 767px) {
+  .app-sidebar { position: fixed; top: var(--app-topbar-height); bottom: 0; left: 0; height: auto; transform: translateX(-100%); box-shadow: 0 6px 24px rgba(26, 29, 36, .16); }
+  .app-sidebar.is-mobile-open { width: min(280px, calc(100vw - 48px)); transform: translateX(0); }
+  .app-sidebar.is-compact { width: min(280px, calc(100vw - 48px)); }
+  .app-sidebar.is-compact .app-menu-label,
+  .app-sidebar.is-compact .app-group-chevron,
+  .app-sidebar.is-compact .app-section-label,
+  .app-sidebar.is-compact .app-bottom-label { display: block; }
+  .app-sidebar.is-compact .app-menu-link,
+  .app-sidebar.is-compact .app-bottom-link { justify-content: flex-start; padding-right: 8px; padding-left: 8px; }
+  .app-sidebar.is-compact .app-submenu { display: block; }
+  .app-collapse-button { display: none; }
+  .app-mobile-menu { display: inline-grid; }
+  .app-account-name,
+  .app-account-chevron { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .app-collapse-button,
+  .app-submenu,
+  .app-group-chevron,
+  .app-spinner,
+  .app-toast { transition: none; animation: none; }
+}
+</style></head>
+<body>
+
+  <div class="app-shell">
+    <header id="appTopbar" class="app-topbar">
+      <div class="app-topbar-left">
+        <button id="appMobileMenu" class="app-icon-button app-mobile-menu" type="button" aria-label="展开导航" aria-controls="appSidebar" aria-expanded="false">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a class="app-brand-link" href="../index.html#home" data-app-route="home" aria-label="云登后台工作台">
+          <span class="app-brand-mark">云</span>
+          <span class="app-brand-copy">云登后台</span>
+        </a>
+      </div>
+      <div class="app-topbar-right">
+<button id="appNoticeButton" class="app-icon-button relative" type="button" aria-label="通知" aria-haspopup="dialog">
+          <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+          <span id="appNoticeDot" class="app-notice-dot"></span>
+        </button>
+        <span class="app-topbar-separator" aria-hidden="true"></span>
+        <button id="appAccountButton" class="app-account-button" type="button" aria-label="管理员账号" aria-haspopup="menu">
+          <span class="app-avatar">数</span>
+          <span class="app-account-name">数据管理员</span>
+          <i data-lucide="chevron-down" class="app-account-chevron w-3.5 h-3.5 text-ink-muted"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-shell-body">
+      <aside id="appSidebar" class="app-sidebar" aria-label="主导航">
+        <nav id="appPrimaryNav" class="app-primary-nav" aria-label="后台功能导航"></nav>
+
+        <div class="app-sidebar-footer">
+          <div class="app-sidebar-divider" aria-hidden="true"></div>
+          <button class="app-bottom-link" type="button" data-app-global-action="settings">
+            <i data-lucide="settings-2" class="app-menu-icon"></i>
+            <span class="app-bottom-label">系统设置</span>
+          </button>
+        </div>
+
+        <button id="appCollapseButton" class="app-collapse-button" type="button" aria-label="收起侧栏" aria-controls="appSidebar" aria-expanded="true" title="收起侧栏"></button>
+      </aside>
+
+      <button id="appMobileOverlay" class="app-mobile-overlay" type="button" aria-label="关闭导航" hidden></button>
+
+      <div class="app-workspace">
+        <main id="appContent" class="app-content" tabindex="-1">
+          <div id="appRouteOutlet" class="app-route-outlet" aria-live="polite"></div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="appNoticePopover" class="app-popover app-notice-popover" role="dialog" aria-label="通知" hidden>
+    <div class="app-popover-header">
+      <strong>通知</strong>
+      <button id="appReadAll" class="app-link-button" type="button">全部已读</button>
+    </div>
+    <div id="appNoticeList"></div>
+    <button class="app-account-action justify-center" type="button" data-app-global-action="notice-center">查看全部通知</button>
+  </div>
+
+  <div id="appAccountPopover" class="app-popover app-account-popover" role="menu" aria-label="管理员账号菜单" hidden>
+    <div class="app-account-meta">角色：数据管理员<br>数据范围：全部授权团队</div>
+    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="profile"><i data-lucide="user-round" class="w-4 h-4"></i>账号资料</button>
+    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="security"><i data-lucide="shield-check" class="w-4 h-4"></i>安全设置</button>
+  </div>
+
+  <div id="appCompactFlyout" class="app-compact-flyout" role="menu" aria-label="口径治理二级菜单" hidden></div>
+  <div id="appToastContainer" class="app-toast-container" aria-live="polite"></div>
+</div>
+
+<script>window.__YundengInlineRoute="user-list";window.__YundengInlineBundle=null;</script>
+<script data-inline="app-shell">(function () {
   'use strict';
 
-  const MODULE_VERSION = '20260822-index-shell';
+  const MODULE_VERSION = '20260822-inline-html';
   const APP_ENTRY = 'index.html';
   const RESOURCE_ROOT = 'Prototype/';
+  const INLINE_BUNDLE = window.__YundengInlineBundle || null;
+  const INLINE_ROUTE = window.__YundengInlineRoute || '';
+  const ROUTE_FILES = {"home":"index.html","user-list":"用户列表.html","user-statistics":"用户统计.html","team-list":"团队列表.html","enterprise-list":"企业列表.html","member-list":"成员列表.html","order-list":"订单列表.html","package-order":"套餐订单.html","invoice-management":"发票管理.html","environment-management":"环境管理.html","proxy-list":"代理列表.html","tracking-overview":"数据概览.html","tracking-events":"事件管理.html","tracking-metrics":"指标管理.html","tracking-debug":"联调验证.html","tracking-quality":"质量监控.html","tracking-detail":"明细排查.html","tracking-analysis":"数据分析.html","tracking-dashboards":"资产沉淀.html","tracking-insights":"决策复盘.html"};
+  if (INLINE_ROUTE === 'home') {
+    const requestedRoute = decodeURIComponent(location.hash.slice(1));
+    if (requestedRoute && requestedRoute !== 'home' && ROUTE_FILES[requestedRoute]) location.replace('Prototype/' + ROUTE_FILES[requestedRoute]);
+  }
+
   const SIDEBAR_STATE_KEY = 'yundeng-app-shell-sidebar-compact';
   const GROUP_STATE_KEY = 'yundeng-app-shell-group-state';
   const MODULE_STATE_PREFIX = 'yundeng-app-shell-module-state:';
@@ -103,12 +479,6 @@
     { title: '历史数据补偿完成', desc: '2026-08-10 PC 端缺失事件已完成回补。', time: '昨天 18:20', unread: false }
   ];
 
-  const shellAnnotations = {
-    1: { title: '侧栏折叠', desc: '鼠标移入或键盘聚焦侧栏时，在侧栏右侧居中显示收起或展开按钮；点击后在 220px 完整态与 68px 图标态之间切换，状态会在下次进入时恢复。' },
-    2: { title: '全局功能导航', desc: '系统框架统一维护模块分组、13px 菜单文字、路由和当前页高亮。' },
-    3: { title: '全局顶部栏', desc: '顶部栏左侧承载平台 Logo、平台名称与移动导航，右侧承载框架标注、通知和管理员账号；页面专属操作保留在业务内容内部。' }
-  };
-
   const routes = new Map();
   const routeParents = new Map();
   navigation.forEach((section) => {
@@ -127,10 +497,9 @@
   const outlet = $('appRouteOutlet');
   const content = $('appContent');
   const sidebar = $('appSidebar');
-  let currentRoute = resolveRoute(decodeURIComponent(location.hash.slice(1)) || 'home');
+  let currentRoute = resolveRoute(INLINE_ROUTE || decodeURIComponent(location.hash.slice(1)) || 'home');
   let groupState = readJson(GROUP_STATE_KEY, { 'tracking-governance': true });
   let moduleReady = false;
-  let shellAnnotationsVisible = false;
   let reloadScheduled = false;
 
   function readJson(key, fallback) {
@@ -154,10 +523,10 @@
   }
 
   function routeHref(routeId, search = '') {
-    const target = new URL(APP_ENTRY, location.href);
-    target.search = search;
-    target.hash = routeId;
-    return `${target.pathname.split('/').pop()}${target.search}${target.hash}`;
+    const file = ROUTE_FILES[routeId] || APP_ENTRY;
+    const inPrototype = /\/Prototype\//.test(location.pathname);
+    const target = routeId === 'home' ? (inPrototype ? '../index.html' : 'index.html') : (inPrototype ? file : 'Prototype/' + file);
+    return target + (search || '');
   }
 
   function icon(name, className = 'app-menu-icon') {
@@ -195,7 +564,6 @@
     $('appCollapseButton').setAttribute('aria-expanded', String(!compact));
     try { localStorage.setItem(SIDEBAR_STATE_KEY, String(compact)); } catch (_) {}
     window.lucide?.createIcons();
-    renderShellAnnotationBadges();
   }
 
   function readSidebarCompact() {
@@ -366,6 +734,30 @@
     document.body.append(script);
   }
 
+  function disableInvoiceAnnotations(route) {
+    if (route.id !== 'invoice-management') return;
+    const moduleRoot = outlet.querySelector('[data-module-root="invoice-management"]');
+    if (!moduleRoot) return;
+    const toggle = moduleRoot.querySelector('#invoiceAnnoToggle');
+    const popup = moduleRoot.querySelector('#invoiceAnnoPopup');
+    const layer = moduleRoot.querySelector('#invoiceAnnoLayer');
+    if (toggle) {
+      toggle.remove();
+    }
+    if (popup) {
+      popup.remove();
+    }
+    if (layer) {
+      layer.replaceChildren();
+      layer.hidden = true;
+      layer.setAttribute('aria-hidden', 'true');
+    }
+    const stripAnchors = () => moduleRoot.querySelectorAll('[data-anno]').forEach((element) => element.removeAttribute('data-anno'));
+    stripAnchors();
+    const anchorObserver = new MutationObserver(stripAnchors);
+    anchorObserver.observe(moduleRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-anno'] });
+  }
+
   function rewriteLegacyLink(anchor) {
     const raw = anchor.getAttribute('href');
     if (!raw || raw.startsWith('#') || /^(javascript:|mailto:|tel:)/i.test(raw)) return;
@@ -391,9 +783,8 @@
       return;
     }
 
-    await loadScript(`${RESOURCE_ROOT}modules/${route.module}.js?v=${MODULE_VERSION}`, 'module-bundle');
-    const bundle = window.YundengModuleBundles?.[route.module];
-    if (!bundle) throw new Error(`模块 ${route.module} 未注册`);
+    const bundle = INLINE_BUNDLE && INLINE_BUNDLE.id === route.module ? INLINE_BUNDLE : null;
+    if (!bundle) throw new Error(`当前页面未内嵌模块：${route.module}`);
 
     bundle.styleLinks.forEach(loadStyle);
     bundle.styles.forEach((css, index) => {
@@ -403,7 +794,7 @@
       document.head.append(style);
     });
 
-    for (const scriptSrc of bundle.externalScripts) await loadScript(moduleResource(scriptSrc), 'module-dependency');
+    // Page-local dependencies are embedded in this HTML file.
 
     outlet.innerHTML = bundle.html;
     rewriteLegacyLinks();
@@ -419,8 +810,8 @@
 
     window.lucide?.createIcons();
     bundle.scripts.forEach(runInlineScript);
-    if (bundle.usesAnnotations) await loadScript(`${RESOURCE_ROOT}标注交互.js?v=${MODULE_VERSION}`, 'module-annotations');
     window.lucide?.createIcons();
+    disableInvoiceAnnotations(route);
     moduleReady = true;
     restoreModuleState();
   }
@@ -447,7 +838,7 @@
       content.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    location.hash = target.id;
+    location.assign(routeHref(target.id, location.search));
   }
 
   function scheduleReload() {
@@ -457,34 +848,6 @@
     location.reload();
   }
 
-  function renderShellAnnotationBadges() {
-    const layer = $('appShellAnnoLayer');
-    layer.innerHTML = '';
-    if (!shellAnnotationsVisible) return;
-    document.querySelectorAll('[data-app-anno]').forEach((target) => {
-      const rect = target.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      const badge = document.createElement('button');
-      badge.type = 'button';
-      badge.className = 'app-shell-anno-badge';
-      badge.textContent = target.dataset.appAnno;
-      badge.style.left = `${Math.max(2, Math.min(innerWidth - 22, rect.right - 10))}px`;
-      badge.style.top = `${Math.max(2, Math.min(innerHeight - 22, rect.top - 8))}px`;
-      badge.addEventListener('click', () => openShellAnnotation(target.dataset.appAnno));
-      layer.append(badge);
-    });
-  }
-
-  function openShellAnnotation(id) {
-    const annotation = shellAnnotations[id];
-    if (!annotation) return;
-    $('appShellAnnoTitle').textContent = annotation.title;
-    $('appShellAnnoBody').textContent = annotation.desc;
-    $('appShellAnnoDialog').hidden = false;
-  }
-
-  function closeShellAnnotation() { $('appShellAnnoDialog').hidden = true; }
-
   function bindEvents() {
     $('appCollapseButton').addEventListener('click', () => setSidebarCompact(!sidebar.classList.contains('is-compact')));
     $('appMobileMenu').addEventListener('click', openMobileSidebar);
@@ -492,13 +855,6 @@
     $('appNoticeButton').addEventListener('click', (event) => { event.stopPropagation(); togglePopover('appNoticePopover'); });
     $('appAccountButton').addEventListener('click', (event) => { event.stopPropagation(); togglePopover('appAccountPopover'); });
     $('appReadAll').addEventListener('click', () => { notices.forEach((item) => { item.unread = false; }); renderNotices(); $('appNoticeDot').hidden = true; toast('通知已全部标记为已读'); });
-    $('appShellAnnoToggle').addEventListener('click', () => {
-      shellAnnotationsVisible = !shellAnnotationsVisible;
-      $('appShellAnnoToggle').setAttribute('aria-pressed', String(shellAnnotationsVisible));
-      renderShellAnnotationBadges();
-    });
-    $('appShellAnnoClose').addEventListener('click', closeShellAnnotation);
-    $('appShellAnnoDialog').addEventListener('click', (event) => { if (event.target === $('appShellAnnoDialog')) closeShellAnnotation(); });
 
     document.addEventListener('click', (event) => {
       const routeLink = event.target.closest('[data-app-route]');
@@ -532,14 +888,12 @@
     window.addEventListener('resize', () => {
       if (innerWidth >= 768) closeMobileSidebar();
       closeCompactFlyout();
-      renderShellAnnotationBadges();
     });
     document.addEventListener('keydown', (event) => {
       if (event.key !== 'Escape') return;
       closePopovers();
       closeCompactFlyout();
       closeMobileSidebar();
-      closeShellAnnotation();
     });
   }
 
@@ -550,6 +904,7 @@
       history.replaceState(null, '', `${location.pathname}${location.search}#${currentRoute.id}`);
     }
     setSidebarCompact(readSidebarCompact());
+    document.body.dataset.appRoute = currentRoute.id;
     renderNavigation();
     renderRouteTitle();
     renderNotices();
@@ -568,3 +923,6 @@
 
   init();
 })();
+</script>
+</body>
+</html>

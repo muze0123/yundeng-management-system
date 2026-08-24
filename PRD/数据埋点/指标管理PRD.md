@@ -1,11 +1,11 @@
 # 指标管理 PRD
 
 > 所属模块：数据埋点 / 口径治理 / 指标管理
-> 路由：`/data-tracking/metrics`  
-> 需求类型：新增  
-> 优先级：P0  
-> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px）  
-> 状态：可直接用于 Vibecoding  
+> 路由：`/data-tracking/metrics` 
+> 需求类型：新增 
+> 优先级：P0 
+> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px） 
+> 状态：可直接用于 Vibecoding 
 > 更新日期：2026-08-11
 
 ## 0. 文档依据与执行约束
@@ -41,14 +41,14 @@ AppShell
 ├─ TopBar（56px，固定）
 ├─ Sidebar（220px/64px，固定）
 └─ Main（唯一纵向滚动容器）
-   ├─ FilterSection
-   │  ├─ Tab：指标字典 / 维度字典 / 版本记录
-   │  ├─ 搜索 / 业务域 / 状态 / Owner / 更新日期
-   │  └─ 查询 / 重置
-   └─ DataSection
-      ├─ Header：结果数 / 新建指标 / 导出定义
-      ├─ MetricTable
-      └─ Pagination
+ ├─ FilterSection
+ │ ├─ Tab：指标字典 / 维度字典 / 版本记录
+ │ ├─ 搜索 / 业务域 / 状态 / Owner / 更新日期
+ │ └─ 查询 / 重置
+ └─ DataSection
+ ├─ Header：结果数 / 新建指标 / 导出定义
+ ├─ MetricTable
+ └─ Pagination
 GlobalLayer
 ├─ MetricDetailDrawer（720px）
 ├─ MetricEditorDrawer（760px）
@@ -103,12 +103,12 @@ GlobalLayer
 
 ```mermaid
 stateDiagram-v2
-  [*] --> draft
-  draft --> reviewing: 提交审核
-  reviewing --> draft: 打回
-  reviewing --> online: 审核并发布
-  online --> draft: 创建新版本
-  online --> deprecated: 废弃
+ [*] --> draft
+ draft --> reviewing: 提交审核
+ reviewing --> draft: 打回
+ reviewing --> online: 审核并发布
+ online --> draft: 创建新版本
+ online --> deprecated: 废弃
 ```
 
 发布检查：名称与 key 唯一、口径完整、来源在线、血缘无环、质量通过、试算成功、对账差异达标、Owner 完整、敏感扫描通过。

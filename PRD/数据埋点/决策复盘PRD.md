@@ -1,11 +1,11 @@
 # 决策复盘 PRD
 
 > 所属模块：数据埋点 / 决策复盘
-> 路由：`/data-tracking/insights`  
-> 需求类型：新增  
-> 优先级：P1  
-> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px）  
-> 状态：可直接用于 Vibecoding  
+> 路由：`/data-tracking/insights` 
+> 需求类型：新增 
+> 优先级：P1 
+> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px） 
+> 状态：可直接用于 Vibecoding 
 > 更新日期：2026-08-11
 
 ## 0. 文档依据与执行约束
@@ -36,15 +36,15 @@
 ```text
 AppShell
 └─ Main
-   ├─ FilterSection
-   │  ├─ 搜索 / 业务场景 / 状态 / 证据等级
-   │  ├─ Owner / 关联版本 / 复盘日期
-   │  └─ 查询 / 重置
-   └─ DataSection
-      ├─ Header：洞察数量 / 新建洞察
-      ├─ ViewSwitch：表格 / 看板
-      ├─ InsightTable or StatusBoard
-      └─ Pagination
+ ├─ FilterSection
+ │ ├─ 搜索 / 业务场景 / 状态 / 证据等级
+ │ ├─ Owner / 关联版本 / 复盘日期
+ │ └─ 查询 / 重置
+ └─ DataSection
+ ├─ Header：洞察数量 / 新建洞察
+ ├─ ViewSwitch：表格 / 看板
+ ├─ InsightTable or StatusBoard
+ └─ Pagination
 GlobalLayer
 ├─ InsightDetailDrawer（760px）
 ├─ InsightEditorDrawer（760px）
@@ -93,15 +93,15 @@ Footer：编辑 / 转为行动 / 提交评审 / 复盘
 
 ```mermaid
 stateDiagram-v2
-  [*] --> draft
-  draft --> validating: 提交验证
-  validating --> validated: 证据确认
-  validating --> draft: 补充证据
-  validated --> executing: 创建行动
-  executing --> reviewing: 到达观察窗
-  reviewing --> completed: 完成复盘
-  reviewing --> executing: 延长观察
-  draft --> archived: 归档
+ [*] --> draft
+ draft --> validating: 提交验证
+ validating --> validated: 证据确认
+ validating --> draft: 补充证据
+ validated --> executing: 创建行动
+ executing --> reviewing: 到达观察窗
+ reviewing --> completed: 完成复盘
+ reviewing --> executing: 延长观察
+ draft --> archived: 归档
 ```
 
 1. 从数据分析“创建洞察”自动带入只读分析快照；

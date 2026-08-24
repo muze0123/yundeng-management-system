@@ -1,18 +1,18 @@
 # 明细排查 PRD
 
-> 产品：云登后台管理系统  
+> 产品：云登后台管理系统 
 > 模块：数据埋点 / 明细排查
-> 需求类型：新建  
-> 优先级：P1  
-> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px）  
-> 文档日期：2026-08-07  
+> 需求类型：新建 
+> 优先级：P1 
+> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px） 
+> 文档日期：2026-08-07 
 > 状态：可直接用于 Vibecoding
 
 ## 0. 文档依据与执行约束
 
 实现前依次读取《数据埋点PRD.md》、本 PRD、《云登指纹浏览器数据埋点.md》、`design.md`、`claude.md`。明细排查是受控的数据排查能力，不是用户画像或自由 SQL。任何模块权限均不能放宽禁采字段规则。
 
-原型文件为 `Prototype/明细排查.html`，复用后台 App Shell、统一筛选布局、侧栏折叠和 Portal 标注系统。使用语义化 HTML、Tailwind CSS CDN、Lucide 和原生 JavaScript；Mock 中不得出现真实敏感值。
+原型文件为 `Prototype/明细排查.html`，复用后台 App Shell、统一筛选布局、侧栏折叠和 
 
 ## 1. 问题陈述
 
@@ -58,17 +58,17 @@
 ```text
 明细排查
 ├─ 筛选区
-│  ├─ 时间范围 / 事件 / 业务域 / 结果
-│  ├─ 客户端 / 版本 / 认证类型 / 质量状态
-│  └─ 高级标识：event_id / user_hash / session_id / request_id / trace_id
+│ ├─ 时间范围 / 事件 / 业务域 / 结果
+│ ├─ 客户端 / 版本 / 认证类型 / 质量状态
+│ └─ 高级标识：event_id / user_hash / session_id / request_id / trace_id
 ├─ 数据区
-│  ├─ 数据截止时间 / 结果量 / 导出明细
-│  ├─ 明细表格
-│  └─ 分页
+│ ├─ 数据截止时间 / 结果量 / 导出明细
+│ ├─ 明细表格
+│ └─ 分页
 ├─ 事件详情 Drawer
-│  ├─ 公共属性 / 业务属性 / 上下文
-│  ├─ Schema 与质量校验
-│  └─ 查看行为序列 / 跳转事件管理 / 复制脱敏 JSON
+│ ├─ 公共属性 / 业务属性 / 上下文
+│ ├─ Schema 与质量校验
+│ └─ 查看行为序列 / 跳转事件管理 / 复制脱敏 JSON
 ├─ 行为序列 Dialog
 └─ 导出任务 Dialog
 ```
@@ -165,18 +165,18 @@
 
 ```js
 eventDetailState = {
-  filters: { range: '24h', event: 'all', result: 'all', identifiers: {} },
-  query: { status: 'idle', requestId: null, stale: false, total: 0 },
-  pagination: { page: 1, pageSize: 20 },
-  selection: { activeEventId: null },
-  drawer: { open: false, status: 'idle', event: null },
-  sequence: { open: false, scope: 'session', window: '30m', status: 'idle' },
-  exportTask: { open: false, snapshot: null, status: 'idle', taskId: null },
-  permissions: []
+ filters: { range: '24h', event: 'all', result: 'all', identifiers: {} },
+ query: { status: 'idle', requestId: null, stale: false, total: 0 },
+ pagination: { page: 1, pageSize: 20 },
+ selection: { activeEventId: null },
+ drawer: { open: false, status: 'idle', event: null },
+ sequence: { open: false, scope: 'session', window: '30m', status: 'idle' },
+ exportTask: { open: false, snapshot: null, status: 'idle', taskId: null },
+ permissions: []
 }
 ```
 
-这是页面 E2E 的最高测试接缝。抽屉、序列和导出使用独立 requestId；旧响应不得覆盖当前对象。关闭浮层必须恢复焦点并同步 Portal 标注作用域。
+这是页面 E2E 的最高测试接缝。抽屉、序列和导出使用独立 requestId；旧响应不得覆盖当前对象。关闭浮层必须恢复焦点并同步 
 
 ## 14. API 契约
 
@@ -203,12 +203,6 @@ eventDetailState = {
 - 越权：“暂无明细排查权限（{permissionCode}）”
 - 敏感命中：“检测到禁止采集的数据，原值已隐藏”
 
-## 16. 模拟数据与门户标注
-
-至少 36 条事件，覆盖 AUTH、PROXY、ENV；personal/enterprise；PC/Web/Server；success/failure/timeout；五类质量状态；不同 Schema 版本和入库延迟。所有身份值使用不可逆样例或 `[REDACTED]`。
-
-标注覆盖筛选、查询、导出、数据截止时间、事件名、质量状态、详情分组、行为序列、复制、Schema 跳转、导出字段和任务状态。Drawer/Dialog 标注作用域必须 push/pop 配对。
-
 ## 17. 测试决策
 
 通过 `eventDetailState + render()` 验证外部行为，不测试 DOM 嵌套。验收：
@@ -220,7 +214,7 @@ eventDetailState = {
 5. 导出异步状态、上限、过期、重试和审计正确；
 6. Loading/Empty/Error/Forbidden/Extreme 可恢复；
 7. 1280/1440/1920 无页面级横向溢出；
-8. 键盘操作、焦点回归和 Portal 标注正确；
+8. 键盘操作、焦点回归和 
 9. 控制台零错误。
 
 ## 18. 非目标范围
@@ -232,14 +226,14 @@ eventDetailState = {
 ```text
 Main / PageContainer（24px）
 ├─ FilterSection
-│  ├─ BasicFilters（4 列）
-│  ├─ AdvancedIdentityFilters（默认折叠）
-│  └─ 查询 / 重置 / 收起高级筛选
+│ ├─ BasicFilters（4 列）
+│ ├─ AdvancedIdentityFilters（默认折叠）
+│ └─ 查询 / 重置 / 收起高级筛选
 ├─ QueryStatusBar：截止时间 / 时区 / 延迟 / 结果数
 └─ DataSection
-   ├─ Header：查询摘要 | 导出明细
-   ├─ EventDetailTable（表头 sticky）
-   └─ Pagination
+ ├─ Header：查询摘要 | 导出明细
+ ├─ EventDetailTable（表头 sticky）
+ └─ Pagination
 GlobalLayer
 ├─ EventDetailDrawer（760px）
 ├─ BehaviorSequenceDialog（1040px × max 80vh）

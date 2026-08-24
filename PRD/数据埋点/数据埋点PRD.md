@@ -1,11 +1,11 @@
 # 数据埋点 PRD
 
-> 产品：云登后台管理系统  
-> 模块：数据埋点  
-> 需求类型：新建  
-> 优先级：P0  
-> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px）  
-> 文档日期：2026-08-07  
+> 产品：云登后台管理系统 
+> 模块：数据埋点 
+> 需求类型：新建 
+> 优先级：P0 
+> 目标端：Web PC（设计基准 ≥1280px，最低支持 1024px） 
+> 文档日期：2026-08-07 
 > 状态：可直接用于 Vibecoding
 
 ## 0. 文档依据与 AI 执行指令
@@ -14,7 +14,7 @@
 
 生成高保真、可交互单文件原型 `数据埋点.html`，使用语义化 HTML5、Tailwind CSS CDN、Lucide、Chart.js 和原生 JavaScript ES6+。不使用 React、Vue、jQuery，不拆分本地 CSS/JS，不连接真实接口。全部数据由 JS Mock 驱动，控制台零错误。
 
-必须复用云登后台 App Shell 和 Portal 标注系统；“数据埋点”一级菜单按 M0～M6 阶段开放目标模块，未完成验收的指标管理、资产沉淀或决策复盘不得显示空白入口。页面使用同一状态容器和路由出口，不生成互不一致的侧栏。按 `agent.md` 同步原型导航；未经用户要求不得 Git 提交、推送或部署。
+必须复用云登后台 App Shell 和 
 
 ## 1. 问题陈述
 
@@ -89,8 +89,8 @@
 数据埋点〔灰色静态分组标题；不可点击、不可折叠〕
 ├─ 数据概览〔一级〕 /data-tracking/overview
 ├─ 口径治理〔一级，可展开，无业务路由〕
-│  ├─ 事件管理〔二级〕 /data-tracking/events
-│  └─ 指标管理〔二级〕 /data-tracking/metrics（M1 后显示）
+│ ├─ 事件管理〔二级〕 /data-tracking/events
+│ └─ 指标管理〔二级〕 /data-tracking/metrics（M1 后显示）
 ├─ 联调验证〔一级〕 /data-tracking/debug
 ├─ 质量监控〔一级〕 /data-tracking/alerts
 ├─ 明细排查〔一级〕 /data-tracking/event-details
@@ -110,9 +110,9 @@ AppShell
 ├─ TopBar：团队 / 日期 / 时区 / 刷新 / 用户
 ├─ Sidebar：静态分组标题 + 八阶段一级菜单 + 口径治理二级菜单
 └─ RouterOutlet
-   ├─ FilterSection
-   ├─ DataSection
-   └─ GlobalLayer：Drawer / Dialog / Toast / Annotation
+ ├─ FilterSection
+ ├─ DataSection
+ └─ GlobalLayer：Drawer / Dialog / Toast / Annotation
 ```
 
 公共组件：GlobalFilterBar、MetricCard、ChartCard、DataTable、Pagination、QueryStatusBar、EmptyState、ErrorState、PermissionState、SchemaBadge、EventPicker、PropertyFilterBuilder、AsyncTaskProgress、ConfirmDialog、DetailDrawer、Toast。
@@ -123,33 +123,33 @@ AppShell
 
 ```js
 appState = {
-  route: 'overview',
-  permissions: [],
-  globalFilters: {
-    range: 'last_7_days',
-    teamId: 'all',
-    client: 'all',
-    appVersion: 'all',
-    timezone: 'Asia/Shanghai'
-  },
-  pageState: {},
-  query: {
-    status: 'idle',
-    requestId: null,
-    error: null,
-    lastUpdatedAt: null,
-    stale: false
-  },
-  selection: { ids: [], activeId: null },
-  editor: {
-    mode: null,
-    draft: null,
-    dirty: false,
-    submitting: false,
-    version: null
-  },
-  overlays: { drawer: null, modal: null, popover: null },
-  toastQueue: []
+ route: 'overview',
+ permissions: [],
+ globalFilters: {
+ range: 'last_7_days',
+ teamId: 'all',
+ client: 'all',
+ appVersion: 'all',
+ timezone: 'Asia/Shanghai'
+ },
+ pageState: {},
+ query: {
+ status: 'idle',
+ requestId: null,
+ error: null,
+ lastUpdatedAt: null,
+ stale: false
+ },
+ selection: { ids: [], activeId: null },
+ editor: {
+ mode: null,
+ draft: null,
+ dirty: false,
+ submitting: false,
+ version: null
+ },
+ overlays: { drawer: null, modal: null, popover: null },
+ toastQueue: []
 }
 ```
 
@@ -161,7 +161,7 @@ appState = {
 4. 功能路由切换关闭 Popover；有未保存 Drawer 时先弹离开确认；
 5. 写操作仅锁定冲突按钮，不整页遮罩；成功后刷新所有引用区域；
 6. 权限被撤销时终止提交、关闭编辑浮层并进入 403；
-7. 浮层开关必须同步 Portal 标注作用域和焦点返回。
+7. 浮层开关必须同步 
 
 ## 8. 公共状态与边界
 
@@ -301,7 +301,7 @@ appState = {
 5. 禁采值不出现在 Mock、DOM、Toast、URL、复制内容和控制台；
 6. 1280/1440/1920 无意外横向溢出，1024 可操作；
 7. 键盘可达、焦点回归、颜色非唯一信息；
-8. Portal 标注连续且 Drawer/Dialog 作用域 push/pop 配对；
+8. 
 9. 控制台零报错。
 
 ## 15. 非目标范围
@@ -346,8 +346,8 @@ appState = {
 数据埋点〔灰色静态分组标题，无路由〕
 ├─ 数据概览〔一级〕 /data-tracking/overview
 ├─ 口径治理〔一级，可展开〕
-│  ├─ 事件管理〔二级〕 /data-tracking/events
-│  └─ 指标管理〔二级〕 /data-tracking/metrics（M1 新增）
+│ ├─ 事件管理〔二级〕 /data-tracking/events
+│ └─ 指标管理〔二级〕 /data-tracking/metrics（M1 新增）
 ├─ 联调验证〔一级〕 /data-tracking/debug
 ├─ 质量监控〔一级〕 /data-tracking/alerts
 ├─ 明细排查〔一级〕 /data-tracking/event-details
@@ -377,17 +377,16 @@ appState = {
 ```text
 ┌──────────────────────── TopBar 56px（固定） ────────────────────────┐
 ├─ Sidebar 220/64px ─┬─ Main：唯一页面滚动容器 ─────────────────────┤
-│                    │  PageContainer：max 1600px；padding 24px      │
-│ 数据埋点〔灰色〕   │  ┌─ FilterSection / WorkspaceToolbar ─────┐ │
-│  数据概览          │  └─────────────────────────────────────────┘ │
-│  口径治理          │  ┌─ QueryStatusBar（按需）─────────────────┐ │
-│   事件/指标管理    │  └─────────────────────────────────────────┘ │
-│  联调/质量/明细    │  ┌─ DataSection / AnalysisWorkspace ──────┐ │
-│  分析/资产/决策    │  │ 表格、图表、画布或双栏工作区           │ │
-│                    │  └─────────────────────────────────────────┘ │
+│ │ PageContainer：max 1600px；padding 24px │
+│ 数据埋点〔灰色〕 │ ┌─ FilterSection / WorkspaceToolbar ─────┐ │
+│ 数据概览 │ └─────────────────────────────────────────┘ │
+│ 口径治理 │ ┌─ QueryStatusBar（按需）─────────────────┐ │
+│ 事件/指标管理 │ └─────────────────────────────────────────┘ │
+│ 联调/质量/明细 │ ┌─ DataSection / AnalysisWorkspace ──────┐ │
+│ 分析/资产/决策 │ │ 表格、图表、画布或双栏工作区 │ │
+│ │ └─────────────────────────────────────────┘ │
 └────────────────────┴──────────────────────────────────────────────┘
-GlobalLayer：Popover < Drawer < Dialog < Toast；Portal scope 成对管理
-```
+GlobalLayer：Popover < Drawer < Dialog < Toast；```
 
 | 布局对象 | 统一规则 |
 |---|---|
@@ -407,20 +406,20 @@ GlobalLayer：Popover < Drawer < Dialog < Toast；Portal scope 成对管理
 
 ```mermaid
 flowchart LR
-  A["事件管理"] --> B["跨端采集"]
-  A --> C["指标管理"]
-  B --> D["联调验证"]
-  B --> E["质量监控"]
-  B --> F["明细排查"]
-  C --> G["总览/数据分析"]
-  F --> G
-  E --> G
-  G --> H["看板"]
-  G --> I["决策复盘"]
-  I --> J["产品迭代/实验/发布"]
-  J --> B
-  D --> A
-  E --> A
+ A["事件管理"] --> B["跨端采集"]
+ A --> C["指标管理"]
+ B --> D["联调验证"]
+ B --> E["质量监控"]
+ B --> F["明细排查"]
+ C --> G["总览/数据分析"]
+ F --> G
+ E --> G
+ G --> H["看板"]
+ G --> I["决策复盘"]
+ I --> J["产品迭代/实验/发布"]
+ J --> B
+ D --> A
+ E --> A
 ```
 
 跨模块契约新增：

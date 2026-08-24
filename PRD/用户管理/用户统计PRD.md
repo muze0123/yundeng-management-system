@@ -133,14 +133,14 @@ AppShell
 ├─ Sidebar：220px 展开 / 68px 折叠
 ├─ TopBar：56px
 └─ MainContent：bg-page、16px 内边距、唯一纵向滚动容器
-   ├─ FilterSection
-   │  └─ 统计周期 / 账号状态 / 注册来源 / 账号归属 / 查询 / 重置
-   └─ DataSection
-      ├─ Header：用户统计 / 数据状态 / 刷新 / 导出
-      ├─ KPI Grid：累计注册 / 新增注册 / 期间活跃 / 7日留存
-      ├─ Analysis Tabs：规模与活跃 / 用户结构 / 留存分析
-      ├─ Visualization：图表视图或数据表视图
-      └─ AggregatedTable / CohortMatrix
+ ├─ FilterSection
+ │ └─ 统计周期 / 账号状态 / 注册来源 / 账号归属 / 查询 / 重置
+ └─ DataSection
+ ├─ Header：用户统计 / 数据状态 / 刷新 / 导出
+ ├─ KPI Grid：累计注册 / 新增注册 / 期间活跃 / 7日留存
+ ├─ Analysis Tabs：规模与活跃 / 用户结构 / 留存分析
+ ├─ Visualization：图表视图或数据表视图
+ └─ AggregatedTable / CohortMatrix
 ```
 
 ### 3.2 响应式
@@ -253,13 +253,13 @@ AppShell
 
 ```json
 {
-  "startDate": "2026-07-15",
-  "endDate": "2026-08-13",
-  "timezone": "Asia/Shanghai",
-  "accountStatus": "all",
-  "registerSource": "all",
-  "affiliation": "all",
-  "metricVersion": "user-statistics-v1.0"
+ "startDate": "2026-07-15",
+ "endDate": "2026-08-13",
+ "timezone": "Asia/Shanghai",
+ "accountStatus": "all",
+ "registerSource": "all",
+ "affiliation": "all",
+ "metricVersion": "user-statistics-v1.0"
 }
 ```
 
@@ -383,7 +383,7 @@ AppShell
 5. 导出 Dialog 可打开、取消、遮罩/Escape 关闭、确认并反馈成功。
 6. 原型状态工具可切换正常、加载、空、错误、无权限和 stale。
 7. 侧栏折叠、通知和账号菜单可交互；用户统计菜单唯一高亮。
-8. Portal 标注覆盖筛选、查询、重置、刷新、导出、四个 KPI、Tab、视图切换、图表、表格、留存和导出确认；编号从 1 连续。
+8. 
 
 ## 11. 验收用例
 
@@ -403,7 +403,7 @@ AppShell
 | AC-12 | 无查看权限 | 访问路由 | 不请求统计数据，显示无权限状态 |
 | AC-13 | 图表不可用或键盘用户 | 切换数据表视图 | 可读取与图表同源的全部聚合值 |
 | AC-14 | 768×1024 | 操作筛选和 Tab | 无重叠；图表单列；表格可横向滚动 |
-| AC-15 | 打开交互标注后打开导出 Dialog | 查看标注 | 页面徽标隐藏，仅 Dialog 内标注显示；关闭后恢复页面标注 |
+| AC-15 | 打开交互标注后打开导出 Dialog | 查看标注 | 页面徽标隐藏，仅 Dialog 内
 
 ## 12. 发布、监控与回滚
 

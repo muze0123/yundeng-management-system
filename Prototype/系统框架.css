@@ -192,16 +192,6 @@ a { -webkit-tap-highlight-color: transparent; }
 .app-business-module > .app-module-toolbar { display: none !important; }
 .app-business-module > main { height: auto !important; min-height: calc(100vh - var(--app-topbar-height)) !important; overflow: visible !important; }
 .app-business-module .app-module-compat { display: none !important; }
-.app-business-module #annoToggle {
-  position: fixed !important;
-  top: 120px;
-  right: 8px;
-  z-index: 9997 !important;
-  cursor: grab !important;
-  touch-action: none;
-  user-select: none;
-}
-.app-business-module #annoToggle.cursor-grabbing { cursor: grabbing !important; }
 
 .app-popover {
   position: fixed;
@@ -243,16 +233,6 @@ a { -webkit-tap-highlight-color: transparent; }
 .app-toast-container { position: fixed; top: 16px; left: 50%; z-index: 100; transform: translateX(-50%); pointer-events: none; }
 .app-toast { margin-bottom: 8px; padding: 8px 16px; border-radius: 4px; background: #3a3f4a; color: #fff; box-shadow: 0 2px 8px rgba(26, 29, 36, .16); animation: app-toast-in .18s ease both; }
 @keyframes app-toast-in { from { opacity: 0; transform: translateY(-8px); } }
-
-.app-shell-anno-layer { position: fixed; inset: 0; z-index: 9998; pointer-events: none; }
-.app-shell-anno-badge { position: fixed; display: grid; width: 20px; height: 20px; place-items: center; border: 0; border-radius: 50%; background: #0066ff; color: #fff; font: 700 11px "JetBrains Mono", monospace; box-shadow: 0 2px 6px rgba(0, 0, 0, .15); pointer-events: auto; cursor: pointer; }
-.app-shell-anno-toggle[aria-pressed="true"] { background: #e6f0ff; color: #0066ff; }
-.app-shell-anno-dialog { position: fixed; inset: 0; z-index: 9999; display: grid; padding: 16px; place-items: center; background: rgba(0, 0, 0, .3); }
-.app-shell-anno-dialog[hidden] { display: none; }
-.app-shell-anno-panel { width: min(520px, 100%); border-radius: 8px; background: #fff; box-shadow: 0 6px 24px rgba(0, 0, 0, .12); }
-.app-shell-anno-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #dfe1e5; }
-.app-shell-anno-header h2 { margin: 0; color: #1a1d24; font-size: 16px; }
-.app-shell-anno-body { padding: 20px; color: #3a3f4a; font-size: 14px; line-height: 1.7; }
 
 @media (min-width: 768px) {
   .app-topbar { padding: 0 24px; }

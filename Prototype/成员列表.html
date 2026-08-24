@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云登后台 · 成员列表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink: { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line: { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6',
+            bg: { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6', subtle: '#F5F8FF' },
+            success: { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning: { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger: { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info: { DEFAULT: '#0091D5', bg: '#E4F4FB' },
+            primaryBg: '#E6F0FF'
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'monospace'] }
+        }
+      }
+    };
+  </script>
+<style data-inline="app-shell">* { box-sizing: border-box; }
+
+:root {
+  color-scheme: light;
+  --app-sidebar-width: 220px;
+  --app-sidebar-compact-width: 68px;
+  --app-topbar-height: 56px;
+}
+
+html,
+body { min-height: 100%; }
+
+body {
+  margin: 0;
+  background: #f7f8fa;
+  color: #3a3f4a;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea { font: inherit; letter-spacing: 0; }
+
+button,
+a { -webkit-tap-highlight-color: transparent; }
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell { display: flex; width: 100%; height: 100vh; min-height: 100vh; flex-direction: column; overflow: hidden; }
+.app-shell-body { display: flex; min-height: 0; flex: 1; overflow: hidden; }
+
+.app-sidebar {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  width: var(--app-sidebar-width);
+  height: 100%;
+  flex: 0 0 auto;
+  flex-direction: column;
+  overflow: visible;
+  background: #fff;
+  transition: width .2s ease, transform .2s ease;
+}
+
+.app-sidebar.is-compact { width: var(--app-sidebar-compact-width); }
+
+.app-brand-link { display: flex; min-width: 0; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
+.app-brand-mark { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 6px; background: #0066ff; color: #fff; font-size: 15px; font-weight: 700; }
+.app-brand-copy { overflow: hidden; color: #1a1d24; font-size: 16px; font-weight: 600; white-space: nowrap; }
+
+.app-icon-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #6e7685;
+  cursor: pointer;
+}
+
+.app-icon-button:hover { background: #f3f4f6; color: #3a3f4a; }
+.app-icon-button:focus-visible,
+.app-menu-link:focus-visible,
+.app-account-button:focus-visible,
+.app-collapse-button:focus-visible,
+.app-brand-link:focus-visible { outline: 2px solid #0066ff; outline-offset: 2px; }
+.app-collapse-button {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 3;
+  display: grid;
+  width: 12px;
+  height: 50px;
+  padding: 0;
+  transform: translate(50%, -50%);
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: #e5e6ed;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+}
+.app-collapse-button::before {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-right: 7px solid currentColor;
+  border-bottom: 6px solid transparent;
+  content: "";
+}
+.app-collapse-button[aria-expanded="false"]::before {
+  border-right: 0;
+  border-left: 7px solid currentColor;
+}
+.app-sidebar:hover .app-collapse-button,
+.app-sidebar:focus-within .app-collapse-button,
+.app-collapse-button:focus-visible { opacity: 1; pointer-events: auto; }
+.app-collapse-button:hover { background: #acb0ba; }
+
+.app-primary-nav { min-height: 0; flex: 1; overflow: auto; padding: 12px 12px; }
+.app-section-label { padding: 8px 8px 0; color: #9da2ac; font-size: 11px; line-height: 28px; }
+
+.app-menu-link,
+.app-bottom-link {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 4px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #3a3f4a;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-menu-link:hover,
+.app-bottom-link:hover { background: #f3f4f6; }
+.app-menu-link.is-active { background: #e6f0ff; color: #0066ff; font-weight: 600; }
+.app-menu-link.is-group-active { background: #f3f4f6; color: #0066ff; font-weight: 600; }
+.app-menu-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+.app-menu-label { min-width: 0; flex: 1; font-size: 13px; }
+.app-group-chevron { width: 16px; height: 16px; transition: transform .2s ease; }
+.app-group-toggle[aria-expanded="false"] .app-group-chevron { transform: rotate(-90deg); }
+.app-submenu { overflow: hidden; max-height: 240px; opacity: 1; transition: max-height .2s ease, opacity .15s ease; }
+.app-submenu.is-collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+.app-submenu .app-menu-link { min-height: 34px; padding-left: 36px; font-size: 13px; }
+.app-sidebar-footer { padding: 12px; }
+.app-sidebar-divider { height: 1px; margin-bottom: 12px; background: #dfe1e5; }
+
+.app-sidebar.is-compact .app-menu-label,
+.app-sidebar.is-compact .app-group-chevron,
+.app-sidebar.is-compact .app-section-label,
+.app-sidebar.is-compact .app-bottom-label { display: none; }
+.app-sidebar.is-compact .app-menu-link,
+.app-sidebar.is-compact .app-bottom-link { justify-content: center; padding-right: 0; padding-left: 0; }
+.app-sidebar.is-compact .app-submenu { display: none; }
+
+.app-workspace { display: flex; min-width: 0; height: 100%; min-height: 0; flex: 1; flex-direction: column; overflow: hidden; }
+.app-topbar {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  width: 100%;
+  min-height: var(--app-topbar-height);
+  flex: 0 0 var(--app-topbar-height);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: #fff;
+  box-shadow: 0 4px 12px -4px rgba(26, 29, 36, .16);
+  clip-path: inset(0 0 -16px 0);
+}
+.app-topbar-left,
+.app-topbar-right { display: flex; min-width: 0; align-items: center; gap: 8px; }
+.app-topbar-left { gap: 12px; }
+.app-mobile-menu { display: none; }
+.app-notice-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border: 1px solid #fff; border-radius: 50%; background: #d9001b; }
+.app-topbar-separator { width: 1px; height: 20px; margin: 0 4px; background: #dfe1e5; }
+.app-account-button { display: flex; align-items: center; gap: 8px; padding: 4px; border: 0; border-radius: 4px; background: transparent; color: #3a3f4a; cursor: pointer; }
+.app-account-button:hover { background: #f3f4f6; }
+.app-avatar { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #e6f0ff; color: #0066ff; font-weight: 600; }
+
+.app-content { min-height: 0; flex: 1; overflow: auto; background: #f7f8fa; }
+.app-route-outlet { min-height: 100%; }
+.app-route-loading { display: grid; min-height: calc(100vh - var(--app-topbar-height)); place-items: center; color: #6e7685; }
+.app-route-loading > div { display: flex; align-items: center; gap: 8px; }
+.app-spinner { width: 16px; height: 16px; border: 2px solid #dfe1e5; border-top-color: #0066ff; border-radius: 50%; animation: app-spin .7s linear infinite; }
+@keyframes app-spin { to { transform: rotate(360deg); } }
+
+.app-business-module > .app-module-toolbar { display: none !important; }
+.app-business-module > main { height: auto !important; min-height: calc(100vh - var(--app-topbar-height)) !important; overflow: visible !important; }
+.app-business-module .app-module-compat { display: none !important; }
+
+.app-popover {
+  position: fixed;
+  z-index: 70;
+  border: 1px solid #dfe1e5;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(26, 29, 36, .14);
+}
+.app-popover[hidden] { display: none; }
+.app-notice-popover { top: 48px; right: 72px; width: min(340px, calc(100vw - 32px)); }
+.app-account-popover { top: 48px; right: 16px; width: 184px; padding: 4px; }
+.app-popover-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #dfe1e5; }
+.app-popover-header strong { color: #1a1d24; font-size: 15px; }
+.app-link-button { border: 0; background: transparent; color: #0066ff; cursor: pointer; }
+.app-notice-item { display: flex; width: 100%; gap: 8px; padding: 12px 16px; border: 0; border-bottom: 1px solid #f0f1f3; background: #fff; text-align: left; cursor: pointer; }
+.app-notice-item:hover { background: #f3f4f6; }
+.app-notice-item-dot { width: 8px; height: 8px; flex: 0 0 8px; margin-top: 6px; border-radius: 50%; background: #0066ff; }
+.app-notice-item-dot.is-read { background: #dfe1e5; }
+.app-notice-title { color: #1a1d24; font-weight: 500; }
+.app-notice-desc { overflow: hidden; margin-top: 4px; color: #6e7685; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.app-notice-time { margin-top: 4px; color: #9da2ac; font-size: 11px; }
+.app-account-meta { padding: 10px 12px; border-bottom: 1px solid #f0f1f3; color: #6e7685; font-size: 12px; line-height: 1.7; }
+.app-account-action { display: flex; width: 100%; min-height: 34px; align-items: center; gap: 8px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: #3a3f4a; cursor: pointer; }
+.app-account-action:hover { background: #f3f4f6; }
+
+.app-mobile-overlay { position: fixed; inset: var(--app-topbar-height) 0 0; z-index: 38; border: 0; background: rgba(26, 29, 36, .28); }
+.app-mobile-overlay[hidden] { display: none; }
+.app-compact-flyout { position: fixed; z-index: 65; left: 76px; width: 176px; padding: 4px; border: 1px solid #dfe1e5; border-radius: 8px; background: #fff; box-shadow: 0 6px 24px rgba(26, 29, 36, .14); }
+.app-compact-flyout[hidden] { display: none; }
+
+.app-planning { min-height: calc(100vh - var(--app-topbar-height)); padding: 16px; }
+.app-planning-inner { display: grid; min-height: 420px; place-items: center; background: #fff; }
+.app-planning-copy { max-width: 460px; padding: 32px; text-align: center; }
+.app-planning-icon { display: grid; width: 48px; height: 48px; margin: 0 auto; place-items: center; border-radius: 8px; background: #fdf2e9; color: #e7772d; }
+.app-planning h1 { margin: 16px 0 8px; color: #1a1d24; font-size: 20px; }
+.app-planning p { margin: 0; color: #6e7685; line-height: 1.7; }
+
+.app-toast-container { position: fixed; top: 16px; left: 50%; z-index: 100; transform: translateX(-50%); pointer-events: none; }
+.app-toast { margin-bottom: 8px; padding: 8px 16px; border-radius: 4px; background: #3a3f4a; color: #fff; box-shadow: 0 2px 8px rgba(26, 29, 36, .16); animation: app-toast-in .18s ease both; }
+@keyframes app-toast-in { from { opacity: 0; transform: translateY(-8px); } }
+
+@media (min-width: 768px) {
+  .app-topbar { padding: 0 24px; }
+}
+
+@media (max-width: 767px) {
+  .app-sidebar { position: fixed; top: var(--app-topbar-height); bottom: 0; left: 0; height: auto; transform: translateX(-100%); box-shadow: 0 6px 24px rgba(26, 29, 36, .16); }
+  .app-sidebar.is-mobile-open { width: min(280px, calc(100vw - 48px)); transform: translateX(0); }
+  .app-sidebar.is-compact { width: min(280px, calc(100vw - 48px)); }
+  .app-sidebar.is-compact .app-menu-label,
+  .app-sidebar.is-compact .app-group-chevron,
+  .app-sidebar.is-compact .app-section-label,
+  .app-sidebar.is-compact .app-bottom-label { display: block; }
+  .app-sidebar.is-compact .app-menu-link,
+  .app-sidebar.is-compact .app-bottom-link { justify-content: flex-start; padding-right: 8px; padding-left: 8px; }
+  .app-sidebar.is-compact .app-submenu { display: block; }
+  .app-collapse-button { display: none; }
+  .app-mobile-menu { display: inline-grid; }
+  .app-account-name,
+  .app-account-chevron { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .app-collapse-button,
+  .app-submenu,
+  .app-group-chevron,
+  .app-spinner,
+  .app-toast { transition: none; animation: none; }
+}
+</style></head>
+<body>
+
+  <div class="app-shell">
+    <header id="appTopbar" class="app-topbar">
+      <div class="app-topbar-left">
+        <button id="appMobileMenu" class="app-icon-button app-mobile-menu" type="button" aria-label="展开导航" aria-controls="appSidebar" aria-expanded="false">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a class="app-brand-link" href="../index.html#home" data-app-route="home" aria-label="云登后台工作台">
+          <span class="app-brand-mark">云</span>
+          <span class="app-brand-copy">云登后台</span>
+        </a>
+      </div>
+      <div class="app-topbar-right">
+<button id="appNoticeButton" class="app-icon-button relative" type="button" aria-label="通知" aria-haspopup="dialog">
+          <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+          <span id="appNoticeDot" class="app-notice-dot"></span>
+        </button>
+        <span class="app-topbar-separator" aria-hidden="true"></span>
+        <button id="appAccountButton" class="app-account-button" type="button" aria-label="管理员账号" aria-haspopup="menu">
+          <span class="app-avatar">数</span>
+          <span class="app-account-name">数据管理员</span>
+          <i data-lucide="chevron-down" class="app-account-chevron w-3.5 h-3.5 text-ink-muted"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-shell-body">
+      <aside id="appSidebar" class="app-sidebar" aria-label="主导航">
+        <nav id="appPrimaryNav" class="app-primary-nav" aria-label="后台功能导航"></nav>
+
+        <div class="app-sidebar-footer">
+          <div class="app-sidebar-divider" aria-hidden="true"></div>
+          <button class="app-bottom-link" type="button" data-app-global-action="settings">
+            <i data-lucide="settings-2" class="app-menu-icon"></i>
+            <span class="app-bottom-label">系统设置</span>
+          </button>
+        </div>
+
+        <button id="appCollapseButton" class="app-collapse-button" type="button" aria-label="收起侧栏" aria-controls="appSidebar" aria-expanded="true" title="收起侧栏"></button>
+      </aside>
+
+      <button id="appMobileOverlay" class="app-mobile-overlay" type="button" aria-label="关闭导航" hidden></button>
+
+      <div class="app-workspace">
+        <main id="appContent" class="app-content" tabindex="-1">
+          <div id="appRouteOutlet" class="app-route-outlet" aria-live="polite"></div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="appNoticePopover" class="app-popover app-notice-popover" role="dialog" aria-label="通知" hidden>
+    <div class="app-popover-header">
+      <strong>通知</strong>
+      <button id="appReadAll" class="app-link-button" type="button">全部已读</button>
+    </div>
+    <div id="appNoticeList"></div>
+    <button class="app-account-action justify-center" type="button" data-app-global-action="notice-center">查看全部通知</button>
+  </div>
+
+  <div id="appAccountPopover" class="app-popover app-account-popover" role="menu" aria-label="管理员账号菜单" hidden>
+    <div class="app-account-meta">角色：数据管理员<br>数据范围：全部授权团队</div>
+    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="profile"><i data-lucide="user-round" class="w-4 h-4"></i>账号资料</button>
+    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="security"><i data-lucide="shield-check" class="w-4 h-4"></i>安全设置</button>
+  </div>
+
+  <div id="appCompactFlyout" class="app-compact-flyout" role="menu" aria-label="口径治理二级菜单" hidden></div>
+  <div id="appToastContainer" class="app-toast-container" aria-live="polite"></div>
+</div>
+
+<script>window.__YundengInlineRoute="member-list";window.__YundengInlineBundle={"id":"member-list","file":"成员列表.html","title":"成员列表","html":"<section class=\"app-business-module\" data-module-root=\"member-list\" aria-label=\"成员列表\"><main id=\"mainContent\" class=\"flex-1 overflow-auto p-4 main-padding\" tabindex=\"-1\">\n        <div id=\"pageContent\" class=\"max-w-[1680px] mx-auto space-y-4\">\n          <!-- 筛选区 -->\n          <section class=\"bg-card rounded-lg border border-line p-5 md:p-6\" aria-label=\"成员筛选\">\n            <div id=\"viewTabs\" class=\"tabs-underline\" role=\"tablist\" aria-label=\"字段分组\"></div>\n            <div class=\"flex justify-end mb-4\">\n              <button id=\"advancedBtn\" type=\"button\" class=\"h-8 px-3 rounded text-primary hover:bg-primary-bg inline-flex items-center gap-1.5\"  aria-expanded=\"false\"><i data-lucide=\"sliders-horizontal\" class=\"w-4 h-4\"></i><span>高级筛选</span><span id=\"advancedCount\" class=\"hidden mono min-w-[18px] h-[18px] px-1 rounded bg-primary-bg text-primary text-[11px] items-center justify-center\">0</span><i id=\"advancedChevron\" data-lucide=\"chevron-down\" class=\"w-4 h-4\"></i></button>\n            </div>\n            <div id=\"filterFlow\" class=\"filter-flow\">\n              <div class=\"filter-item\" ><label class=\"filter-label\" for=\"keyword\">关键词</label><div class=\"filter-control\"><input id=\"keyword\" class=\"control pr-8\" maxlength=\"40\" placeholder=\"搜成员名称 / 成员 ID / 手机号\"><button id=\"clearKeyword\" type=\"button\" class=\"hidden absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-muted hover:text-ink-sub\" aria-label=\"清空关键词\"><i data-lucide=\"x\" class=\"w-4 h-4\"></i></button></div></div>\n              <div class=\"filter-item\" ><label class=\"filter-label\" for=\"subjectTypeFilter\">主体类型</label><div class=\"filter-control\"><select id=\"subjectTypeFilter\" class=\"control\"><option value=\"\">全部类型</option><option value=\"team\">团队</option><option value=\"enterprise\">企业</option></select></div></div>\n              <div class=\"filter-item\" ><label class=\"filter-label\" for=\"subjectFilter\">所属主体</label><div class=\"filter-control\"><select id=\"subjectFilter\" class=\"control\"><option value=\"\">全部主体</option></select></div></div>\n              <div class=\"filter-item\" ><label class=\"filter-label\" for=\"statusFilter\">关系状态</label><div class=\"filter-control\"><select id=\"statusFilter\" class=\"control\"><option value=\"\">全部状态</option><option value=\"enabled\">启用</option><option value=\"disabled\">禁用</option></select></div></div>\n              <div class=\"filter-item advanced-item hidden items-start\"><label class=\"filter-label mt-2\" for=\"roleFilter\">成员角色</label><div class=\"filter-control h-auto\"><select id=\"roleFilter\" class=\"control\" style=\"height:72px\" multiple=\"\" size=\"3\" aria-label=\"成员角色（可多选）\"><option value=\"团队所有者\">团队所有者</option><option value=\"企业管理员\">企业管理员</option><option value=\"团队管理员\">团队管理员</option><option value=\"财务\">财务</option><option value=\"运营\">运营</option><option value=\"只读成员\">只读成员</option></select><p class=\"text-[12px] text-ink-muted mt-1\">按住 Command 或 Ctrl 可多选</p></div></div>\n              <div class=\"filter-item advanced-item hidden\"><label class=\"filter-label\" for=\"accountFilter\">成员类型</label><div class=\"filter-control\"><select id=\"accountFilter\" class=\"control\"><option value=\"\">全部类型</option><option value=\"primary\">主账号</option><option value=\"sub\">普通成员</option></select></div></div>\n              <div class=\"filter-item advanced-item hidden items-start\"><label class=\"filter-label mt-2\" for=\"joinedStart\">加入时间</label><div class=\"filter-control h-auto\"><div class=\"flex items-center gap-1\"><input id=\"joinedStart\" class=\"control\" type=\"date\" aria-label=\"加入开始日期\"><span class=\"text-ink-muted shrink-0\">至</span><input id=\"joinedEnd\" class=\"control\" type=\"date\" aria-label=\"加入结束日期\"></div><p id=\"joinedError\" class=\"field-error hidden\">开始时间不能晚于结束时间</p></div></div>\n              <div class=\"filter-item advanced-item hidden items-start\"><label class=\"filter-label mt-2\" for=\"activeStart\">最近活跃</label><div class=\"filter-control h-auto\"><div class=\"flex items-center gap-1\"><input id=\"activeStart\" class=\"control\" type=\"date\" aria-label=\"最近活跃开始日期\"><span class=\"text-ink-muted shrink-0\">至</span><input id=\"activeEnd\" class=\"control\" type=\"date\" aria-label=\"最近活跃结束日期\"></div><p id=\"activeError\" class=\"field-error hidden\">开始时间不能晚于结束时间</p></div></div>\n              <div class=\"filter-actions\" ><button id=\"queryBtn\" type=\"button\" class=\"h-8 px-4 rounded bg-primary hover:bg-primary-hover active:bg-primary-active text-white font-medium inline-flex items-center gap-1.5\"><i data-lucide=\"search\" class=\"w-4 h-4\"></i>查询</button><button id=\"resetBtn\" type=\"button\" class=\"h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body font-medium\">重置</button></div>\n            </div>\n          </section>\n\n          <!-- 成员关系数据区 -->\n          <section id=\"dataSection\" class=\"bg-card rounded-lg border border-line p-5 md:p-6\" aria-labelledby=\"tableTitle\">\n            <div class=\"flex items-center justify-between flex-wrap gap-3 mb-4\">\n              <div><h2 id=\"tableTitle\" class=\"text-[16px] font-semibold text-ink-title\">成员列表</h2><p id=\"tableDescription\" class=\"text-[12px] text-ink-sub mt-1\"></p></div>\n              <button id=\"exportBtn\" type=\"button\" class=\"h-8 px-3 rounded border border-line bg-card hover:bg-hover text-ink-body inline-flex items-center gap-1.5\" ><i data-lucide=\"download\" class=\"w-4 h-4\"></i>导出当前视图</button>\n            </div>\n            <div id=\"metricGrid\" class=\"metric-grid grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4\"></div>\n            <div id=\"selectedBar\" class=\"hidden min-h-10 mb-3 px-3 py-2 rounded bg-primary-bg text-primary items-center justify-between gap-3 flex-wrap\" ><span>已选择 <strong id=\"selectedCount\" class=\"mono\">0</strong> 条成员关系</span><div class=\"flex items-center gap-3 flex-wrap\"><button type=\"button\" class=\"hover:text-primary-hover inline-flex items-center gap-1\" data-batch=\"enable\"><i data-lucide=\"circle-play\" class=\"w-4 h-4\"></i>批量启用</button><button type=\"button\" class=\"hover:text-primary-hover inline-flex items-center gap-1\" data-batch=\"disable\"><i data-lucide=\"circle-pause\" class=\"w-4 h-4\"></i>批量禁用</button><button type=\"button\" class=\"text-danger hover:opacity-80 inline-flex items-center gap-1\" data-batch=\"remove\"><i data-lucide=\"user-minus\" class=\"w-4 h-4\"></i>批量移除</button><span class=\"h-4 border-l border-primary/30\"></span><button id=\"clearSelection\" type=\"button\" class=\"hover:text-primary-hover\">清除选择</button></div></div>\n            <div id=\"stateArea\" aria-live=\"polite\"></div>\n            <div id=\"tableWrap\" class=\"overflow-x-auto rounded border border-line\" ><table id=\"memberTable\" class=\"data-table\"><thead id=\"tableHead\"></thead><tbody id=\"tableBody\"></tbody></table></div>\n            <div id=\"pagination\" class=\"flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]\" ></div>\n          </section>\n        </div>\n      </main><div id=\"noticePopover\" class=\"hidden fixed right-20 top-12 z-40 w-[340px] max-w-[calc(100vw-32px)] bg-card border border-line rounded-lg popover\"><div class=\"px-4 py-3 border-b border-line flex items-center justify-between\"><strong class=\"text-[16px] text-ink-title\">通知</strong><button id=\"readAll\" type=\"button\" class=\"text-primary hover:text-primary-hover\">全部已读</button></div><div id=\"noticeList\" class=\"max-h-[320px] overflow-auto\"></div></div><div id=\"accountPopover\" class=\"hidden fixed right-4 top-12 z-40 w-48 bg-card border border-line rounded-lg popover p-1\"></div><div id=\"toastContainer\" class=\"fixed top-4 left-1/2 -translate-x-1/2 z-[1600] space-y-2 pointer-events-none\" aria-live=\"polite\"></div><div id=\"detailOverlay\" class=\"hidden fixed inset-0 z-[1200] bg-black/30\"><section id=\"detailPanel\" class=\"drawer-panel absolute right-0 top-0 h-full w-[800px] max-w-full bg-card shadow-[-4px_0_24px_rgba(0,0,0,.10)] flex flex-col\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"detailTitle\"><div class=\"h-14 shrink-0 px-5 border-b border-line flex items-center justify-between\"><div class=\"min-w-0\"><h2 id=\"detailTitle\" class=\"text-[16px] font-semibold text-ink-title truncate\" >成员详情</h2></div><button id=\"closeDetail\" type=\"button\" class=\"w-8 h-8 rounded flex items-center justify-center text-ink-muted hover:bg-hover\" aria-label=\"关闭详情\"><i data-lucide=\"x\" class=\"w-5 h-5\"></i></button></div><div id=\"detailBody\" class=\"flex-1 overflow-y-auto p-5 md:p-6\"></div><div id=\"detailActions\" class=\"shrink-0 px-5 py-4 border-t border-line flex justify-end gap-3\"><button id=\"detailStatusBtn\" type=\"button\" class=\"h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body\"></button><button id=\"detailRemoveBtn\" type=\"button\" class=\"h-8 px-4 rounded border border-danger text-danger hover:bg-danger-bg\">移除</button><button id=\"detailRoleBtn\" type=\"button\" class=\"h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body inline-flex items-center gap-1.5\"><i data-lucide=\"shield-check\" class=\"w-4 h-4\"></i>编辑角色</button><button id=\"detailCloseBtn\" type=\"button\" class=\"h-8 px-4 rounded bg-primary hover:bg-primary-hover text-white\">关闭</button></div></section></div><div id=\"roleOverlay\" class=\"hidden fixed inset-0 z-[1250] bg-black/30 flex items-center justify-center p-4\"><section id=\"rolePanel\" class=\"modal-panel w-[760px] max-w-[92vw] bg-card rounded-lg shadow-[0_6px_24px_rgba(0,0,0,.12)] flex flex-col max-h-[88vh]\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"roleTitle\"><div class=\"h-14 shrink-0 px-6 border-b border-line flex items-center justify-between\"><h2 id=\"roleTitle\" class=\"text-[16px] font-semibold text-ink-title\" >编辑成员角色</h2><button id=\"closeRole\" type=\"button\" class=\"text-[20px] text-ink-muted hover:text-ink-body\" aria-label=\"关闭角色编辑\">×</button></div><form id=\"roleForm\" class=\"overflow-y-auto px-6 py-5\"><div class=\"grid grid-cols-[90px_minmax(0,400px)] gap-x-3 gap-y-5 justify-center\"><label class=\"text-right leading-8 text-ink-title\">成员：</label><div id=\"roleMember\" class=\"min-h-8 flex items-center\"></div><label class=\"text-right pt-3 text-ink-title\"><span class=\"text-danger mr-1\">*</span>角色：</label><div><div id=\"roleOptions\" class=\"grid grid-cols-1 sm:grid-cols-2 gap-2\"></div><p id=\"roleError\" class=\"field-error hidden\">请至少选择一个角色</p></div><label class=\"text-right leading-8 text-ink-title\">权限范围：</label><div id=\"permissionPreview\" class=\"min-h-8 py-1.5 px-3 rounded border border-line bg-page text-ink-sub\"></div></div></form><div class=\"shrink-0 px-6 py-4 border-t border-line flex justify-end gap-3\"><button id=\"cancelRole\" type=\"button\" class=\"h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body\">取消</button><button id=\"saveRole\" type=\"submit\" form=\"roleForm\" class=\"h-8 px-4 rounded bg-primary hover:bg-primary-hover text-white\">保存</button></div></section></div><div id=\"confirmOverlay\" class=\"hidden fixed inset-0 z-[1300] bg-black/30 flex items-center justify-center p-4\"><section id=\"confirmPanel\" class=\"modal-panel relative w-[600px] max-w-[92vw] h-[250px] bg-card rounded-lg shadow-[0_8px_32px_rgba(0,0,0,.12)] flex flex-col\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"confirmTitle\"><button id=\"closeConfirm\" type=\"button\" class=\"absolute top-[14px] right-[18px] text-[20px] text-ink-muted hover:text-ink-body z-10\" aria-label=\"关闭确认弹窗\">×</button><div class=\"flex-1 flex items-center px-6\"><span id=\"confirmIcon\" class=\"w-5 h-5 rounded-full bg-warning-bg text-warning flex items-center justify-center shrink-0 mr-3 font-semibold\">?</span><div><h2 id=\"confirmTitle\" class=\"text-[16px] font-semibold text-ink-title\" >操作确认</h2><p id=\"confirmText\" class=\"text-[14px] text-ink-sub mt-1.5 leading-relaxed\"></p></div></div><div class=\"px-6 pb-5 flex justify-end gap-3\"><button id=\"cancelConfirm\" type=\"button\" class=\"h-8 px-5 rounded border border-line bg-card hover:bg-hover text-ink-body\">取消</button><button id=\"submitConfirm\" type=\"button\" class=\"h-8 px-5 rounded bg-primary hover:bg-primary-hover text-white\">确定</button></div></section></div><button id=\"closeAnno\" type=\"button\" class=\"text-ink-muted hover:text-ink-body\" aria-label=\"关闭标注说明\"><i data-lucide=\"x\" class=\"w-5 h-5 pointer-events-none\"></i></button></div><div id=\"annoDesc\" class=\"p-5 text-[14px] text-ink-body leading-relaxed\"></div></div></div><div class=\"app-module-compat\" hidden aria-hidden=\"true\"><aside id=\"sidebar\" class=\"sidebar sticky top-0 h-screen shrink-0 bg-card flex flex-col overflow-hidden\" aria-label=\"主导航\">\n      <div class=\"brand-row h-14 px-5 flex items-center gap-2 shrink-0\">\n        <a href=\"index.html\" class=\"brand-link flex items-center gap-2 min-w-0\" aria-label=\"云登后台首页\"><span class=\"w-7 h-7 rounded-md bg-primary text-white flex items-center justify-center font-bold text-[15px]\">云</span><span class=\"brand-copy font-semibold text-ink-title text-[16px]\">云登后台</span></a>\n        <button id=\"collapseBtn\" type=\"button\" class=\"ml-auto w-8 h-8 shrink-0 rounded flex items-center justify-center text-ink-sub hover:bg-hover\" title=\"收起侧栏\" aria-label=\"收起侧栏\"><i data-lucide=\"panel-left-close\" class=\"w-[18px] h-[18px]\"></i></button>\n      </div>\n      <nav id=\"sidebarNav\" class=\"px-3 flex-1 overflow-y-auto pb-3\" aria-label=\"后台功能导航\"></nav>\n      <div class=\"p-3 space-y-1\"><div class=\"border-t border-line mb-3\" aria-hidden=\"true\"></div><a href=\"index.html\" class=\"bottom-link w-full h-8 px-2 flex items-center gap-3 rounded text-ink-sub\"><i data-lucide=\"settings-2\" class=\"menu-icon\"></i><span class=\"bottom-label\">系统设置</span></a></div>\n    </aside><header class=\"h-14 shrink-0 bg-card shadow-[0_4px_8px_-4px_rgba(0,0,0,.12)] z-10 flex items-center justify-between px-4 md:px-6\" style=\"clip-path:inset(0 0 -12px 0)\">\n        <div class=\"flex items-center gap-3 min-w-0\"><button id=\"mobileMenu\" type=\"button\" class=\"md:hidden text-ink-sub\" aria-label=\"展开导航\"><i data-lucide=\"menu\" class=\"w-5 h-5\"></i></button><span class=\"text-ink-sub truncate\">用户管理 / 成员列表</span></div>\n        <div class=\"flex items-center gap-1 md:gap-2\"><button id=\"noticeBtn\" type=\"button\" class=\"relative w-8 h-8 rounded flex items-center justify-center text-ink-sub hover:bg-hover\" aria-label=\"通知\"><i data-lucide=\"bell\" class=\"w-[18px] h-[18px]\"></i><span class=\"absolute right-1 top-1 w-2 h-2 bg-danger rounded-full border border-white\"></span></button><span class=\"h-5 border-l border-line mx-1\"></span><button id=\"accountBtn\" type=\"button\" class=\"flex items-center gap-2 rounded px-1 py-1 hover:bg-hover\"><span class=\"w-7 h-7 rounded-full bg-primary-bg text-primary flex items-center justify-center font-semibold\">管</span><span class=\"hidden sm:block text-ink-body\">平台管理员</span><i data-lucide=\"chevron-down\" class=\"hidden sm:block w-3.5 h-3.5 text-ink-muted\"></i></button></div>\n      </header></div></section>","styles":["\n    *{box-sizing:border-box}\n    html,body{min-width:0;overflow-x:hidden}\n    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI',system-ui,sans-serif;color:#3A3F4A}\n    button,input,select{font:inherit}\n    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid rgba(0,102,255,.35);outline-offset:2px}\n    .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}\n    .sidebar{width:220px;transition:width .22s ease}\n    .sidebar.compact{width:68px}\n    .sidebar.compact .brand-copy,.sidebar.compact .menu-label,.sidebar.compact .section-label,.sidebar.compact .bottom-label{display:none}\n    .sidebar.compact .menu-link,.sidebar.compact .bottom-link{justify-content:center;padding-left:0;padding-right:0}\n    .sidebar.compact .brand-row{justify-content:center;padding-left:0;padding-right:0}\n    .sidebar.compact .brand-link{display:none}\n    .sidebar.compact #collapseBtn{margin-left:0}\n    .menu-link{min-height:38px;border-radius:4px;color:#3A3F4A;transition:background .15s,color .15s}\n    .menu-link:hover,.bottom-link:hover{background:#F3F4F6}\n    .menu-link.active-leaf{color:#0066FF;background:#E6F0FF;font-weight:600}\n    .section-label{color:#9DA2AC;font-size:11px;line-height:28px;padding:8px 8px 0}\n    .menu-icon{width:18px;height:18px;flex:0 0 18px}\n    .popover{box-shadow:0 6px 24px rgba(0,0,0,.12)}\n    .control{height:32px;border:1px solid #DFE1E5;border-radius:4px;padding:0 8px;width:100%;outline:none;background:#fff;color:#3A3F4A;font-size:14px}\n    .control::placeholder{color:#9DA2AC}\n    .control:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12)}\n    select.control{appearance:none;-webkit-appearance:none;padding-right:28px;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center}\n    .filter-flow{display:flex;flex-wrap:wrap;align-items:center;gap:16px;max-width:2184px}\n    .filter-item{flex:0 0 500px;width:500px;display:flex;align-items:center;gap:12px}\n    .filter-label{width:88px;flex:none;text-align:right;font-size:13px;line-height:18px;color:#3A3F4A}\n    .filter-label::after{content:'：'}\n    .filter-control{width:400px;max-width:100%;position:relative}\n    .filter-actions{display:flex;align-items:center;gap:12px;flex:none}\n    .tabs-underline{display:flex;gap:28px;border-bottom:1px solid #DFE1E5;margin-bottom:16px;overflow-x:auto;scrollbar-width:thin}\n    .tab{height:40px;padding:0 8px;border:0;border-radius:0;background:transparent;color:#3A3F4A;font-size:14px;position:relative;cursor:pointer;white-space:nowrap}\n    .tab:hover:not(.active){color:#0066FF}\n    .tab.active{color:#0066FF;font-weight:600}\n    .tab.active::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#0066FF;border-radius:2px 2px 0 0}\n    .metric-card{min-height:76px;padding:12px;border:1px solid #DFE1E5;border-radius:6px;background:#F7F8FA}\n    .metric-value{font:600 20px/1.2 'JetBrains Mono',monospace;color:#1A1D24;font-variant-numeric:tabular-nums}\n    .data-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}\n    .data-table th{background:#F0F1F3;color:#6E7685;font-size:12px;font-weight:600;padding:9px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid #DFE1E5}\n    .data-table td{height:52px;padding:9px 12px;border-bottom:1px solid #F0F1F3;text-align:left;white-space:nowrap;vertical-align:middle;background:#fff}\n    .data-table tbody tr:hover td{background:#F3F4F6}\n    .data-table tbody tr.row-selected td{background:#E6F0FF}\n    .data-table th.sticky-select,.data-table td.sticky-select{position:sticky;left:0;width:44px;min-width:44px;z-index:3}\n    .data-table th.sticky-id,.data-table td.sticky-id{position:sticky;left:44px;width:136px;min-width:136px;z-index:3}\n    .data-table th.sticky-member,.data-table td.sticky-member{position:sticky;left:180px;width:210px;min-width:210px;z-index:3;box-shadow:5px 0 7px -7px rgba(0,0,0,.35)}\n    .data-table th.sticky-action,.data-table td.sticky-action{position:sticky;right:0;width:260px;min-width:260px;z-index:3;box-shadow:-5px 0 7px -7px rgba(0,0,0,.35)}\n    .data-table th[class*=sticky-]{background:#F0F1F3;z-index:4}\n    .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:12px;line-height:18px;border:1px solid transparent}\n    .status-normal{color:#0FC060;background:#E7F9F0;border-color:#B5EDD0}\n    .status-disabled{color:#9DA2AC;background:#F0F1F3;border-color:#DFE1E5}\n    .status-warning{color:#E7772D;background:#FDF2E9;border-color:#F5D5B9}\n    .status-danger{color:#D9001B;background:#FFE8EB;border-color:#F5B5BD}\n    .status-info{color:#0091D5;background:#E4F4FB;border-color:#AFDDF2}\n    .action-success{color:#0FC060}.action-danger{color:#D9001B}\n    .empty-state{min-height:286px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#9DA2AC;padding:32px 20px}\n    .empty-icon{width:72px;height:54px;margin-bottom:14px}\n    .skeleton{height:14px;border-radius:4px;background:#E8EAED;animation:pulse 1.2s ease-in-out infinite}\n    .drawer-panel{animation:drawer-in .22s ease}\n    .modal-panel{animation:modal-in .15s ease}\n    .detail-grid{display:grid;grid-template-columns:132px minmax(0,1fr);gap:12px 20px;font-size:13px}\n    .detail-grid dt{color:#6E7685}\n    .detail-grid dd{margin:0;color:#1A1D24;min-width:0;overflow-wrap:anywhere}\n    .switch{width:40px;height:22px;border-radius:11px;background:#C7CAD1;position:relative;display:inline-flex;align-items:center;padding:2px;transition:background .15s;cursor:pointer}\n    .switch::after{content:'';width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .15s}\n    .switch.on{background:#0066FF}.switch.on::after{transform:translateX(18px)}\n    .switch.disabled{opacity:.5;cursor:not-allowed}\n    .role-option{min-height:44px;border:1px solid #DFE1E5;border-radius:4px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;cursor:pointer}\n    .role-option:hover{background:#F3F4F6}\n    .role-option:has(input:checked){border-color:#0066FF;background:#E6F0FF}\n    .field-error{color:#D9001B;font-size:12px;line-height:18px;margin-top:6px}\n    .toast{animation:toast-in .2s ease both}\n    .anno-badge{position:fixed;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font:700 11px/20px 'JetBrains Mono',monospace;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.15);pointer-events:auto;cursor:pointer;transition:transform .15s;z-index:9998}\n    .anno-badge:hover{transform:scale(1.2)}\n    @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}\n    @keyframes toast-in{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}\n    @keyframes drawer-in{from{transform:translateX(100%)}to{transform:translateX(0)}}\n    @keyframes modal-in{from{transform:scale(.98);opacity:0}to{transform:scale(1);opacity:1}}\n    @media(max-width:1180px){.filter-item{flex-basis:100%;width:100%}.filter-control{flex:1;width:auto}.data-table th.sticky-action,.data-table td.sticky-action{position:static;box-shadow:none}}\n    @media(max-width:900px){.data-table th.sticky-id,.data-table td.sticky-id,.data-table th.sticky-member,.data-table td.sticky-member{position:static;box-shadow:none}}\n    @media(max-width:767px){.sidebar{position:fixed;z-index:50;height:100vh;box-shadow:0 6px 24px rgba(0,0,0,.12)}.sidebar.compact{width:0;overflow:hidden}.main-padding{padding:12px!important}.filter-label{width:76px}.filter-flow{gap:12px}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.detail-grid{grid-template-columns:104px minmax(0,1fr)}}\n  "],"styleLinks":[],"externalScripts":[],"scripts":["\n    const $=id=>document.getElementById(id);\n    const esc=value=>String(value??'—').replace(/[&<>\"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[char]));\n\n    const navGroups=[\n      {label:'用户管理',items:[['user-list','用户列表','users','index.html'],['user-statistics','用户统计','chart-no-axes-column','用户统计.html'],['team-list','团队列表','users-round','团队列表.html'],['enterprise-list','企业列表','building-2','企业列表.html'],['member-list','成员列表','contact-round','成员列表.html']]},\n      {label:'订单管理',items:[['order-list','订单列表','receipt-text','订单列表.html'],['package-order','套餐订单','package-check','套餐订单.html']]},\n      {label:'资源管理',items:[['environment-management','环境管理','monitor-cog','环境管理.html'],['proxy-list','代理列表','network','index.html']]},\n      {label:'数据埋点',items:[['tracking-overview','数据概览','layout-dashboard','数据概览.html'],['tracking-events','事件管理','book-check','事件管理.html'],['tracking-metrics','指标管理','chart-no-axes-combined','指标管理.html'],['tracking-debug','联调验证','radio-tower','联调验证.html'],['tracking-quality','质量监控','shield-alert','质量监控.html'],['tracking-detail','明细排查','list-filter','明细排查.html'],['tracking-analysis','数据分析','chart-column-increasing','数据分析.html'],['tracking-dashboards','资产沉淀','panels-top-left','资产沉淀.html'],['tracking-insights','决策复盘','lightbulb','决策复盘.html']]}\n    ];\n    function renderNav(){\n      $('sidebarNav').innerHTML=navGroups.map(group=>`<div class=\"section-label\">${group.label}</div>${group.items.map(([id,label,icon,href])=>`<a href=\"${href}\" class=\"menu-link ${id==='member-list'?'active-leaf':''} w-full px-2 flex items-center gap-3 mb-1\" ${id==='member-list'?'aria-current=\"page\"':''} title=\"${label}\"><i data-lucide=\"${icon}\" class=\"menu-icon\"></i><span class=\"menu-label flex-1\">${label}</span></a>`).join('')}`).join('');\n    }\n\n    const teams=[\n      ['team_271099','136****0370 的团队'],['team_271098','frrrank20 的团队'],['team_271097','134****9161 的团队'],['team_271095','153****1727 的团队'],['team_271086','黄总TK跨境'],['team_271084','杭州云登科技运营组'],['team_271082','海外广告测试组'],['team_271080','星河工作室'],['team_271078','北岸内容工作室'],['team_271076','远航电商增长组'],['team_271074','新锐出海一组'],['team_271072','晨光创作者联盟']\n    ];\n    let memberships=[\n      {relationId:'rel_610001',memberId:'mem_900001',name:'林晓',phone:'138****6789',accountType:'primary',registrationSource:'手机号注册',teamId:'team_271099',teamName:'136****0370 的团队',enterprise:'—',department:'—',relationSource:'创建团队',joinedAt:'2026-07-22 17:36:08',roles:['团队所有者'],dataScope:'全部数据',permissionCount:48,roleUpdatedAt:'2026-07-22 17:36:08',updater:'系统',status:'enabled',phoneBound:true,loginRisk:'low',lastLoginAt:'2026-08-13 09:24:18',lastActiveIp:'120.41.***.18'},\n      {relationId:'rel_610002',memberId:'mem_900002',name:'陈默',phone:'159****2345',accountType:'primary',registrationSource:'邮箱注册',teamId:'team_271098',teamName:'frrrank20 的团队',enterprise:'—',department:'—',relationSource:'创建团队',joinedAt:'2026-07-22 15:04:33',roles:['团队所有者'],dataScope:'全部数据',permissionCount:48,roleUpdatedAt:'2026-07-22 15:04:33',updater:'系统',status:'enabled',phoneBound:true,loginRisk:'high',lastLoginAt:'2026-08-06 18:20:04',lastActiveIp:'183.6.***.92'},\n      {relationId:'rel_610003',memberId:'mem_900003',name:'周璇',phone:'187****5918',accountType:'primary',registrationSource:'手机号注册',teamId:'team_271095',teamName:'153****1727 的团队',enterprise:'杭州长帆跨境有限公司',department:'管理层',relationSource:'企业创建',joinedAt:'2026-07-20 10:14:51',roles:['团队所有者'],dataScope:'全部数据',permissionCount:48,roleUpdatedAt:'2026-08-01 09:30:00',updater:'平台管理员',status:'enabled',phoneBound:true,loginRisk:'low',lastLoginAt:'2026-08-13 10:16:42',lastActiveIp:'115.236.***.77'},\n      {relationId:'rel_610004',memberId:'mem_900004',name:'黄海峰',phone:'136****7721',accountType:'primary',registrationSource:'销售代开',teamId:'team_271086',teamName:'黄总TK跨境',enterprise:'杭州海峰电子商务有限公司',department:'管理层',relationSource:'企业创建',joinedAt:'2026-07-19 09:42:17',roles:['团队所有者'],dataScope:'全部数据',permissionCount:48,roleUpdatedAt:'2026-07-19 09:42:17',updater:'系统',status:'enabled',phoneBound:true,loginRisk:'low',lastLoginAt:'2026-08-13 10:05:17',lastActiveIp:'125.120.***.31'},\n      {relationId:'rel_610005',memberId:'mem_900005',name:'张岚',phone:'137****3326',accountType:'sub',registrationSource:'团队邀请',teamId:'team_271086',teamName:'黄总TK跨境',enterprise:'杭州海峰电子商务有限公司',department:'TikTok 运营',relationSource:'管理员邀请',joinedAt:'2026-07-26 14:26:09',roles:['团队管理员','运营'],dataScope:'当前团队',permissionCount:31,roleUpdatedAt:'2026-08-10 16:20:00',updater:'黄海峰',status:'enabled',phoneBound:true,loginRisk:'medium',lastLoginAt:'2026-08-13 09:58:06',lastActiveIp:'36.24.***.106'},\n      {relationId:'rel_610006',memberId:'mem_900006',name:'赵琪',phone:'151****2048',accountType:'sub',registrationSource:'企业邀请',teamId:'team_271086',teamName:'黄总TK跨境',enterprise:'杭州海峰电子商务有限公司',department:'财务部',relationSource:'企业成员同步',joinedAt:'2026-07-27 11:08:22',roles:['财务'],dataScope:'当前团队',permissionCount:12,roleUpdatedAt:'2026-07-27 11:08:22',updater:'黄海峰',status:'disabled',phoneBound:true,loginRisk:'low',lastLoginAt:'2026-08-02 17:32:40',lastActiveIp:'—'},\n      {relationId:'rel_610007',memberId:'mem_900007',name:'苏航',phone:'186****9071',accountType:'sub',registrationSource:'团队邀请',teamId:'team_271084',teamName:'杭州云登科技运营组',enterprise:'杭州云登科技有限公司',department:'客户成功部',relationSource:'管理员邀请',joinedAt:'2026-06-30 15:18:06',roles:['团队管理员'],dataScope:'所在部门',permissionCount:26,roleUpdatedAt:'2026-08-11 10:16:00',updater:'林晓',status:'enabled',phoneBound:true,loginRisk:'low',lastLoginAt:'2026-08-12 17:42:09',lastActiveIp:'47.96.***.18'},\n      {relationId:'rel_610008',memberId:'mem_900008',name:'沈宁',phone:'133****5678',accountType:'sub',registrationSource:'企业邀请',teamId:'team_271084',teamName:'杭州云登科技运营组',enterprise:'杭州云登科技有限公司',department:'增长运营部',relationSource:'企业成员同步',joinedAt:'2026-07-03 10:11:42',roles:['运营'],dataScope:'所在部门',permissionCount:18,roleUpdatedAt:'2026-08-08 13:09:00',updater:'苏航',status:'enabled',phoneBound:true,loginRisk:'medium',lastLoginAt:'2026-08-12 16:20:15',lastActiveIp:'101.68.***.45'},\n      {relationId:'rel_610009',memberId:'mem_900009',name:'陆川',phone:'176****3456',accountType:'sub',registrationSource:'团队邀请',teamId:'team_271082',teamName:'海外广告测试组',enterprise:'上海星链广告有限公司',department:'广告投放部',relationSource:'管理员邀请',joinedAt:'2026-06-28 18:34:57',roles:['运营'],dataScope:'当前团队',permissionCount:18,roleUpdatedAt:'2026-07-18 09:45:00',updater:'陈默',status:'disabled',phoneBound:true,loginRisk:'high',lastLoginAt:'2026-07-31 15:18:07',lastActiveIp:'104.28.***.61'},\n      {relationId:'rel_610010',memberId:'mem_900010',name:'许安',phone:'185****7890',accountType:'primary',registrationSource:'手机号注册',teamId:'team_271080',teamName:'星河工作室',enterprise:'—',department:'—',relationSource:'创建团队',joinedAt:'2026-06-18 12:01:43',roles:['团队所有者'],dataScope:'全部数据',permissionCount:48,roleUpdatedAt:'2026-06-18 12:01:43',updater:'系统',status:'enabled',phoneBound:true,loginRisk:'medium',lastLoginAt:'2026-08-11 20:06:55',lastActiveIp:'39.171.***.80'},\n      {relationId:'rel_610011',memberId:'mem_900011',name:'韩梅',phone:'131****6543',accountType:'sub',registrationSource:'团队邀请',teamId:'team_271078',teamName:'北岸内容工作室',enterprise:'—',department:'—',relationSource:'管理员邀请',joinedAt:'2026-07-15 13:20:05',roles:['只读成员'],dataScope:'本人数据',permissionCount:6,roleUpdatedAt:'2026-07-15 13:20:05',updater:'陈默',status:'enabled',phoneBound:false,loginRisk:'low',lastLoginAt:'2026-08-10 18:44:27',lastActiveIp:'223.104.***.17'},\n      {relationId:'rel_610012',memberId:'mem_900012',name:'唐星洲',phone:'150****8901',accountType:'sub',registrationSource:'企业邀请',teamId:'team_271076',teamName:'远航电商增长组',enterprise:'深圳远航电子商务有限公司',department:'亚马逊事业部',relationSource:'企业成员同步',joinedAt:'2026-06-16 09:06:44',roles:['团队管理员','运营'],dataScope:'当前团队',permissionCount:31,roleUpdatedAt:'2026-08-12 11:30:00',updater:'周璇',status:'enabled',phoneBound:true,loginRisk:'low',lastLoginAt:'2026-08-13 08:52:11',lastActiveIp:'14.155.***.22'},\n      {relationId:'rel_610013',memberId:'mem_900013',name:'刘畅',phone:'137****3456',accountType:'primary',registrationSource:'手机号注册',teamId:'team_271097',teamName:'134****9161 的团队',enterprise:'—',department:'—',relationSource:'创建团队',joinedAt:'2026-07-21 11:00:12',roles:['团队所有者'],dataScope:'全部数据',permissionCount:48,roleUpdatedAt:'2026-07-21 11:00:12',updater:'系统',status:'enabled',phoneBound:true,loginRisk:'medium',lastLoginAt:'2026-07-29 11:02:31',lastActiveIp:'113.87.***.90'},\n      {relationId:'rel_610014',memberId:'mem_900014',name:'顾言',phone:'182****5678',accountType:'sub',registrationSource:'团队邀请',teamId:'team_271074',teamName:'新锐出海一组',enterprise:'宁波新锐科技有限公司',department:'独立站运营部',relationSource:'管理员邀请',joinedAt:'2026-07-05 18:03:16',roles:['运营'],dataScope:'所在部门',permissionCount:18,roleUpdatedAt:'2026-08-01 12:12:00',updater:'林晓',status:'disabled',phoneBound:false,loginRisk:'high',lastLoginAt:'2026-07-24 11:47:09',lastActiveIp:'—',batchConflict:true},\n      {relationId:'rel_610015',memberId:'mem_900015',name:'全球多品牌跨境业务协同项目临时观察成员陈思远',phone:'166****7891',accountType:'sub',registrationSource:'团队邀请',teamId:'team_271072',teamName:'晨光创作者联盟',enterprise:'杭州晨光文化传媒有限公司',department:'全球内容策略与多区域协同中心',relationSource:'管理员邀请',joinedAt:'2026-07-25 16:10:02',roles:['只读成员'],dataScope:'本人数据',permissionCount:6,roleUpdatedAt:'2026-07-25 16:10:02',updater:'平台管理员',status:'disabled',phoneBound:true,loginRisk:'medium',lastLoginAt:'2026-07-25 16:13:08',lastActiveIp:'203.0.***.118'}\n    ];\n    const enterpriseSubjects=[\n      ['ent_500001','杭州云登科技有限公司'],['ent_500002','杭州长帆跨境有限公司'],['ent_500003','杭州海峰电子商务有限公司'],['ent_500004','上海星链广告有限公司'],['ent_500005','深圳远航电子商务有限公司'],['ent_500006','宁波新锐科技有限公司'],['ent_500007','杭州晨光文化传媒有限公司']\n    ];\n    memberships=memberships.map((item,index)=>({\n      ...item,\n      subjectType:'team',subjectId:item.teamId,subjectName:item.teamName,\n      updatedAt:item.roleUpdatedAt,\n      lastActiveAt:item.lastLoginAt==='从未登录'?'—':item.lastLoginAt,\n      disabledAt:item.status==='disabled'?item.roleUpdatedAt:'—',\n      disabledReason:item.status==='disabled'?(index%2?'管理员手动禁用':'长期未使用'):'—',\n      statusUpdater:item.status==='disabled'?item.updater:'—',\n      permissionScope:[item.dataScope]\n    }));\n    Object.assign(memberships.find(item=>item.relationId==='rel_610008'),{\n      memberId:'mem_900007',name:'苏航',phone:'186****9071',registrationSource:'企业邀请',\n      subjectType:'enterprise',subjectId:'ent_500001',subjectName:'杭州云登科技有限公司',\n      teamId:'—',teamName:'—',enterprise:'杭州云登科技有限公司',department:'客户成功部',relationSource:'企业成员同步',\n      roles:['企业管理员'],dataScope:'全部数据',permissionCount:34,roleUpdatedAt:'2026-08-12 09:30:00',updater:'平台管理员',\n      status:'enabled',phoneBound:true,loginRisk:'low',lastLoginAt:'2026-08-13 08:56:19',lastActiveAt:'2026-08-13 08:56:19',lastActiveIp:'47.96.***.18',updatedAt:'2026-08-12 09:30:00',disabledAt:'—',disabledReason:'—',statusUpdater:'—',permissionScope:['全部数据']\n    });\n    const subjectCatalog=[...teams.map(([id,name])=>({type:'team',id,name})),...enterpriseSubjects.map(([id,name])=>({type:'enterprise',id,name}))];\n\n    const views={\n      identify:{label:'成员识别',description:'核对成员身份、类型与关键时间',columns:[['accountType','成员类型'],['joinedAt','加入时间'],['lastActiveAt','最近活跃']]},\n      relation:{label:'主体关系',description:'查看成员在团队或企业中的关系状态',columns:[['status','关系状态'],['department','组织路径'],['joinedAt','加入时间'],['updatedAt','最近更新时间']]},\n      permission:{label:'角色权限',description:'核对角色与服务端返回的权限范围摘要',columns:[['roles','成员角色'],['roleCount','角色数量'],['permissionScope','权限范围摘要'],['roleUpdatedAt','角色更新时间'],['updater','更新人']]},\n      status:{label:'账号状态',description:'查看关系可用状态和最近登录活动',columns:[['status','关系状态'],['lastLoginAt','最近登录'],['lastActiveAt','最近活跃'],['disabledAt','禁用时间'],['disabledReason','禁用原因'],['statusUpdater','操作人']]},\n      all:{label:'全部字段',description:'联合核对成员关系的全部可用字段',columns:[['accountType','成员类型'],['registrationSource','注册来源'],['status','关系状态'],['department','组织路径'],['relationSource','关系来源'],['roles','成员角色'],['roleCount','角色数量'],['permissionScope','权限范围摘要'],['joinedAt','加入时间'],['updatedAt','最近更新时间'],['roleUpdatedAt','角色更新时间'],['updater','角色更新人'],['lastLoginAt','最近登录'],['lastActiveAt','最近活跃'],['disabledAt','禁用时间'],['disabledReason','禁用原因'],['statusUpdater','状态操作人']]}\n    };\n\n    const params=new URLSearchParams(location.search);\n    let qaState=params.get('state')||'normal';\n    const validQaStates=new Set(['normal','loading','empty','filter-empty','error','forbidden','disabled','long-text']);\n    if(!validQaStates.has(qaState))qaState='normal';\n    const blankFilters=()=>({keyword:'',subjectType:'',subjectId:'',status:'',roleIds:[],accountType:'',joinedStart:'',joinedEnd:'',activeStart:'',activeEnd:''});\n    let draftFilters=blankFilters(),appliedFilters=blankFilters();\n    let activeView='identify',advancedOpen=false,currentPage=1,pageSize=10,currentDetailId=null,currentRoleId=null,pendingConfirm=null;\n    const returnFocus={detail:null,role:null,confirm:null};\n    const selected=new Set();\n\n    const incomingTeamId=params.get('teamId')||'';\n    const validIncomingTeam=teams.some(([id])=>id===incomingTeamId);\n    if(validIncomingTeam){draftFilters.subjectType='team';draftFilters.subjectId=incomingTeamId;appliedFilters.subjectType='team';appliedFilters.subjectId=incomingTeamId}\n    if(qaState==='disabled'){draftFilters.status='disabled';appliedFilters.status='disabled'}\n    if(qaState==='filter-empty'){draftFilters.keyword='不存在的成员';appliedFilters.keyword='不存在的成员'}\n    if(qaState==='long-text'){draftFilters.keyword='全球多品牌';appliedFilters.keyword='全球多品牌'}\n\n    function badge(text,kind){return `<span class=\"badge ${kind}\">${esc(text)}</span>`}\n    function statusBadge(status){return status==='enabled'?badge('启用','status-normal'):badge('禁用','status-disabled')}\n    function riskBadge(risk){return risk==='low'?badge('低风险','status-normal'):risk==='medium'?badge('中风险','status-warning'):badge('高风险','status-danger')}\n    function accountBadge(type){return type==='primary'?badge('主账号','status-info'):badge('普通成员','status-disabled')}\n    function maskAlreadySafe(phone){return /^\\d{3}\\*{4}\\d{4}$/.test(phone)?phone:'***'}\n    function selectedValues(select){return [...select.selectedOptions].map(option=>option.value)}\n    function readDraft(){return {keyword:$('keyword').value.trim(),subjectType:$('subjectTypeFilter').value,subjectId:$('subjectFilter').value,status:$('statusFilter').value,roleIds:selectedValues($('roleFilter')),accountType:$('accountFilter').value,joinedStart:$('joinedStart').value,joinedEnd:$('joinedEnd').value,activeStart:$('activeStart').value,activeEnd:$('activeEnd').value}}\n    function renderSubjectOptions(type,value=''){const options=subjectCatalog.filter(subject=>!type||subject.type===type);$('subjectFilter').innerHTML='<option value=\"\">全部主体</option>'+options.map(subject=>`<option value=\"${subject.id}\">${subject.type==='team'?'团队':'企业'} · ${esc(subject.name)} · ${subject.id}</option>`).join('');$('subjectFilter').value=value;$('subjectFilter').disabled=qaState==='forbidden'}\n    function writeFilters(filters){$('keyword').value=filters.keyword;$('subjectTypeFilter').value=filters.subjectType;renderSubjectOptions(filters.subjectType,filters.subjectId);$('statusFilter').value=filters.status;[...$('roleFilter').options].forEach(option=>option.selected=filters.roleIds.includes(option.value));$('accountFilter').value=filters.accountType;$('joinedStart').value=filters.joinedStart;$('joinedEnd').value=filters.joinedEnd;$('activeStart').value=filters.activeStart;$('activeEnd').value=filters.activeEnd;$('clearKeyword').classList.toggle('hidden',!filters.keyword);updateAdvancedCount()}\n    function updateAdvancedCount(){const f=readDraft();const count=(f.roleIds.length?1:0)+['accountType','joinedStart','joinedEnd','activeStart','activeEnd'].filter(key=>f[key]).length;$('advancedCount').textContent=count;$('advancedCount').classList.toggle('hidden',count===0);$('advancedCount').classList.toggle('inline-flex',count>0)}\n    function filteredRelations(){\n      if(qaState==='empty')return [];\n      const f=appliedFilters,kw=f.keyword.toLowerCase();\n      return memberships.filter(item=>{\n        const keywordHit=!kw||[item.memberId,item.name,item.phone,item.subjectId,item.subjectName,item.teamId,item.teamName,item.enterprise].join(' ').toLowerCase().includes(kw);\n        return keywordHit&&(!f.subjectType||item.subjectType===f.subjectType)&&(!f.subjectId||item.subjectId===f.subjectId)&&(!f.status||item.status===f.status)&&(!f.roleIds.length||f.roleIds.some(role=>item.roles.includes(role)))&&(!f.accountType||item.accountType===f.accountType)&&(!f.joinedStart||item.joinedAt.slice(0,10)>=f.joinedStart)&&(!f.joinedEnd||item.joinedAt.slice(0,10)<=f.joinedEnd)&&(!f.activeStart||(item.lastActiveAt!=='—'&&item.lastActiveAt.slice(0,10)>=f.activeStart))&&(!f.activeEnd||(item.lastActiveAt!=='—'&&item.lastActiveAt.slice(0,10)<=f.activeEnd));\n      });\n    }\n    function currentRows(rows){const pages=Math.max(1,Math.ceil(rows.length/pageSize));if(currentPage>pages)currentPage=pages;return rows.slice((currentPage-1)*pageSize,currentPage*pageSize)}\n    function uniqueCount(rows,key){return new Set(rows.map(item=>item[key]).filter(value=>value&&value!=='—')).size}\n    function metricsFor(rows){\n      const common={total:rows.length,enabled:rows.filter(x=>x.status==='enabled').length,primary:rows.filter(x=>x.accountType==='primary').length};\n      if(activeView==='identify')return [['关系记录数',common.total],['去重成员数',uniqueCount(rows,'memberId')],['主账号数',common.primary],['有手机号记录数',rows.filter(x=>x.phone&&x.phone!=='—').length]];\n      if(activeView==='relation')return [['关系记录数',common.total],['团队数',uniqueCount(rows.filter(x=>x.subjectType==='team'),'subjectId')],['企业数',uniqueCount(rows.filter(x=>x.subjectType==='enterprise'),'subjectId')],['跨主体成员数',new Set(rows.filter(item=>rows.filter(other=>other.memberId===item.memberId&&other.subjectId!==item.subjectId).length).map(item=>item.memberId)).size]];\n      if(activeView==='permission')return [['已配置角色关系数',rows.filter(x=>x.roles.length).length],['未配置角色关系数',rows.filter(x=>!x.roles.length).length],['多角色关系数',rows.filter(x=>x.roles.length>1).length],['角色种类数',new Set(rows.flatMap(x=>x.roles)).size]];\n      if(activeView==='status')return [['已启用数',common.enabled],['已禁用数',rows.length-common.enabled],['从未登录数',rows.filter(x=>x.lastLoginAt==='从未登录').length],['主账号数',common.primary]];\n      return [['关系记录数',common.total],['去重成员数',uniqueCount(rows,'memberId')],['团队数',uniqueCount(rows.filter(x=>x.subjectType==='team'),'subjectId')],['企业数',uniqueCount(rows.filter(x=>x.subjectType==='enterprise'),'subjectId')]];\n    }\n\n    function renderTabs(){$('viewTabs').innerHTML=Object.entries(views).map(([key,view])=>`<button type=\"button\" role=\"tab\" aria-selected=\"${activeView===key}\" tabindex=\"${activeView===key?'0':'-1'}\" aria-controls=\"dataSection\" class=\"tab ${activeView===key?'active':''}\" data-view=\"${key}\"${key==='identify'?' data-anno=\"1\"':''}>${view.label}</button>`).join('')}\n    function renderMetrics(rows){$('metricGrid').innerHTML=metricsFor(rows).map(([label,value],index)=>`<div class=\"metric-card\"${index===0?' data-anno=\"9\"':''}><div class=\"text-[12px] text-ink-sub\">${label}</div><div class=\"metric-value mt-2\">${Number(value).toLocaleString('zh-CN')}</div></div>`).join('')}\n    function rolesCell(roles){return `<div class=\"flex items-center gap-1 max-w-[260px] overflow-hidden\">${roles.slice(0,2).map(role=>badge(role,role.includes('管理员')||role==='团队所有者'?'status-info':'status-disabled')).join('')}${roles.length>2?`<span class=\"text-ink-muted\">+${roles.length-2}</span>`:''}</div>`}\n    function cell(item,key){\n      if(key==='accountType')return accountBadge(item.accountType);\n      if(key==='registrationSource'||key==='relationSource'||key==='department'||key==='enterprise'||key==='dataScope'||key==='updater'||key==='disabledReason'||key==='statusUpdater')return `<span class=\"inline-block max-w-[230px] truncate align-middle\" title=\"${esc(item[key])}\">${esc(item[key])}</span>`;\n      if(key==='joinedAt'||key==='lastLoginAt'||key==='lastActiveAt'||key==='roleUpdatedAt'||key==='updatedAt'||key==='disabledAt')return `<span class=\"mono\">${esc(item[key])}</span>`;\n      if(key==='team')return `<div class=\"max-w-[250px]\"><div class=\"truncate\" title=\"${esc(item.teamName)}\">${esc(item.teamName)}</div><div class=\"mono text-[11px] text-ink-muted mt-0.5\">${esc(item.teamId)}</div></div>`;\n      if(key==='roles')return rolesCell(item.roles);\n      if(key==='roleCount')return `<span class=\"mono\">${item.roles.length}</span>`;\n      if(key==='permissionScope')return `<span class=\"inline-block max-w-[230px] truncate\" title=\"${esc(item.permissionScope.join('、'))}\">${esc(item.permissionScope.join('、'))}</span>`;\n      if(key==='permissionCount')return `<span class=\"mono\">${item.permissionCount}</span>`;\n      if(key==='status')return statusBadge(item.status);\n      if(key==='phoneBound')return item.phoneBound?badge('已绑定','status-normal'):badge('未绑定','status-warning');\n      if(key==='loginRisk')return riskBadge(item.loginRisk);\n      if(key==='lastActiveIp')return `<span class=\"mono\">${esc(item.lastActiveIp)}</span>`;\n      return '—';\n    }\n    function rowActions(item,annotate=false){\n      const protectedAccount=item.accountType==='primary';\n      const statusAction=protectedAccount?`<span class=\"text-ink-muted cursor-not-allowed\" title=\"主账号不可禁用\">禁用</span>`:`<button type=\"button\" class=\"${item.status==='enabled'?'action-danger':'action-success'} hover:opacity-80\" data-action=\"status\" data-id=\"${item.relationId}\">${item.status==='enabled'?'禁用':'启用'}</button>`;\n      const removeAction=protectedAccount?`<span class=\"text-ink-muted cursor-not-allowed\" title=\"主账号不可移除\">移除</span>`:`<button type=\"button\" class=\"text-danger hover:opacity-80\" data-action=\"remove\" data-id=\"${item.relationId}\">移除</button>`;\n      return `<div class=\"flex items-center gap-3\" ${annotate?'data-anno=\"12\"':''}><button type=\"button\" class=\"text-primary hover:text-primary-hover\" data-action=\"detail\" data-id=\"${item.relationId}\">详情</button><button type=\"button\" class=\"text-primary hover:text-primary-hover\" data-action=\"role\" data-id=\"${item.relationId}\">编辑角色</button>${statusAction}${removeAction}</div>`;\n    }\n    function renderHead(){\n      const columns=views[activeView].columns;\n      $('memberTable').style.minWidth=`${Math.max(1360,850+columns.length*170)}px`;\n      $('tableHead').innerHTML=`<tr><th class=\"sticky-select\"><input id=\"selectAll\" type=\"checkbox\" class=\"accent-[#0066FF]\" aria-label=\"选择当前页普通成员\"></th><th class=\"sticky-id\">成员 ID</th><th class=\"sticky-member\">成员</th><th>所属主体 / 关系 ID</th>${columns.map(([,label])=>`<th>${label}</th>`).join('')}<th class=\"sticky-action\">操作</th></tr>`;\n    }\n    function renderRows(rows){\n      $('tableBody').innerHTML=rows.map((item,index)=>`<tr class=\"${selected.has(item.relationId)?'row-selected':''}\"><td class=\"sticky-select\"><input type=\"checkbox\" class=\"row-check accent-[#0066FF]\" data-id=\"${item.relationId}\" ${selected.has(item.relationId)?'checked':''} ${item.accountType==='primary'?'disabled title=\"主账号不可选择\"':''} aria-label=\"选择 ${esc(item.name)}\"></td><td class=\"sticky-id mono text-[12px]\">${esc(item.memberId)}</td><td class=\"sticky-member\"><div class=\"flex items-center gap-2 min-w-0\"><span class=\"w-7 h-7 rounded-full bg-primary-bg text-primary flex items-center justify-center font-semibold shrink-0\">${esc(item.name.slice(0,1))}</span><div class=\"min-w-0\"><button type=\"button\" class=\"font-medium text-primary hover:text-primary-hover truncate max-w-[150px] block text-left\" title=\"${esc(item.name)}\" data-action=\"detail\" data-id=\"${item.relationId}\">${esc(item.name)}</button><div class=\"mono text-[11px] text-ink-muted mt-0.5\">${maskAlreadySafe(item.phone)}</div></div></div></td><td><div class=\"max-w-[260px]\"><div class=\"flex items-center gap-1.5\"><span class=\"badge ${item.subjectType==='team'?'status-info':'status-warning'}\">${item.subjectType==='team'?'团队':'企业'}</span><span class=\"truncate\" title=\"${esc(item.subjectName)}\">${esc(item.subjectName)}</span></div><div class=\"mono text-[11px] text-ink-muted mt-0.5\">${esc(item.subjectId)} · ${esc(item.relationId)}</div></div></td>${views[activeView].columns.map(([key])=>`<td>${cell(item,key)}</td>`).join('')}<td class=\"sticky-action\">${rowActions(item,index===0)}</td></tr>`).join('');\n      syncSelectAll(rows);\n    }\n    function syncSelectAll(pageRows){\n      const checkbox=$('selectAll');if(!checkbox)return;\n      const selectable=pageRows.filter(item=>item.accountType!=='primary');\n      const checked=selectable.filter(item=>selected.has(item.relationId)).length;\n      checkbox.disabled=selectable.length===0;checkbox.checked=selectable.length>0&&checked===selectable.length;checkbox.indeterminate=checked>0&&checked<selectable.length;\n    }\n    function emptyMarkup(kind){\n      const map={empty:['暂无成员关系','当前授权范围内还没有可查看的成员关系。',''],filter:['未找到符合条件的成员','请调整筛选条件后重试。','清空筛选'],error:['成员数据加载失败','服务暂时不可用，请稍后重试。','重新加载'],forbidden:['暂无成员查看权限','当前账号没有成员列表的数据权限，请联系管理员授权。','返回团队列表']};\n      const [title,desc,action]=map[kind];\n      return `<div class=\"empty-state border border-line rounded\"><svg class=\"empty-icon\" viewBox=\"0 0 96 72\" fill=\"none\" aria-hidden=\"true\"><rect x=\"14\" y=\"22\" width=\"68\" height=\"42\" rx=\"4\" fill=\"#F0F1F3\" stroke=\"#DFE1E5\" stroke-width=\"1.5\"/><path d=\"M14 34h20l6 8h16l6-8h20\" stroke=\"#C7CAD1\" stroke-width=\"1.5\"/><rect x=\"30\" y=\"10\" width=\"36\" height=\"18\" rx=\"3\" fill=\"#fff\" stroke=\"#DFE1E5\" stroke-width=\"1.5\"/><circle cx=\"48\" cy=\"19\" r=\"3\" fill=\"#C7CAD1\"/></svg><strong class=\"text-[15px] text-ink-body\">${title}</strong><p class=\"text-[13px] mt-2 max-w-[360px] leading-relaxed\">${desc}</p>${action?`<button type=\"button\" class=\"mt-4 h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body\" data-state-action=\"${kind}\">${action}</button>`:''}</div>`;\n    }\n    function loadingMarkup(){return `<div class=\"border border-line rounded overflow-hidden\" aria-label=\"加载中\"><div class=\"h-10 bg-line-lighter flex items-center gap-8 px-4\"><span class=\"skeleton w-24\"></span><span class=\"skeleton w-36\"></span><span class=\"skeleton w-28\"></span></div>${Array.from({length:6},(_,index)=>`<div class=\"h-[52px] border-b border-line-lighter flex items-center gap-8 px-4\"><span class=\"skeleton w-5\"></span><span class=\"skeleton w-28\"></span><span class=\"skeleton ${index%2?'w-48':'w-36'}\"></span><span class=\"skeleton w-32\"></span><span class=\"skeleton w-24\"></span></div>`).join('')}<div class=\"h-16 flex items-center justify-center gap-2 text-ink-muted\"><span class=\"w-4 h-4 rounded-full border-2 border-line border-t-primary animate-spin\"></span>加载成员数据…</div></div>`}\n    function renderPagination(total){\n      if(!total){$('pagination').innerHTML='';return}\n      const pages=Math.max(1,Math.ceil(total/pageSize));if(currentPage>pages)currentPage=pages;\n      const pageItems=[];const push=page=>pageItems.push(page);if(pages<=7){for(let page=1;page<=pages;page++)push(page)}else{push(1);if(currentPage>3)push('ellipsis-left');for(let page=Math.max(2,currentPage-1);page<=Math.min(pages-1,currentPage+1);page++)push(page);if(currentPage<pages-2)push('ellipsis-right');push(pages)}\n      const pageMarkup=pageItems.map(page=>page.startsWith?.('ellipsis')?'<span class=\"px-1 text-ink-muted\">…</span>':`<button type=\"button\" class=\"h-[30px] min-w-[30px] px-2 rounded border ${page===currentPage?'bg-primary border-primary text-white':'border-line bg-card hover:border-primary hover:text-primary'}\" data-page=\"${page}\">${page}</button>`).join('');\n      $('pagination').innerHTML=`<div class=\"flex items-center gap-1\"><button type=\"button\" class=\"h-[30px] min-w-[30px] px-2 rounded border border-line ${currentPage===1?'text-ink-muted bg-page cursor-not-allowed':'hover:border-primary hover:text-primary'}\" ${currentPage===1?'disabled':''} data-page=\"${currentPage-1}\" aria-label=\"上一页\">‹</button>${pageMarkup}<button type=\"button\" class=\"h-[30px] min-w-[30px] px-2 rounded border border-line ${currentPage===pages?'text-ink-muted bg-page cursor-not-allowed':'hover:border-primary hover:text-primary'}\" ${currentPage===pages?'disabled':''} data-page=\"${currentPage+1}\" aria-label=\"下一页\">›</button></div><label class=\"flex items-center gap-2 text-ink-sub\"><span>每页</span><span class=\"relative inline-flex\"><select id=\"pageSize\" class=\"h-[30px] rounded border border-line bg-card pl-2 pr-6 appearance-none\"><option value=\"10\" ${pageSize===10?'selected':''}>10</option><option value=\"20\" ${pageSize===20?'selected':''}>20</option><option value=\"50\" ${pageSize===50?'selected':''}>50</option></select><span class=\"absolute right-2 top-1/2 -translate-y-1/2 text-[8px] text-ink-muted pointer-events-none\">▼</span></span><span>条</span></label><label class=\"flex items-center gap-2 text-ink-sub\">跳至<input id=\"pageJump\" class=\"w-11 h-[30px] rounded border border-line text-center mono outline-none focus:border-primary\" value=\"${currentPage}\" inputmode=\"numeric\" aria-label=\"跳转页码\">页</label><span class=\"text-ink-muted whitespace-nowrap\">共 ${total} 条记录　第 ${currentPage}/${pages} 页</span>`;\n    }\n    function updateSelectedBar(){const has=selected.size>0;$('selectedBar').classList.toggle('hidden',!has);$('selectedBar').classList.toggle('flex',has);$('selectedCount').textContent=selected.size}\n    function clearSelected(){selected.clear();updateSelectedBar()}\n    function setForbiddenControls(forbidden){document.querySelectorAll('#viewTabs button,#filterFlow input,#filterFlow select,#filterFlow button').forEach(control=>{control.disabled=forbidden;control.classList.toggle('opacity-50',forbidden);control.classList.toggle('cursor-not-allowed',forbidden)});$('advancedBtn').disabled=forbidden;$('advancedBtn').classList.toggle('opacity-50',forbidden);$('advancedBtn').classList.toggle('cursor-not-allowed',forbidden)}\n    function renderData(){\n      const rows=filteredRelations();\n      const pages=Math.max(1,Math.ceil(rows.length/pageSize));if(currentPage>pages)currentPage=pages;\n      $('tableDescription').textContent=views[activeView].description;\n      const blockedState=['loading','error','forbidden'].includes(qaState);\n      setForbiddenControls(qaState==='forbidden');\n      if(qaState==='forbidden')clearSelected();\n      $('exportBtn').disabled=blockedState||rows.length===0;\n      $('exportBtn').classList.toggle('opacity-50',$('exportBtn').disabled);\n      $('exportBtn').classList.toggle('cursor-not-allowed',$('exportBtn').disabled);\n      $('metricGrid').classList.toggle('hidden',qaState==='error'||qaState==='forbidden');\n      if(qaState==='loading')$('metricGrid').innerHTML=Array.from({length:4},()=>'<div class=\"metric-card\"><div class=\"skeleton w-20\"></div><div class=\"skeleton w-16 mt-3 h-5\"></div></div>').join('');\n      else if(qaState!=='error'&&qaState!=='forbidden')renderMetrics(rows);\n      updateSelectedBar();\n      $('stateArea').innerHTML='';$('tableWrap').classList.remove('hidden');$('pagination').classList.remove('hidden');\n      if(qaState==='loading'){$('stateArea').innerHTML=loadingMarkup();$('tableWrap').classList.add('hidden');$('pagination').classList.add('hidden');renderAnnoBadges();return}\n      if(qaState==='error'||qaState==='forbidden'){$('stateArea').innerHTML=emptyMarkup(qaState);$('tableWrap').classList.add('hidden');$('pagination').classList.add('hidden');renderAnnoBadges();return}\n      if(!rows.length){$('stateArea').innerHTML=emptyMarkup(qaState==='empty'?'empty':'filter');$('tableWrap').classList.add('hidden');$('pagination').classList.add('hidden');renderAnnoBadges();return}\n      renderHead();const pageRows=currentRows(rows);renderRows(pageRows);renderPagination(rows.length);lucide.createIcons();requestAnimationFrame(renderAnnoBadges);\n    }\n    function refresh(){renderTabs();renderData();lucide.createIcons()}\n\n    function section(title,rows){return `<section class=\"mb-6 last:mb-0\"><h3 class=\"text-[14px] font-semibold text-ink-title pb-2 mb-4 border-b border-line\">${title}</h3><dl class=\"detail-grid\">${rows.map(([label,value,mono])=>`<dt>${label}：</dt><dd class=\"${mono?'mono':''}\">${value}</dd>`).join('')}</dl></section>`}\n    function relationById(id){return memberships.find(item=>item.relationId===id)}\n    function openDetail(id){\n      const item=relationById(id);if(!item)return;returnFocus.detail=document.activeElement;currentDetailId=id;\n      $('detailTitle').textContent=`成员详情 · ${item.name}`;\n      $('detailBody').innerHTML=`<div class=\"flex items-center gap-3 mb-6\"><span class=\"w-11 h-11 rounded-full bg-primary-bg text-primary flex items-center justify-center text-[16px] font-semibold shrink-0\">${esc(item.name.slice(0,1))}</span><div class=\"min-w-0\"><div class=\"flex items-center gap-2 flex-wrap\"><strong class=\"text-[16px] text-ink-title break-all\">${esc(item.name)}</strong>${statusBadge(item.status)}${accountBadge(item.accountType)}</div><div class=\"mono text-[12px] text-ink-muted mt-1\">${esc(item.memberId)} · ${maskAlreadySafe(item.phone)}</div></div></div>${section('成员识别',[['成员 ID',esc(item.memberId),true],['脱敏手机号',maskAlreadySafe(item.phone),true],['成员类型',item.accountType==='primary'?'主账号':'普通成员'],['注册来源',esc(item.registrationSource)],['加入时间',esc(item.joinedAt),true],['最近活跃时间',esc(item.lastActiveAt),true]])}${section('主体关系',[['关系 ID',esc(item.relationId),true],['主体类型',item.subjectType==='team'?'团队':'企业'],['主体 ID',esc(item.subjectId),true],['主体名称',esc(item.subjectName)],['组织路径',esc(item.department)],['关系来源',esc(item.relationSource)],['关系状态',statusBadge(item.status)],['最近更新时间',esc(item.updatedAt),true]])}${section('角色权限',[['成员角色',rolesCell(item.roles)],['权限范围摘要',esc(item.permissionScope.join('、')),false],['角色更新时间',esc(item.roleUpdatedAt),true],['更新人',esc(item.updater)]])}${section('账号状态',[['关系状态',statusBadge(item.status)],['最近登录',esc(item.lastLoginAt),true],['最近活跃时间',esc(item.lastActiveAt),true],['禁用时间',esc(item.disabledAt),true],['禁用原因',esc(item.disabledReason)],['状态操作人',esc(item.statusUpdater)],['保护说明',item.accountType==='primary'?'主账号固定启用，不可禁用或移除':'—']])}`;\n      const protectedAccount=item.accountType==='primary';$('detailStatusBtn').textContent=item.status==='enabled'?'禁用':'启用';$('detailStatusBtn').disabled=protectedAccount;$('detailStatusBtn').classList.toggle('opacity-50',protectedAccount);$('detailStatusBtn').title=protectedAccount?'主账号不可禁用':'';$('detailRemoveBtn').disabled=protectedAccount;$('detailRemoveBtn').classList.toggle('opacity-50',protectedAccount);$('detailRemoveBtn').title=protectedAccount?'主账号不可移除':'';$('detailStatusBtn').onclick=()=>confirmStatus(item);$('detailRemoveBtn').onclick=()=>confirmRemove(item);\n      $('detailOverlay').classList.remove('hidden');pushAnnoScope($('detailPanel'));lucide.createIcons();setTimeout(()=>$('closeDetail').focus(),30);\n    }\n    function closeDetail(){if($('detailOverlay').classList.contains('hidden'))return;$('detailOverlay').classList.add('hidden');popAnnoScope($('detailPanel'));currentDetailId=null;returnFocus.detail?.focus()}\n\n    const editableRoles={team:['团队管理员','运营','财务','只读成员'],enterprise:['企业管理员','财务','运营','只读成员']};\n    const mockRoleScopes={\n      '团队所有者':'当前团队全部数据',\n      '团队管理员':'当前团队全部数据',\n      '企业管理员':'当前企业全部数据',\n      '运营':'所在部门数据',\n      '财务':'当前主体财务数据',\n      '只读成员':'本人数据'\n    };\n    function openRole(id){\n      const item=relationById(id);if(!item)return;const detailWasOpen=!$('detailOverlay').classList.contains('hidden');returnFocus.role=document.activeElement;currentRoleId=id;$('roleTitle').textContent='编辑成员角色';$('roleMember').innerHTML=`<span class=\"font-medium text-ink-title\">${esc(item.name)}</span><span class=\"mono text-[12px] text-ink-muted ml-2\">${esc(item.memberId)}</span><span class=\"text-[12px] text-ink-sub ml-2\">${item.subjectType==='team'?'团队':'企业'} · ${esc(item.subjectName)}</span>`;\n      const rolesForSubject=editableRoles[item.subjectType]||editableRoles.team;const selectedRoles=item.roles.filter(role=>rolesForSubject.includes(role));$('roleOptions').innerHTML=`${item.accountType==='primary'?`<label class=\"role-option cursor-not-allowed\"><input type=\"checkbox\" checked disabled class=\"mt-0.5 accent-[#0066FF]\"><span><strong class=\"block text-ink-title\">团队所有者</strong><small class=\"text-ink-muted\">主账号固定角色，不可取消</small></span></label>`:''}${rolesForSubject.map(role=>`<label class=\"role-option\"><input type=\"checkbox\" name=\"memberRole\" value=\"${role}\" ${selectedRoles.includes(role)?'checked':''} class=\"mt-0.5 accent-[#0066FF]\"><span><strong class=\"block text-ink-title\">${role}</strong><small class=\"text-ink-muted\">主体配置的可用角色</small></span></label>`).join('')}`;\n      $('permissionPreview').textContent=item.permissionScope.join('、')||'—';$('rolePanel').dataset.fromDetail=detailWasOpen?'true':'false';$('rolePanel').dataset.dirty='false';$('rolePanel').dataset.subjectType=item.subjectType;$('rolePanel').dataset.originalRoles=JSON.stringify(selectedRoles);$('rolePanel').dataset.originalScope=item.permissionScope.join('、');$('roleError').classList.add('hidden');$('roleOverlay').classList.remove('hidden');pushAnnoScope($('rolePanel'));setTimeout(()=>$('roleOptions').querySelector('input:not(:disabled)')?.focus(),30);lucide.createIcons();\n    }\n    function roleIsDirty(){const panel=$('rolePanel');const checked=[...document.querySelectorAll('input[name=\"memberRole\"]:checked')].map(input=>input.value).sort();return JSON.stringify(checked)!==JSON.stringify(JSON.parse(panel.dataset.originalRoles||'[]').sort())}\n    function closeRole(){if($('roleOverlay').classList.contains('hidden'))return;if(roleIsDirty()){openConfirm({title:'确认放弃修改？',text:'当前角色选择尚未保存，关闭后将丢失。',confirmText:'放弃修改',danger:true,action:()=>{const detailWasOpen=$('rolePanel').dataset.fromDetail==='true'&&!$('detailOverlay').classList.contains('hidden');$('roleOverlay').classList.add('hidden');popAnnoScope($('rolePanel'));currentRoleId=null;delete $('rolePanel').dataset.fromDetail;if(detailWasOpen)setTimeout(()=>$('detailRoleBtn').focus(),0);else returnFocus.role?.focus()}});return}const detailWasOpen=$('rolePanel').dataset.fromDetail==='true'&&!$('detailOverlay').classList.contains('hidden');$('roleOverlay').classList.add('hidden');popAnnoScope($('rolePanel'));currentRoleId=null;delete $('rolePanel').dataset.fromDetail;if(detailWasOpen)setTimeout(()=>$('detailRoleBtn').focus(),0);else returnFocus.role?.focus()}\n    function updatePermissionPreview(){const item=relationById(currentRoleId);const selectedRoles=[...document.querySelectorAll('input[name=\"memberRole\"]:checked')].map(input=>input.value);const roles=item?.accountType==='primary'?['团队所有者',...selectedRoles]:selectedRoles;$('permissionPreview').textContent=roles.map(role=>mockRoleScopes[role]).filter(Boolean).filter((scope,index,array)=>array.indexOf(scope)===index).join('、')||'—'}\n    function saveRole(event){event.preventDefault();const item=relationById(currentRoleId);if(!item)return;const checked=[...document.querySelectorAll('input[name=\"memberRole\"]:checked')].map(input=>input.value);const roles=item.accountType==='primary'?['团队所有者',...checked]:checked;if(!roles.length){$('roleError').classList.remove('hidden');return}item.roles=roles;item.permissionScope=roles.map(role=>mockRoleScopes[role]).filter(Boolean).filter((scope,index,array)=>array.indexOf(scope)===index);item.updatedAt='2026-08-13 14:30:00';item.roleUpdatedAt=item.updatedAt;item.updater='平台管理员';const reopenDetail=currentDetailId===item.relationId;const detailWasOpen=$('rolePanel').dataset.fromDetail==='true';$('roleOverlay').classList.add('hidden');popAnnoScope($('rolePanel'));currentRoleId=null;if(reopenDetail&&detailWasOpen)openDetail(item.relationId);refresh();toast('成员角色已更新','success')}\n\n    function openConfirm(config){returnFocus.confirm=document.activeElement;pendingConfirm=config;$('confirmTitle').textContent=config.title;$('confirmText').textContent=config.text;$('submitConfirm').textContent=config.confirmText||'确定';$('submitConfirm').className=`h-8 px-5 rounded text-white ${config.danger?'bg-danger hover:opacity-90':'bg-primary hover:bg-primary-hover'}`;$('confirmOverlay').classList.remove('hidden');pushAnnoScope($('confirmPanel'));setTimeout(()=>$('cancelConfirm').focus(),30)}\n    function closeConfirm(){if($('confirmOverlay').classList.contains('hidden'))return;$('confirmOverlay').classList.add('hidden');popAnnoScope($('confirmPanel'));pendingConfirm=null;returnFocus.confirm?.focus()}\n    function confirmStatus(item){if(item.accountType==='primary'){toast('主账号不可禁用','warning');return}const enabling=item.status==='disabled';openConfirm({title:enabling?'确认启用该成员吗？':'确认禁用该成员吗？',text:enabling?`启用后，${item.name} 可恢复进入“${item.subjectName}”并使用授权能力。`:`禁用后，${item.name} 将无法进入“${item.subjectName}”，成员关系和历史数据仍会保留。`,confirmText:enabling?'确认启用':'确认禁用',danger:!enabling,action:()=>{item.status=enabling?'enabled':'disabled';item.updatedAt='2026-08-13 16:30:00';item.disabledAt=enabling?'—':item.updatedAt;item.disabledReason=enabling?'—':'管理员手动禁用';item.statusUpdater=enabling?'—':'平台管理员';clearSelected();refresh();if(currentDetailId===item.relationId)openDetail(item.relationId);toast(enabling?'成员已启用':'成员已禁用','success')}})}\n    function confirmRemove(item){if(item.accountType==='primary'){toast('主账号不可移除','warning');return}openConfirm({title:'确认移除该成员吗？',text:`将解除 ${item.name} 与“${item.subjectName}”的成员关系；不会删除平台账号，也不影响其在其他主体中的关系。`,confirmText:'确认移除',danger:true,action:()=>{memberships=memberships.filter(x=>x.relationId!==item.relationId);clearSelected();if(currentDetailId===item.relationId)closeDetail();refresh();toast('成员关系已移除','success')}})}\n    function confirmBatch(action){const targets=memberships.filter(item=>selected.has(item.relationId)&&item.accountType!=='primary');if(!targets.length){toast('没有可操作的普通成员关系','warning');return}const labels={enable:'启用',disable:'禁用',remove:'移除'},subjectCount=new Set(targets.map(item=>item.subjectId)).size;const title=`确认批量${labels[action]}所选成员吗？`;const text=action==='remove'?`将解除所选 ${targets.length} 条、涉及 ${subjectCount} 个主体的成员关系；不删除平台账号，也不影响其他主体关系。`:`将批量${labels[action]}所选 ${targets.length} 条、涉及 ${subjectCount} 个主体的成员关系；已处于目标状态的关系会被跳过。`;openConfirm({title,text,confirmText:`确认${labels[action]}`,danger:action!=='enable',action:()=>{let success=0,skipped=0;const failed=targets.filter(item=>item.batchConflict),failedIds=new Set(failed.map(item=>item.relationId)),operable=targets.filter(item=>!failedIds.has(item.relationId));if(action==='remove'){const ids=new Set(operable.map(item=>item.relationId));memberships=memberships.filter(item=>{if(ids.has(item.relationId)){success++;return false}return true})}else{const targetStatus=action==='enable'?'enabled':'disabled';operable.forEach(item=>{if(item.status===targetStatus)skipped++;else{item.status=targetStatus;item.updatedAt='2026-08-13 16:30:00';item.disabledAt=targetStatus==='disabled'?item.updatedAt:'—';item.disabledReason=targetStatus==='disabled'?'批量操作禁用':'—';item.statusUpdater=targetStatus==='disabled'?'平台管理员':'—';success++}})}selected.clear();failed.forEach(item=>selected.add(item.relationId));refresh();const result=`批量${labels[action]}完成：成功 ${success} 条${skipped?`，跳过 ${skipped} 条`:''}${failed.length?`，失败 ${failed.length} 条（关系版本冲突）`:''}`;toast(result,failed.length||skipped?'warning':'success')}})}\n    function confirmExport(){const rows=filteredRelations();if(['loading','error','forbidden'].includes(qaState)||!rows.length){toast('当前没有可导出的成员数据','warning');return}openConfirm({title:'确认导出当前视图吗？',text:`将按当前筛选条件导出“${views[activeView].label}”视图，共 ${rows.length} 条成员关系；手机号继续保持脱敏。`,confirmText:'确认导出',danger:false,action:()=>toast('导出任务已提交，请在任务中心查看进度','success')})}\n\n    function toast(message,kind='info'){\n      const colors={success:'bg-success',warning:'bg-warning',danger:'bg-danger',info:'bg-info'};const node=document.createElement('div');node.className=`toast ${colors[kind]} text-white px-4 py-2 rounded shadow-[0_2px_8px_rgba(0,0,0,.12)] text-[13px] pointer-events-auto`;node.textContent=message;$('toastContainer').append(node);setTimeout(()=>node.remove(),3200);\n    }\n    function togglePopover(id){['noticePopover','accountPopover'].forEach(popover=>{if(popover!==id)$(popover).classList.add('hidden')});$(id).classList.toggle('hidden')}\n\n    const annotations={\n      1:{title:'字段分组视图',desc:['切换成员识别、主体关系、角色权限、账号状态或全部字段。','摘要指标与动态字段同步切换，固定身份列和操作列保持不变。','保留筛选和当前合法页码，清空勾选并将表格横向滚动归零。']},\n      2:{title:'高级筛选',desc:['展开角色、成员类型、加入时间和最近活跃时间。','折叠仅收起控件，不清除已填写条件。','重置会清空条件并收起高级筛选。']},\n      3:{title:'关键词检索',desc:['支持成员名称、成员 ID 和已脱敏手机号模糊匹配。','输入内容时显示清空图标，按 Enter 等同点击查询。','页面只展示脱敏手机号，不提供明文查看入口。']},\n      4:{title:'主体类型筛选',desc:['可限定团队主体或企业主体。','变更类型时重建所属主体选项并清空原主体值。','筛选草稿变更即清空勾选，点击查询后才应用到结果。']},\n      5:{title:'所属主体筛选',desc:['选项由主体类型联动生成，支持全部主体。','团队列表通过 teamId 参数进入时自动选择对应团队。','非法 teamId 回退全部主体并给出提示。']},\n      6:{title:'账号状态筛选',desc:['支持按启用或禁用状态筛选成员关系。','选择状态只更新筛选草稿，点击查询后应用。','状态筛选不改变当前字段分组。']},\n      7:{title:'查询与重置',desc:['查询应用当前条件并回到第 1 页。','日期范围非法时不提交，并在字段下显示错误。','重置清空条件、收起高级筛选并清空勾选。']},\n      8:{title:'导出当前视图',desc:['导出范围为当前字段分组和当前全部筛选结果，不限当前页。','确认弹窗显示视图名称和预计条数。','规则：无权限、加载失败或无数据时禁用导出。']},\n      9:{title:'动态摘要',desc:['摘要统计当前筛选全量，不受分页影响。','指标口径随字段分组切换，每组 4 项。','原型用完整 mock 集计算，生产需服务端全量统计。']},\n      10:{title:'批量成员关系操作',desc:['支持批量启用、禁用和移除所选普通成员关系。','混合状态时反馈成功、跳过与失败数量；版本冲突的失败项保留勾选，便于重试。','规则：移除只解除主体关系，不删除平台账号。']},\n      11:{title:'成员关系表格',desc:['固定成员、主体与操作列，动态字段由当前 Tab 驱动。','成员名称与详情操作都可打开同一关系详情。','主账号不可勾选、禁用或移除。']},\n      12:{title:'成员操作',desc:['详情打开 800px 抽屉，编辑角色打开 760px 弹窗。','启用、禁用和移除均需二次确认。','移除只解除当前主体关系，不删除平台账号。']},\n      13:{title:'分页',desc:['支持折叠页码、每页 10/20/50 条和回车跳页。','翻页或修改每页条数时清空勾选，筛选和字段分组不变。','移除末页最后一条后自动回退到有效页。']},\n      14:{title:'成员详情',desc:['展示成员识别、主体关系、角色权限和账号状态四组信息。','底部可继续编辑角色、启停或移除。','主账号显示保护说明并禁用危险操作。']},\n      15:{title:'编辑成员角色',desc:['角色选项按主体类型提供，至少选择一个。','权限范围只读展示服务端摘要，前端不推断权限。','关闭未保存修改前需要二次确认。']},\n      16:{title:'操作确认',desc:['用于单条或批量启停、移除关系和导出当前视图。','危险操作使用红色确认按钮，文案明确影响边界。','确定后更新内联数据并以 Toast 反馈结果。']}\n    };\n    const annoScopeStack=[];let annoVisible=false;\n    function pushAnnoScope(element){const index=annoScopeStack.indexOf(element);if(index>=0)annoScopeStack.splice(index,1);annoScopeStack.push(element);renderAnnoBadges()}\n    function popAnnoScope(element){const index=annoScopeStack.indexOf(element);if(index>=0)annoScopeStack.splice(index,1);renderAnnoBadges()}\n    function resolveAnnoTarget(element){const rect=element.getBoundingClientRect();return(rect.width>800||rect.width>innerWidth*.7)?element.querySelector('h1,h2,h3,button,input')||element:element}\n    function renderAnnoBadges(){const layer=$('annoLayer');layer.innerHTML='';if(!annoVisible)return;const root=annoScopeStack.at(-1)||document;let visibleIndex=0;root.querySelectorAll('[data-anno]').forEach(element=>{const target=resolveAnnoTarget(element),rect=target.getBoundingClientRect();if(!rect.width||!rect.height)return;const id=element.dataset.anno;const displayNumber=++visibleIndex;const button=document.createElement('button');button.className='anno-badge';button.textContent=displayNumber;button.style.top=`${rect.top-10}px`;button.style.left=`${rect.right-10}px`;button.setAttribute('aria-label',`查看交互说明 ${displayNumber}`);button.onclick=()=>showAnno(id,displayNumber);layer.append(button)})}\n    function showAnno(id,displayNumber=id){const item=annotations[id];if(!item)return;const panel=$('annoPanel');panel.style.position='';panel.style.left='';panel.style.top='';panel.style.margin='';$('annoTitle').textContent=`${displayNumber}. ${item.title}`;$('annoDesc').innerHTML=`<ul class=\"list-disc pl-5 space-y-2\">${item.desc.map(line=>`<li>${line}</li>`).join('')}</ul>`;$('annoPopup').classList.remove('hidden');pushAnnoScope($('annoPopup'));lucide.createIcons()}\n    function closeAnno(){if($('annoPopup').classList.contains('hidden'))return;$('annoPopup').classList.add('hidden');popAnnoScope($('annoPopup'))}\n\n    document.addEventListener('click',event=>{\n      const tab=event.target.closest('[data-view]'),action=event.target.closest('[data-action]'),batch=event.target.closest('[data-batch]'),page=event.target.closest('[data-page]'),stateAction=event.target.closest('[data-state-action]');\n      if(tab){activeView=tab.dataset.view;clearSelected();$('tableWrap').scrollLeft=0;refresh()}\n      if(action){const item=relationById(action.dataset.id);if(item){if(action.dataset.action==='detail')openDetail(item.relationId);if(action.dataset.action==='role')openRole(item.relationId);if(action.dataset.action==='status')confirmStatus(item);if(action.dataset.action==='remove')confirmRemove(item)}}\n      if(batch)confirmBatch(batch.dataset.batch);\n      if(page&&!page.disabled){currentPage=Math.max(1,Number(page.dataset.page)||1);clearSelected();renderData()}\n      if(stateAction?.dataset.stateAction==='filter')$('resetBtn').click();\n      if(stateAction?.dataset.stateAction==='error'){qaState='normal';refresh();toast('成员数据已重新加载','success')}\n      if(stateAction?.dataset.stateAction==='forbidden')location.href='团队列表.html';\n      if(!event.target.closest('#noticeBtn,#noticePopover,#accountBtn,#accountPopover')){$('noticePopover').classList.add('hidden');$('accountPopover').classList.add('hidden')}\n    });\n    document.addEventListener('keydown',event=>{\n      const tab=event.target.closest('[role=\"tab\"]');\n      if(!tab||!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;\n      event.preventDefault();const tabs=[...document.querySelectorAll('[role=\"tab\"]')];const index=tabs.indexOf(tab);const next=event.key==='Home'?0:event.key==='End'?tabs.length-1:(index+(event.key==='ArrowRight'?1:-1)+tabs.length)%tabs.length;const nextView=tabs[next].dataset.view;tabs[next].click();requestAnimationFrame(()=>document.querySelector(`[data-view=\"${nextView}\"]`)?.focus());\n    });\n    document.addEventListener('change',event=>{\n      if(event.target.classList.contains('row-check')){event.target.checked?selected.add(event.target.dataset.id):selected.delete(event.target.dataset.id);updateSelectedBar();renderRows(currentRows(filteredRelations()))}\n      if(event.target.id==='selectAll'){const pageRows=currentRows(filteredRelations()).filter(item=>item.accountType!=='primary');pageRows.forEach(item=>event.target.checked?selected.add(item.relationId):selected.delete(item.relationId));updateSelectedBar();renderRows(currentRows(filteredRelations()))}\n      if(event.target.id==='pageSize'){pageSize=Number(event.target.value);currentPage=1;clearSelected();renderData()}\n      if(event.target.id==='subjectTypeFilter'){renderSubjectOptions(event.target.value);clearSelected();renderData();updateAdvancedCount()}\n      if(event.target.id==='subjectFilter'){clearSelected();renderData()}\n      if(event.target.name==='memberRole'){$('roleError').classList.add('hidden');updatePermissionPreview()}\n      if(event.target.closest('#filterFlow'))updateAdvancedCount();\n    });\n    document.addEventListener('keydown',event=>{\n      if(event.key==='Enter'&&event.target.id==='keyword'){event.preventDefault();$('queryBtn').click()}\n      if(event.key==='Enter'&&event.target.id==='pageJump'){event.preventDefault();const pages=Math.max(1,Math.ceil(filteredRelations().length/pageSize));currentPage=Math.min(Math.max(1,Number(event.target.value)||1),pages);clearSelected();renderData()}\n      if(event.key==='Escape'){if(!$('annoPopup').classList.contains('hidden'))closeAnno();else if(!$('confirmOverlay').classList.contains('hidden'))closeConfirm();else if(!$('roleOverlay').classList.contains('hidden'))closeRole();else if(!$('detailOverlay').classList.contains('hidden'))closeDetail();else{$('noticePopover').classList.add('hidden');$('accountPopover').classList.add('hidden')}}\n      if(event.key==='Tab'){\n        const panel=!$('annoPopup').classList.contains('hidden')?$('annoPanel'):!$('confirmOverlay').classList.contains('hidden')?$('confirmPanel'):!$('roleOverlay').classList.contains('hidden')?$('rolePanel'):!$('detailOverlay').classList.contains('hidden')?$('detailPanel'):null;\n        if(!panel)return;const focusable=[...panel.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),a[href],[tabindex]:not([tabindex=\"-1\"])')].filter(element=>element.offsetParent!==null);if(!focusable.length)return;const first=focusable[0],last=focusable.at(-1);if(event.shiftKey&&(document.activeElement===first||!panel.contains(document.activeElement))){event.preventDefault();last.focus()}else if(!event.shiftKey&&(document.activeElement===last||!panel.contains(document.activeElement))){event.preventDefault();first.focus()}\n      }\n    });\n\n    $('advancedBtn').onclick=()=>{advancedOpen=!advancedOpen;document.querySelectorAll('.advanced-item').forEach(item=>item.classList.toggle('hidden',!advancedOpen));$('advancedBtn').setAttribute('aria-expanded',String(advancedOpen));$('advancedChevron').setAttribute('data-lucide',advancedOpen?'chevron-up':'chevron-down');lucide.createIcons();renderAnnoBadges()};\n    $('clearKeyword').onclick=()=>{$('keyword').value='';$('clearKeyword').classList.add('hidden');$('keyword').focus()};\n    $('keyword').oninput=()=>{$('clearKeyword').classList.toggle('hidden',!$('keyword').value)};\n    function validateDateRanges(filters){const joinedInvalid=filters.joinedStart&&filters.joinedEnd&&filters.joinedStart>filters.joinedEnd;const activeInvalid=filters.activeStart&&filters.activeEnd&&filters.activeStart>filters.activeEnd;$('joinedError').classList.toggle('hidden',!joinedInvalid);$('activeError').classList.toggle('hidden',!activeInvalid);return !joinedInvalid&&!activeInvalid}\n    $('queryBtn').onclick=()=>{draftFilters=readDraft();if(!validateDateRanges(draftFilters))return;appliedFilters={...draftFilters};currentPage=1;clearSelected();refresh();toast('查询结果已更新','success')};\n    $('resetBtn').onclick=()=>{draftFilters=blankFilters();appliedFilters=blankFilters();advancedOpen=false;document.querySelectorAll('.advanced-item').forEach(item=>item.classList.add('hidden'));$('advancedBtn').setAttribute('aria-expanded','false');$('advancedChevron').setAttribute('data-lucide','chevron-down');writeFilters(draftFilters);$('joinedError').classList.add('hidden');$('activeError').classList.add('hidden');currentPage=1;clearSelected();if(['filter-empty','disabled','long-text'].includes(qaState))qaState='normal';refresh();toast('筛选条件已重置','info')};\n    $('clearSelection').onclick=()=>{clearSelected();renderData()};\n    $('exportBtn').onclick=confirmExport;\n    $('closeDetail').onclick=closeDetail;$('detailCloseBtn').onclick=closeDetail;$('detailRoleBtn').onclick=()=>{const id=currentDetailId;if(id)openRole(id)};$('detailOverlay').onclick=event=>{if(event.target===$('detailOverlay'))closeDetail()};\n    $('closeRole').onclick=closeRole;$('cancelRole').onclick=closeRole;$('roleOverlay').onclick=event=>{if(event.target===$('roleOverlay'))closeRole()};$('roleForm').onsubmit=saveRole;\n    $('closeConfirm').onclick=closeConfirm;$('cancelConfirm').onclick=closeConfirm;$('confirmOverlay').onclick=event=>{if(event.target===$('confirmOverlay'))closeConfirm()};$('submitConfirm').onclick=()=>{const action=pendingConfirm?.action;closeConfirm();action?.()};\n    $('noticeBtn').onclick=event=>{event.stopPropagation();togglePopover('noticePopover')};$('accountBtn').onclick=event=>{event.stopPropagation();togglePopover('accountPopover')};\n    $('readAll').onclick=()=>{document.querySelectorAll('#noticeList .unread-dot').forEach(dot=>dot.remove());toast('通知已全部标记为已读','success')};\n    $('noticeList').innerHTML='<button type=\"button\" class=\"w-full text-left px-4 py-3 hover:bg-hover border-b border-line-lighter\"><div class=\"flex items-center gap-2\"><span class=\"unread-dot w-2 h-2 rounded-full bg-danger\"></span><p class=\"font-medium text-ink-title\">高风险登录待核查</p></div><p class=\"text-[12px] text-ink-sub mt-1\">成员 mem_900002 最近登录风险升高。</p><p class=\"mono text-[11px] text-ink-muted mt-1\">今天 10:08</p></button><button type=\"button\" class=\"w-full text-left px-4 py-3 hover:bg-hover\"><p class=\"font-medium text-ink-title\">成员导出已完成</p><p class=\"text-[12px] text-ink-sub mt-1\">昨日成员状态视图可下载。</p><p class=\"mono text-[11px] text-ink-muted mt-1\">昨天 18:20</p></button>';\n    $('accountPopover').innerHTML='<div class=\"px-3 py-2 text-[12px] text-ink-sub border-b border-line-lighter\">平台管理员 · 全部授权团队</div><button type=\"button\" class=\"w-full text-left px-3 py-2 rounded hover:bg-hover\">账号信息</button><button type=\"button\" class=\"w-full text-left px-3 py-2 rounded hover:bg-hover\">退出登录</button>';\n\n    let sidebarCompact=false;\n    function setSidebar(compact){sidebarCompact=compact;$('sidebar').classList.toggle('compact',compact);$('collapseBtn').setAttribute('aria-label',compact?'展开侧栏':'收起侧栏');$('collapseBtn').setAttribute('title',compact?'展开侧栏':'收起侧栏');$('collapseBtn').innerHTML=`<i data-lucide=\"${compact?'panel-left-open':'panel-left-close'}\" class=\"w-[18px] h-[18px]\"></i>`;lucide.createIcons();renderAnnoBadges()}\n    $('collapseBtn').onclick=()=>setSidebar(!sidebarCompact);$('mobileMenu').onclick=()=>setSidebar(!sidebarCompact);\n\n    $('closeAnno').onclick=event=>{event.stopPropagation();closeAnno()};$('annoPopup').onclick=event=>{if(event.target===$('annoPopup'))closeAnno()};\n    let toggleTimer=null,toggleDragging=false,toggleStartY=0,toggleStartTop=0,suppressToggleClick=false;\n    $('annoToggle').addEventListener('pointerdown',event=>{toggleStartY=event.clientY;toggleStartTop=$('annoToggle').getBoundingClientRect().top;toggleDragging=false;toggleTimer=setTimeout(()=>{toggleDragging=true;$('annoToggle').setPointerCapture(event.pointerId);$('annoToggle').classList.add('cursor-grabbing')},350)});\n    $('annoToggle').addEventListener('pointermove',event=>{if(!toggleDragging)return;const top=Math.max(8,Math.min(innerHeight-$('annoToggle').offsetHeight-8,toggleStartTop+event.clientY-toggleStartY));$('annoToggle').style.top=`${top}px`});\n    function endToggleDrag(){clearTimeout(toggleTimer);if(toggleDragging){localStorage.setItem('memberAnnoTop',$('annoToggle').style.top);suppressToggleClick=true;setTimeout(()=>suppressToggleClick=false,0)}toggleDragging=false;$('annoToggle').classList.remove('cursor-grabbing')}\n    $('annoToggle').addEventListener('pointerup',endToggleDrag);$('annoToggle').addEventListener('pointercancel',endToggleDrag);\n    $('annoToggle').onclick=()=>{if(suppressToggleClick)return;annoVisible=!annoVisible;$('annoToggle').classList.toggle('bg-primary',annoVisible);$('annoToggle').classList.toggle('bg-ink-muted',!annoVisible);$('annoToggle').setAttribute('aria-pressed',String(annoVisible));renderAnnoBadges()};\n    const savedAnnoTop=localStorage.getItem('memberAnnoTop');if(savedAnnoTop)$('annoToggle').style.top=savedAnnoTop;\n    let popupDrag=null;\n    $('annoDrag').addEventListener('pointerdown',event=>{if(event.target.closest('button'))return;const panel=$('annoPanel'),rect=panel.getBoundingClientRect();popupDrag={x:event.clientX,y:event.clientY,left:rect.left,top:rect.top,panel};$('annoDrag').setPointerCapture(event.pointerId);panel.style.position='fixed';panel.style.margin='0'});\n    $('annoDrag').addEventListener('pointermove',event=>{if(!popupDrag)return;popupDrag.panel.style.left=`${Math.max(8,Math.min(innerWidth-popupDrag.panel.offsetWidth-8,popupDrag.left+event.clientX-popupDrag.x))}px`;popupDrag.panel.style.top=`${Math.max(8,Math.min(innerHeight-popupDrag.panel.offsetHeight-8,popupDrag.top+event.clientY-popupDrag.y))}px`});\n    $('annoDrag').addEventListener('pointerup',()=>popupDrag=null);$('annoDrag').addEventListener('pointercancel',()=>popupDrag=null);\n    $('mainContent').addEventListener('scroll',renderAnnoBadges);window.addEventListener('resize',renderAnnoBadges);\n\n    function init(){renderNav();writeFilters(draftFilters);renderTabs();renderData();if(innerWidth<768)setSidebar(true);lucide.createIcons();if(incomingTeamId&&!validIncomingTeam)setTimeout(()=>toast('未找到指定团队，已显示全部主体成员','warning'),80)}\n    init();\n  "],"usesAnnotations":false};</script>
+<script data-inline="app-shell">(function () {
+  'use strict';
+
+  const MODULE_VERSION = '20260822-inline-html';
+  const APP_ENTRY = 'index.html';
+  const RESOURCE_ROOT = 'Prototype/';
+  const INLINE_BUNDLE = window.__YundengInlineBundle || null;
+  const INLINE_ROUTE = window.__YundengInlineRoute || '';
+  const ROUTE_FILES = {"home":"index.html","user-list":"用户列表.html","user-statistics":"用户统计.html","team-list":"团队列表.html","enterprise-list":"企业列表.html","member-list":"成员列表.html","order-list":"订单列表.html","package-order":"套餐订单.html","invoice-management":"发票管理.html","environment-management":"环境管理.html","proxy-list":"代理列表.html","tracking-overview":"数据概览.html","tracking-events":"事件管理.html","tracking-metrics":"指标管理.html","tracking-debug":"联调验证.html","tracking-quality":"质量监控.html","tracking-detail":"明细排查.html","tracking-analysis":"数据分析.html","tracking-dashboards":"资产沉淀.html","tracking-insights":"决策复盘.html"};
+  if (INLINE_ROUTE === 'home') {
+    const requestedRoute = decodeURIComponent(location.hash.slice(1));
+    if (requestedRoute && requestedRoute !== 'home' && ROUTE_FILES[requestedRoute]) location.replace('Prototype/' + ROUTE_FILES[requestedRoute]);
+  }
+
+  const SIDEBAR_STATE_KEY = 'yundeng-app-shell-sidebar-compact';
+  const GROUP_STATE_KEY = 'yundeng-app-shell-group-state';
+  const MODULE_STATE_PREFIX = 'yundeng-app-shell-module-state:';
+
+  const navigation = [
+    {
+      id: 'section-workbench',
+      label: '工作台',
+      items: [
+        { id: 'home', label: '工作台', icon: 'layout-grid', module: 'home', description: '系统功能入口与运行概览' }
+      ]
+    },
+    {
+      id: 'section-user',
+      label: '用户管理',
+      items: [
+        { id: 'user-list', label: '用户列表', icon: 'users', state: 'planning', description: '查看和管理平台用户' },
+        { id: 'user-statistics', label: '用户统计', icon: 'chart-no-axes-column', module: 'user-statistics', description: '查看用户规模、活跃与结构统计' },
+        { id: 'team-list', label: '团队列表', icon: 'users-round', module: 'team-list', description: '查看和管理团队主体' },
+        { id: 'enterprise-list', label: '企业列表', icon: 'building-2', module: 'enterprise-list', description: '查看和管理企业认证主体' },
+        { id: 'member-list', label: '成员列表', icon: 'contact-round', module: 'member-list', description: '查看团队和企业成员' }
+      ]
+    },
+    {
+      id: 'section-order',
+      label: '订单管理',
+      items: [
+        { id: 'order-list', label: '订单列表', icon: 'receipt-text', module: 'order-list', description: '查看全部业务订单与支付状态' },
+        { id: 'package-order', label: '套餐订单', icon: 'package-check', module: 'package-order', description: '查看套餐购买、续费与退款订单' }
+      ]
+    },
+    {
+      id: 'section-finance',
+      label: '财务管理',
+      items: [
+        { id: 'invoice-management', label: '发票管理', icon: 'file-check-2', module: 'invoice-management', description: '审核开票申请并处理票据、红冲与交付' }
+      ]
+    },
+    {
+      id: 'section-resource',
+      label: '资源管理',
+      items: [
+        { id: 'environment-management', label: '环境管理', icon: 'monitor-cog', module: 'environment-management', description: '管理浏览器环境和运行状态' },
+        { id: 'proxy-list', label: '代理列表', icon: 'network', state: 'planning', description: '查看代理资源、分配和可用状态' }
+      ]
+    },
+    {
+      id: 'section-tracking',
+      label: '数据埋点',
+      items: [
+        { id: 'tracking-overview', label: '数据概览', icon: 'layout-dashboard', module: 'tracking-overview', description: '查看数据链路核心指标与异常' },
+        {
+          id: 'tracking-governance',
+          label: '口径治理',
+          icon: 'book-check',
+          group: true,
+          children: [
+            { id: 'tracking-events', label: '事件管理', module: 'tracking-events', description: '管理事件、属性、版本和生命周期' },
+            { id: 'tracking-metrics', label: '指标管理', module: 'tracking-metrics', description: '管理指标口径、计算规则和版本' }
+          ]
+        },
+        { id: 'tracking-debug', label: '联调验证', icon: 'radio-tower', module: 'tracking-debug', description: '实时监听并校验测试事件' },
+        { id: 'tracking-quality', label: '质量监控', icon: 'shield-alert', module: 'tracking-quality', description: '监控数据完整性、准确性和稳定性' },
+        { id: 'tracking-detail', label: '明细排查', icon: 'list-filter', module: 'tracking-detail', description: '检索脱敏明细并定位数据问题' },
+        { id: 'tracking-analysis', label: '数据分析', icon: 'chart-column-increasing', module: 'tracking-analysis', description: '开展漏斗、留存、路径和分群分析' },
+        { id: 'tracking-dashboards', label: '资产沉淀', icon: 'panels-top-left', module: 'tracking-dashboards', description: '沉淀可复用看板和分析资产' },
+        { id: 'tracking-insights', label: '决策复盘', icon: 'lightbulb', module: 'tracking-insights', description: '记录洞察、行动和迭代效果' }
+      ]
+    }
+  ];
+
+  const legacyRoutes = {
+    'index.html': 'home',
+    '系统框架.html': 'home',
+    '用户统计.html': 'user-statistics',
+    '团队列表.html': 'team-list',
+    '企业列表.html': 'enterprise-list',
+    '成员列表.html': 'member-list',
+    '订单列表.html': 'order-list',
+    '套餐订单.html': 'package-order',
+    '发票管理.html': 'invoice-management',
+    '环境管理.html': 'environment-management',
+    '数据概览.html': 'tracking-overview',
+    '事件管理.html': 'tracking-events',
+    '指标管理.html': 'tracking-metrics',
+    '联调验证.html': 'tracking-debug',
+    '质量监控.html': 'tracking-quality',
+    '明细排查.html': 'tracking-detail',
+    '数据分析.html': 'tracking-analysis',
+    '资产沉淀.html': 'tracking-dashboards',
+    '决策复盘.html': 'tracking-insights'
+  };
+
+  const notices = [
+    { title: '质量监控待处理', desc: 'browser_start_success 事件成功率低于阈值。', time: '5 分钟前', unread: true },
+    { title: '指标口径待确认', desc: '代理购买转化率 V2 草案等待审核。', time: '今天 09:30', unread: true },
+    { title: '历史数据补偿完成', desc: '2026-08-10 PC 端缺失事件已完成回补。', time: '昨天 18:20', unread: false }
+  ];
+
+  const routes = new Map();
+  const routeParents = new Map();
+  navigation.forEach((section) => {
+    section.items.forEach((item) => {
+      routes.set(item.id, { ...item, section: section.label });
+      if (item.children) {
+        item.children.forEach((child) => {
+          routes.set(child.id, { ...child, section: section.label, parentLabel: item.label });
+          routeParents.set(child.id, item.id);
+        });
+      }
+    });
+  });
+
+  const $ = (id) => document.getElementById(id);
+  const outlet = $('appRouteOutlet');
+  const content = $('appContent');
+  const sidebar = $('appSidebar');
+  let currentRoute = resolveRoute(INLINE_ROUTE || decodeURIComponent(location.hash.slice(1)) || 'home');
+  let groupState = readJson(GROUP_STATE_KEY, { 'tracking-governance': true });
+  let moduleReady = false;
+  let reloadScheduled = false;
+
+  function readJson(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? { ...fallback, ...JSON.parse(value) } : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function writeJson(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+  }
+
+  function resolveRoute(routeId) {
+    const route = routes.get(routeId);
+    if (!route) return routes.get('home');
+    if (route.group) return routes.get(route.children[0].id);
+    return route;
+  }
+
+  function routeHref(routeId, search = '') {
+    const file = ROUTE_FILES[routeId] || APP_ENTRY;
+    const inPrototype = /\/Prototype\//.test(location.pathname);
+    const target = routeId === 'home' ? (inPrototype ? '../index.html' : 'index.html') : (inPrototype ? file : 'Prototype/' + file);
+    return target + (search || '');
+  }
+
+  function icon(name, className = 'app-menu-icon') {
+    return `<i data-lucide="${name}" class="${className}"></i>`;
+  }
+
+  function renderNavigation() {
+    const activeParent = routeParents.get(currentRoute.id);
+    $('appPrimaryNav').innerHTML = navigation.map((section) => {
+      const items = section.items.map((item) => {
+        if (!item.group) {
+          const active = item.id === currentRoute.id;
+          return `<a class="app-menu-link${active ? ' is-active' : ''}" href="${routeHref(item.id)}" data-app-route="${item.id}" ${active ? 'aria-current="page"' : ''}>${icon(item.icon)}<span class="app-menu-label">${item.label}</span></a>`;
+        }
+        const active = activeParent === item.id;
+        const expanded = groupState[item.id] !== false;
+        return `<div class="app-menu-group"><button class="app-menu-link app-group-toggle${active ? ' is-group-active' : ''}" type="button" data-app-group="${item.id}" aria-expanded="${expanded}" aria-controls="app-submenu-${item.id}">${icon(item.icon)}<span class="app-menu-label">${item.label}</span>${icon('chevron-down', 'app-group-chevron')}</button><div id="app-submenu-${item.id}" class="app-submenu${expanded ? '' : ' is-collapsed'}">${item.children.map((child) => {
+          const childActive = child.id === currentRoute.id;
+          return `<a class="app-menu-link${childActive ? ' is-active' : ''}" href="${routeHref(child.id)}" data-app-route="${child.id}" ${childActive ? 'aria-current="page"' : ''}><span class="app-menu-label">${child.label}</span></a>`;
+        }).join('')}</div></div>`;
+      }).join('');
+      return `<div class="app-section-label">${section.label}</div>${items}`;
+    }).join('');
+    window.lucide?.createIcons();
+  }
+
+  function renderRouteTitle() {
+    document.title = `云登后台 · ${currentRoute.label}`;
+  }
+
+  function setSidebarCompact(compact) {
+    sidebar.classList.toggle('is-compact', compact);
+    $('appCollapseButton').setAttribute('aria-label', compact ? '展开侧栏' : '收起侧栏');
+    $('appCollapseButton').setAttribute('title', compact ? '展开侧栏' : '收起侧栏');
+    $('appCollapseButton').setAttribute('aria-expanded', String(!compact));
+    try { localStorage.setItem(SIDEBAR_STATE_KEY, String(compact)); } catch (_) {}
+    window.lucide?.createIcons();
+  }
+
+  function readSidebarCompact() {
+    if (innerWidth < 768) return false;
+    try {
+      const saved = localStorage.getItem(SIDEBAR_STATE_KEY);
+      return saved === null ? innerWidth < 1100 : saved === 'true';
+    } catch (_) {
+      return innerWidth < 1100;
+    }
+  }
+
+  function openMobileSidebar() {
+    sidebar.classList.add('is-mobile-open');
+    $('appMobileOverlay').hidden = false;
+    $('appMobileMenu').setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMobileSidebar() {
+    sidebar.classList.remove('is-mobile-open');
+    $('appMobileOverlay').hidden = true;
+    $('appMobileMenu').setAttribute('aria-expanded', 'false');
+  }
+
+  function renderCompactFlyout(groupId, trigger) {
+    const group = routes.get(groupId);
+    const flyout = $('appCompactFlyout');
+    const rect = trigger.getBoundingClientRect();
+    flyout.style.top = `${Math.min(innerHeight - 120, Math.max(60, rect.top))}px`;
+    flyout.innerHTML = group.children.map((child) => `<a class="app-menu-link${child.id === currentRoute.id ? ' is-active' : ''}" href="${routeHref(child.id)}" data-app-route="${child.id}"><span class="app-menu-label">${child.label}</span></a>`).join('');
+    flyout.hidden = false;
+  }
+
+  function closeCompactFlyout() { $('appCompactFlyout').hidden = true; }
+
+  function renderNotices() {
+    $('appNoticeList').innerHTML = notices.map((item) => `<button type="button" class="app-notice-item"><span class="app-notice-item-dot${item.unread ? '' : ' is-read'}"></span><span class="min-w-0"><span class="app-notice-title">${item.title}</span><span class="app-notice-desc block">${item.desc}</span><span class="app-notice-time mono block">${item.time}</span></span></button>`).join('');
+  }
+
+  function togglePopover(id) {
+    ['appNoticePopover', 'appAccountPopover'].forEach((popoverId) => {
+      if (popoverId !== id) $(popoverId).hidden = true;
+    });
+    $(id).hidden = !$(id).hidden;
+  }
+
+  function closePopovers() {
+    $('appNoticePopover').hidden = true;
+    $('appAccountPopover').hidden = true;
+  }
+
+  function toast(message) {
+    const element = document.createElement('div');
+    element.className = 'app-toast';
+    element.textContent = message;
+    $('appToastContainer').append(element);
+    setTimeout(() => element.remove(), 2600);
+  }
+
+  function moduleStateKey(routeId) { return `${MODULE_STATE_PREFIX}${routeId}`; }
+
+  function controlKey(element, index) {
+    if (element.id) return `id:${element.id}`;
+    if (element.name) return `name:${element.name}:${index}`;
+    return `index:${index}`;
+  }
+
+  function activeKey(element, index) {
+    if (element.id) return `id:${element.id}`;
+    for (const key of ['tab', 'view', 'page', 'status', 'mode', 'type']) {
+      if (element.dataset[key] !== undefined) return `data-${key}:${element.dataset[key]}`;
+    }
+    return `text:${(element.textContent || '').trim()}:${index}`;
+  }
+
+  function captureModuleState() {
+    if (!moduleReady || !currentRoute?.id) return;
+    const controls = [...outlet.querySelectorAll('input, select, textarea')]
+      .filter((element) => !element.closest('.app-module-compat') && element.type !== 'password' && element.type !== 'file')
+      .map((element, index) => ({
+        key: controlKey(element, index),
+        value: element.type === 'checkbox' || element.type === 'radio' ? element.checked : element.value,
+        checked: element.type === 'checkbox' || element.type === 'radio'
+      }));
+    const active = [...outlet.querySelectorAll('.tab.active, .pg-btn.active, [role="tab"][aria-selected="true"], [data-view].active, [data-page].active')]
+      .filter((element) => !element.closest('.app-module-compat'))
+      .map((element, index) => activeKey(element, index));
+    const scrollables = [...outlet.querySelectorAll('main, [data-module-scroll]')]
+      .filter((element) => !element.closest('.app-module-compat'))
+      .map((element, index) => ({ key: element.id || `index:${index}`, top: element.scrollTop, left: element.scrollLeft }));
+    const state = { controls, active, contentScroll: { top: content.scrollTop, left: content.scrollLeft }, scrollables, savedAt: Date.now() };
+    try { sessionStorage.setItem(moduleStateKey(currentRoute.id), JSON.stringify(state)); } catch (_) {}
+  }
+
+  function restoreModuleState() {
+    let state;
+    try { state = JSON.parse(sessionStorage.getItem(moduleStateKey(currentRoute.id)) || 'null'); } catch (_) {}
+    if (!state) return;
+
+    const controls = [...outlet.querySelectorAll('input, select, textarea')]
+      .filter((element) => !element.closest('.app-module-compat') && element.type !== 'password' && element.type !== 'file');
+    const controlMap = new Map(controls.map((element, index) => [controlKey(element, index), element]));
+    state.controls?.forEach((entry) => {
+      const element = controlMap.get(entry.key);
+      if (!element) return;
+      if (entry.checked) element.checked = Boolean(entry.value);
+      else element.value = entry.value;
+    });
+
+    const activeElements = [...outlet.querySelectorAll('.tab, .pg-btn, [role="tab"], [data-view], [data-page]')]
+      .filter((element) => !element.closest('.app-module-compat'));
+    const activeMap = new Map(activeElements.map((element, index) => [activeKey(element, index), element]));
+    state.active?.forEach((key) => {
+      const element = activeMap.get(key);
+      if (element && !element.classList.contains('active')) element.click();
+    });
+
+    requestAnimationFrame(() => {
+      content.scrollTo(state.contentScroll || { top: 0, left: 0 });
+      const scrollables = [...outlet.querySelectorAll('main, [data-module-scroll]')]
+        .filter((element) => !element.closest('.app-module-compat'));
+      state.scrollables?.forEach((entry) => {
+        const element = entry.key.startsWith('index:') ? scrollables[Number(entry.key.slice(6))] : document.getElementById(entry.key);
+        element?.scrollTo({ top: entry.top, left: entry.left });
+      });
+    });
+  }
+
+  function loadScript(src, marker = 'resource') {
+    const absolute = new URL(src, document.baseURI).href;
+    const existing = [...document.scripts].find((script) => script.src === absolute);
+    if (existing) {
+      if (existing.dataset.loaded === 'true' || !existing.dataset.appDynamic) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        existing.addEventListener('load', resolve, { once: true });
+        existing.addEventListener('error', reject, { once: true });
+      });
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.dataset.appDynamic = marker;
+      script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
+      script.addEventListener('error', () => reject(new Error(`无法加载脚本：${src}`)), { once: true });
+      document.head.append(script);
+    });
+  }
+
+  function moduleResource(src) {
+    return /^(?:[a-z]+:|\/|data:)/i.test(src) ? src : `${RESOURCE_ROOT}${src}`;
+  }
+
+  function loadStyle(href) {
+    const resourceHref = /^(?:[a-z]+:|\/|data:)/i.test(href) ? href : `${RESOURCE_ROOT}${href}`;
+    const absolute = new URL(resourceHref, document.baseURI).href;
+    if ([...document.styleSheets].some((sheet) => sheet.href === absolute)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = resourceHref;
+    link.dataset.appModuleStyle = currentRoute.id;
+    document.head.append(link);
+  }
+
+  function runInlineScript(source, index) {
+    const script = document.createElement('script');
+    script.dataset.appModuleScript = `${currentRoute.id}:${index}`;
+    script.textContent = `${source}\n//# sourceURL=yundeng-module-${currentRoute.id}-${index}.js`;
+    document.body.append(script);
+  }
+
+  function disableInvoiceAnnotations(route) {
+    if (route.id !== 'invoice-management') return;
+    const moduleRoot = outlet.querySelector('[data-module-root="invoice-management"]');
+    if (!moduleRoot) return;
+    const toggle = moduleRoot.querySelector('#invoiceAnnoToggle');
+    const popup = moduleRoot.querySelector('#invoiceAnnoPopup');
+    const layer = moduleRoot.querySelector('#invoiceAnnoLayer');
+    if (toggle) {
+      toggle.remove();
+    }
+    if (popup) {
+      popup.remove();
+    }
+    if (layer) {
+      layer.replaceChildren();
+      layer.hidden = true;
+      layer.setAttribute('aria-hidden', 'true');
+    }
+    const stripAnchors = () => moduleRoot.querySelectorAll('[data-anno]').forEach((element) => element.removeAttribute('data-anno'));
+    stripAnchors();
+    const anchorObserver = new MutationObserver(stripAnchors);
+    anchorObserver.observe(moduleRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-anno'] });
+  }
+
+  function rewriteLegacyLink(anchor) {
+    const raw = anchor.getAttribute('href');
+    if (!raw || raw.startsWith('#') || /^(javascript:|mailto:|tel:)/i.test(raw)) return;
+    let url;
+    try { url = new URL(raw, document.baseURI); } catch (_) { return; }
+    if (url.origin !== location.origin && location.protocol !== 'file:') return;
+    const file = decodeURIComponent(url.pathname.split('/').pop() || '');
+    let routeId = legacyRoutes[file];
+    if ((file === '系统框架.html' || file === 'index.html') && url.hash) routeId = decodeURIComponent(url.hash.slice(1));
+    if (!routeId) return;
+    anchor.href = routeHref(routeId, url.search);
+    anchor.dataset.appRoute = routeId;
+  }
+
+  function rewriteLegacyLinks(root = outlet) {
+    root.querySelectorAll?.('a[href]').forEach(rewriteLegacyLink);
+  }
+
+  async function loadModule(route) {
+    outlet.innerHTML = '<div class="app-route-loading" role="status"><div><span class="app-spinner"></span><span>正在加载业务模块</span></div></div>';
+    if (!route.module) {
+      renderPlanning(route);
+      return;
+    }
+
+    const bundle = INLINE_BUNDLE && INLINE_BUNDLE.id === route.module ? INLINE_BUNDLE : null;
+    if (!bundle) throw new Error(`当前页面未内嵌模块：${route.module}`);
+
+    bundle.styleLinks.forEach(loadStyle);
+    bundle.styles.forEach((css, index) => {
+      const style = document.createElement('style');
+      style.dataset.appModuleStyle = `${route.id}:${index}`;
+      style.textContent = css;
+      document.head.append(style);
+    });
+
+    // Page-local dependencies are embedded in this HTML file.
+
+    outlet.innerHTML = bundle.html;
+    rewriteLegacyLinks();
+    const observer = new MutationObserver((records) => {
+      records.forEach((record) => record.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.matches?.('a[href]')) rewriteLegacyLink(node);
+          rewriteLegacyLinks(node);
+        }
+      }));
+    });
+    observer.observe(outlet, { childList: true, subtree: true });
+
+    window.lucide?.createIcons();
+    bundle.scripts.forEach(runInlineScript);
+    window.lucide?.createIcons();
+    disableInvoiceAnnotations(route);
+    moduleReady = true;
+    restoreModuleState();
+  }
+
+  function renderPlanning(route) {
+    outlet.innerHTML = `<section class="app-planning"><div class="app-planning-inner"><div class="app-planning-copy"><span class="app-planning-icon">${icon('calendar-clock', 'w-6 h-6')}</span><h1>${route.label}</h1><p>${route.description}。该模块已纳入统一系统框架，目前保留稳定路由入口，业务内容将在后续里程碑中开发。</p></div></div></section>`;
+    window.lucide?.createIcons();
+    moduleReady = true;
+  }
+
+  function renderLoadError(error) {
+    console.error(error);
+    outlet.innerHTML = `<section class="app-planning"><div class="app-planning-inner"><div class="app-planning-copy"><span class="app-planning-icon">${icon('triangle-alert', 'w-6 h-6')}</span><h1>模块加载失败</h1><p>${String(error.message || error)}</p><button type="button" class="app-account-action mt-4 justify-center" id="appRetryModule">重新加载</button></div></div></section>`;
+    $('appRetryModule')?.addEventListener('click', () => location.reload());
+    window.lucide?.createIcons();
+  }
+
+  function navigate(routeId) {
+    const target = resolveRoute(routeId);
+    captureModuleState();
+    closeMobileSidebar();
+    closeCompactFlyout();
+    if (target.id === currentRoute.id) {
+      content.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    location.assign(routeHref(target.id, location.search));
+  }
+
+  function scheduleReload() {
+    if (reloadScheduled) return;
+    reloadScheduled = true;
+    captureModuleState();
+    location.reload();
+  }
+
+  function bindEvents() {
+    $('appCollapseButton').addEventListener('click', () => setSidebarCompact(!sidebar.classList.contains('is-compact')));
+    $('appMobileMenu').addEventListener('click', openMobileSidebar);
+    $('appMobileOverlay').addEventListener('click', closeMobileSidebar);
+    $('appNoticeButton').addEventListener('click', (event) => { event.stopPropagation(); togglePopover('appNoticePopover'); });
+    $('appAccountButton').addEventListener('click', (event) => { event.stopPropagation(); togglePopover('appAccountPopover'); });
+    $('appReadAll').addEventListener('click', () => { notices.forEach((item) => { item.unread = false; }); renderNotices(); $('appNoticeDot').hidden = true; toast('通知已全部标记为已读'); });
+
+    document.addEventListener('click', (event) => {
+      const routeLink = event.target.closest('[data-app-route]');
+      if (routeLink) {
+        event.preventDefault();
+        navigate(routeLink.dataset.appRoute);
+        return;
+      }
+      const groupButton = event.target.closest('[data-app-group]');
+      if (groupButton) {
+        const groupId = groupButton.dataset.appGroup;
+        if (sidebar.classList.contains('is-compact') && innerWidth >= 768) {
+          renderCompactFlyout(groupId, groupButton);
+        } else {
+          groupState[groupId] = groupButton.getAttribute('aria-expanded') !== 'true';
+          writeJson(GROUP_STATE_KEY, groupState);
+          renderNavigation();
+        }
+        return;
+      }
+      if (!event.target.closest('.app-popover, #appNoticeButton, #appAccountButton')) closePopovers();
+      if (!event.target.closest('#appCompactFlyout, [data-app-group]')) closeCompactFlyout();
+      const globalAction = event.target.closest('[data-app-global-action]');
+      if (globalAction) toast(`${globalAction.textContent.trim()}将在对应功能模块开放`);
+    });
+
+    window.addEventListener('hashchange', scheduleReload);
+    window.addEventListener('popstate', scheduleReload);
+    window.addEventListener('pagehide', captureModuleState);
+    window.addEventListener('beforeunload', captureModuleState);
+    window.addEventListener('resize', () => {
+      if (innerWidth >= 768) closeMobileSidebar();
+      closeCompactFlyout();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      closePopovers();
+      closeCompactFlyout();
+      closeMobileSidebar();
+    });
+  }
+
+  async function init() {
+    if (!location.hash || !routes.has(decodeURIComponent(location.hash.slice(1)))) {
+      history.replaceState(null, '', `${location.pathname}${location.search}#${currentRoute.id}`);
+    } else if (routes.get(decodeURIComponent(location.hash.slice(1)))?.group) {
+      history.replaceState(null, '', `${location.pathname}${location.search}#${currentRoute.id}`);
+    }
+    setSidebarCompact(readSidebarCompact());
+    document.body.dataset.appRoute = currentRoute.id;
+    renderNavigation();
+    renderRouteTitle();
+    renderNotices();
+    bindEvents();
+    window.lucide?.createIcons();
+    try { await loadModule(currentRoute); } catch (error) { renderLoadError(error); }
+  }
+
+  window.YundengAppShell = {
+    navigation,
+    legacyRoutes,
+    navigate,
+    captureModuleState,
+    routeHref
+  };
+
+  init();
+})();
+</script>
+</body>
+</html>

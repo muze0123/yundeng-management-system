@@ -1,8 +1,8 @@
 # 质量监控 PRD
 
 > 所属模块：数据埋点 / 质量监控
-> 路由：`/data-tracking/alerts`  
-> 优先级：P0  
+> 路由：`/data-tracking/alerts` 
+> 优先级：P0 
 > 状态：可直接用于 Vibecoding
 
 ## 1. 问题陈述
@@ -72,16 +72,16 @@ GlobalLayer
 
 ```mermaid
 stateDiagram-v2
-  [*] --> normal
-  normal --> pending: 首次越过阈值
-  pending --> firing: 持续时间满足
-  pending --> normal: 条件恢复
-  firing --> acknowledged: 人工确认
-  firing --> resolved: 自动恢复
-  acknowledged --> resolved: 自动恢复
-  firing --> silenced: 静默
-  silenced --> firing: 静默到期仍异常
-  silenced --> resolved: 静默期恢复
+ [*] --> normal
+ normal --> pending: 首次越过阈值
+ pending --> firing: 持续时间满足
+ pending --> normal: 条件恢复
+ firing --> acknowledged: 人工确认
+ firing --> resolved: 自动恢复
+ acknowledged --> resolved: 自动恢复
+ firing --> silenced: 静默
+ silenced --> firing: 静默到期仍异常
+ silenced --> resolved: 静默期恢复
 ```
 
 同 ruleId + dimensionHash + incidentWindow 合并为同一实例，不重复创建。firing 期间按重复通知间隔发送；resolved 只发送一次恢复通知。确认不等于恢复。
@@ -141,12 +141,6 @@ stateDiagram-v2
 - 通知失败：“告警已触发，但部分通知渠道发送失败”
 - 恢复：“指标已恢复正常”
 
-## 13. 模拟数据与门户标注
-
-至少 8 条规则和 12 个实例，覆盖七类指标、critical/high/medium/low、pending/firing/acknowledged/silenced/resolved、基线不足、通知失败和规则失效。趋势至少 30 个时间点。
-
-标注覆盖 Tab、KPI、筛选、新建规则、比较模式、阈值、持续时间、渠道、启停、实例详情、确认、静默、深链、趋势和时间线。
-
 ## 14. 测试决策
 
 以 `metricStream → ruleEvaluation → alertInstanceState` 为测试接缝，阈值、持续时间、去重和基线为纯函数。验收：
@@ -171,13 +165,13 @@ stateDiagram-v2
 Main / PageContainer（24px）
 ├─ SummaryRow（4 张质量 KPI）
 ├─ FilterSection
-│  ├─ Tab：告警实例 / 规则管理 / 质量趋势
-│  ├─ 搜索 / 业务域 / 严重度 / 状态 / Owner / 时间
-│  └─ 查询 / 重置
+│ ├─ Tab：告警实例 / 规则管理 / 质量趋势
+│ ├─ 搜索 / 业务域 / 严重度 / 状态 / Owner / 时间
+│ └─ 查询 / 重置
 └─ DataSection
-   ├─ Header：结果统计 | 新建规则
-   ├─ AlertTable / RuleTable / TrendCards
-   └─ Pagination
+ ├─ Header：结果统计 | 新建规则
+ ├─ AlertTable / RuleTable / TrendCards
+ └─ Pagination
 GlobalLayer
 ├─ AlertDetailDrawer（760px）
 ├─ RuleEditorDrawer（720px）

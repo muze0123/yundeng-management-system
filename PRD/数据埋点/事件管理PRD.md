@@ -1,8 +1,8 @@
 # 事件管理 PRD
 
 > 所属模块：数据埋点 / 口径治理 / 事件管理
-> 路由：`/data-tracking/events`  
-> 优先级：P0  
+> 路由：`/data-tracking/events` 
+> 优先级：P0 
 > 状态：可直接用于 Vibecoding
 
 ## 1. 问题陈述
@@ -77,13 +77,13 @@ forbidden 属性禁止引用；sensitive 属性必须有脱敏策略且不能提
 
 ```mermaid
 stateDiagram-v2
-  [*] --> draft
-  draft --> testing: 送测
-  testing --> draft: 打回
-  testing --> online: QA通过并发布
-  online --> draft: 创建新版本
-  online --> deprecated: 废弃
-  deprecated --> [*]
+ [*] --> draft
+ draft --> testing: 送测
+ testing --> draft: 打回
+ testing --> online: QA通过并发布
+ online --> draft: 创建新版本
+ online --> deprecated: 废弃
+ deprecated --> [*]
 ```
 
 | 状态 | 允许动作 |
@@ -146,12 +146,6 @@ stateDiagram-v2
 - 冲突：“数据已被他人修改，请查看差异后继续”
 - 敏感命中：“检测到禁止采集的字段，请移除”
 
-## 13. 模拟数据与门户标注
-
-至少 12 个事件，覆盖 AUTH/ENV/PROXY/PAY/TEAM、P0–P3 和四种状态；18 个属性；8 条版本记录；3 个冲突样本；2 个敏感扫描失败样本。不得 Mock 敏感原值。
-
-标注覆盖 Tab、筛选、新建、导出、事件名、状态、版本、属性引用、保存、送测、发布、废弃、Diff 和未保存确认；Drawer/Dialog 必须压栈标注作用域。
-
 ## 14. 测试决策
 
 以 `eventsPageState + editorState` 测试外部行为，Schema 兼容性使用纯函数。验收：
@@ -175,14 +169,14 @@ stateDiagram-v2
 ```text
 Main / PageContainer（24px）
 ├─ FilterSection
-│  ├─ TabBar：事件字典 / 属性字典 / 版本记录
-│  ├─ FilterGrid：4 列 × 2 行
-│  └─ 查询 / 重置
+│ ├─ TabBar：事件字典 / 属性字典 / 版本记录
+│ ├─ FilterGrid：4 列 × 2 行
+│ └─ 查询 / 重置
 └─ DataSection
-   ├─ Header（48px）：结果统计 | 新建事件 / 导出定义
-   ├─ SelectionBar（有勾选时出现）
-   ├─ DataTable（表头 sticky）
-   └─ Pagination（56px）
+ ├─ Header（48px）：结果统计 | 新建事件 / 导出定义
+ ├─ SelectionBar（有勾选时出现）
+ ├─ DataTable（表头 sticky）
+ └─ Pagination（56px）
 GlobalLayer
 ├─ EventDetailDrawer（720px）
 ├─ EventEditorDrawer（760px）
@@ -200,4 +194,4 @@ GlobalLayer
 
 编辑 Drawer：Header 64px 固定；Body 独立滚动，依次为基础信息、触发与上报责任、属性列表、关联指标、发布检查；Footer 64px 固定，放置取消、保存草稿、送测/发布。属性表最小宽 640px；发布检查失败项可滚动并聚焦字段。
 
-布局验收：Drawer 打开后锁定页面滚动并正确返回焦点；叠加 Diff Dialog 时 Portal 作用域成对 push/pop；批量操作条不遮挡表头；1024px 下 Drawer 最大宽为视口减 32px；Loading/Empty/Error/Forbidden 均保留 Tab 与数据卡外框。
+布局验收：Drawer 打开后锁定页面滚动并正确返回焦点；

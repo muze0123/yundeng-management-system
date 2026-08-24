@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云登后台 · 团队列表</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink: { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line: { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6',
+            bg: { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6', subtle: '#F5F8FF' },
+            success: { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning: { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger: { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info: { DEFAULT: '#0091D5', bg: '#E4F4FB' },
+            primaryBg: '#E6F0FF'
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'monospace'] }
+        }
+      }
+    };
+  </script>
+<style data-inline="app-shell">* { box-sizing: border-box; }
+
+:root {
+  color-scheme: light;
+  --app-sidebar-width: 220px;
+  --app-sidebar-compact-width: 68px;
+  --app-topbar-height: 56px;
+}
+
+html,
+body { min-height: 100%; }
+
+body {
+  margin: 0;
+  background: #f7f8fa;
+  color: #3a3f4a;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea { font: inherit; letter-spacing: 0; }
+
+button,
+a { -webkit-tap-highlight-color: transparent; }
+
+.mono {
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell { display: flex; width: 100%; height: 100vh; min-height: 100vh; flex-direction: column; overflow: hidden; }
+.app-shell-body { display: flex; min-height: 0; flex: 1; overflow: hidden; }
+
+.app-sidebar {
+  position: relative;
+  z-index: 40;
+  display: flex;
+  width: var(--app-sidebar-width);
+  height: 100%;
+  flex: 0 0 auto;
+  flex-direction: column;
+  overflow: visible;
+  background: #fff;
+  transition: width .2s ease, transform .2s ease;
+}
+
+.app-sidebar.is-compact { width: var(--app-sidebar-compact-width); }
+
+.app-brand-link { display: flex; min-width: 0; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
+.app-brand-mark { display: grid; width: 28px; height: 28px; flex: 0 0 28px; place-items: center; border-radius: 6px; background: #0066ff; color: #fff; font-size: 15px; font-weight: 700; }
+.app-brand-copy { overflow: hidden; color: #1a1d24; font-size: 16px; font-weight: 600; white-space: nowrap; }
+
+.app-icon-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #6e7685;
+  cursor: pointer;
+}
+
+.app-icon-button:hover { background: #f3f4f6; color: #3a3f4a; }
+.app-icon-button:focus-visible,
+.app-menu-link:focus-visible,
+.app-account-button:focus-visible,
+.app-collapse-button:focus-visible,
+.app-brand-link:focus-visible { outline: 2px solid #0066ff; outline-offset: 2px; }
+.app-collapse-button {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  z-index: 3;
+  display: grid;
+  width: 12px;
+  height: 50px;
+  padding: 0;
+  transform: translate(50%, -50%);
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: #e5e6ed;
+  color: #fff;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition: background-color .15s ease, color .15s ease, opacity .15s ease;
+}
+.app-collapse-button::before {
+  width: 0;
+  height: 0;
+  border-top: 6px solid transparent;
+  border-right: 7px solid currentColor;
+  border-bottom: 6px solid transparent;
+  content: "";
+}
+.app-collapse-button[aria-expanded="false"]::before {
+  border-right: 0;
+  border-left: 7px solid currentColor;
+}
+.app-sidebar:hover .app-collapse-button,
+.app-sidebar:focus-within .app-collapse-button,
+.app-collapse-button:focus-visible { opacity: 1; pointer-events: auto; }
+.app-collapse-button:hover { background: #acb0ba; }
+
+.app-primary-nav { min-height: 0; flex: 1; overflow: auto; padding: 12px 12px; }
+.app-section-label { padding: 8px 8px 0; color: #9da2ac; font-size: 11px; line-height: 28px; }
+
+.app-menu-link,
+.app-bottom-link {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 4px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #3a3f4a;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-menu-link:hover,
+.app-bottom-link:hover { background: #f3f4f6; }
+.app-menu-link.is-active { background: #e6f0ff; color: #0066ff; font-weight: 600; }
+.app-menu-link.is-group-active { background: #f3f4f6; color: #0066ff; font-weight: 600; }
+.app-menu-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+.app-menu-label { min-width: 0; flex: 1; font-size: 13px; }
+.app-group-chevron { width: 16px; height: 16px; transition: transform .2s ease; }
+.app-group-toggle[aria-expanded="false"] .app-group-chevron { transform: rotate(-90deg); }
+.app-submenu { overflow: hidden; max-height: 240px; opacity: 1; transition: max-height .2s ease, opacity .15s ease; }
+.app-submenu.is-collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+.app-submenu .app-menu-link { min-height: 34px; padding-left: 36px; font-size: 13px; }
+.app-sidebar-footer { padding: 12px; }
+.app-sidebar-divider { height: 1px; margin-bottom: 12px; background: #dfe1e5; }
+
+.app-sidebar.is-compact .app-menu-label,
+.app-sidebar.is-compact .app-group-chevron,
+.app-sidebar.is-compact .app-section-label,
+.app-sidebar.is-compact .app-bottom-label { display: none; }
+.app-sidebar.is-compact .app-menu-link,
+.app-sidebar.is-compact .app-bottom-link { justify-content: center; padding-right: 0; padding-left: 0; }
+.app-sidebar.is-compact .app-submenu { display: none; }
+
+.app-workspace { display: flex; min-width: 0; height: 100%; min-height: 0; flex: 1; flex-direction: column; overflow: hidden; }
+.app-topbar {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  width: 100%;
+  min-height: var(--app-topbar-height);
+  flex: 0 0 var(--app-topbar-height);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: #fff;
+  box-shadow: 0 4px 12px -4px rgba(26, 29, 36, .16);
+  clip-path: inset(0 0 -16px 0);
+}
+.app-topbar-left,
+.app-topbar-right { display: flex; min-width: 0; align-items: center; gap: 8px; }
+.app-topbar-left { gap: 12px; }
+.app-mobile-menu { display: none; }
+.app-notice-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border: 1px solid #fff; border-radius: 50%; background: #d9001b; }
+.app-topbar-separator { width: 1px; height: 20px; margin: 0 4px; background: #dfe1e5; }
+.app-account-button { display: flex; align-items: center; gap: 8px; padding: 4px; border: 0; border-radius: 4px; background: transparent; color: #3a3f4a; cursor: pointer; }
+.app-account-button:hover { background: #f3f4f6; }
+.app-avatar { display: grid; width: 28px; height: 28px; place-items: center; border-radius: 50%; background: #e6f0ff; color: #0066ff; font-weight: 600; }
+
+.app-content { min-height: 0; flex: 1; overflow: auto; background: #f7f8fa; }
+.app-route-outlet { min-height: 100%; }
+.app-route-loading { display: grid; min-height: calc(100vh - var(--app-topbar-height)); place-items: center; color: #6e7685; }
+.app-route-loading > div { display: flex; align-items: center; gap: 8px; }
+.app-spinner { width: 16px; height: 16px; border: 2px solid #dfe1e5; border-top-color: #0066ff; border-radius: 50%; animation: app-spin .7s linear infinite; }
+@keyframes app-spin { to { transform: rotate(360deg); } }
+
+.app-business-module > .app-module-toolbar { display: none !important; }
+.app-business-module > main { height: auto !important; min-height: calc(100vh - var(--app-topbar-height)) !important; overflow: visible !important; }
+.app-business-module .app-module-compat { display: none !important; }
+
+.app-popover {
+  position: fixed;
+  z-index: 70;
+  border: 1px solid #dfe1e5;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 6px 24px rgba(26, 29, 36, .14);
+}
+.app-popover[hidden] { display: none; }
+.app-notice-popover { top: 48px; right: 72px; width: min(340px, calc(100vw - 32px)); }
+.app-account-popover { top: 48px; right: 16px; width: 184px; padding: 4px; }
+.app-popover-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #dfe1e5; }
+.app-popover-header strong { color: #1a1d24; font-size: 15px; }
+.app-link-button { border: 0; background: transparent; color: #0066ff; cursor: pointer; }
+.app-notice-item { display: flex; width: 100%; gap: 8px; padding: 12px 16px; border: 0; border-bottom: 1px solid #f0f1f3; background: #fff; text-align: left; cursor: pointer; }
+.app-notice-item:hover { background: #f3f4f6; }
+.app-notice-item-dot { width: 8px; height: 8px; flex: 0 0 8px; margin-top: 6px; border-radius: 50%; background: #0066ff; }
+.app-notice-item-dot.is-read { background: #dfe1e5; }
+.app-notice-title { color: #1a1d24; font-weight: 500; }
+.app-notice-desc { overflow: hidden; margin-top: 4px; color: #6e7685; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.app-notice-time { margin-top: 4px; color: #9da2ac; font-size: 11px; }
+.app-account-meta { padding: 10px 12px; border-bottom: 1px solid #f0f1f3; color: #6e7685; font-size: 12px; line-height: 1.7; }
+.app-account-action { display: flex; width: 100%; min-height: 34px; align-items: center; gap: 8px; padding: 0 10px; border: 0; border-radius: 4px; background: transparent; color: #3a3f4a; cursor: pointer; }
+.app-account-action:hover { background: #f3f4f6; }
+
+.app-mobile-overlay { position: fixed; inset: var(--app-topbar-height) 0 0; z-index: 38; border: 0; background: rgba(26, 29, 36, .28); }
+.app-mobile-overlay[hidden] { display: none; }
+.app-compact-flyout { position: fixed; z-index: 65; left: 76px; width: 176px; padding: 4px; border: 1px solid #dfe1e5; border-radius: 8px; background: #fff; box-shadow: 0 6px 24px rgba(26, 29, 36, .14); }
+.app-compact-flyout[hidden] { display: none; }
+
+.app-planning { min-height: calc(100vh - var(--app-topbar-height)); padding: 16px; }
+.app-planning-inner { display: grid; min-height: 420px; place-items: center; background: #fff; }
+.app-planning-copy { max-width: 460px; padding: 32px; text-align: center; }
+.app-planning-icon { display: grid; width: 48px; height: 48px; margin: 0 auto; place-items: center; border-radius: 8px; background: #fdf2e9; color: #e7772d; }
+.app-planning h1 { margin: 16px 0 8px; color: #1a1d24; font-size: 20px; }
+.app-planning p { margin: 0; color: #6e7685; line-height: 1.7; }
+
+.app-toast-container { position: fixed; top: 16px; left: 50%; z-index: 100; transform: translateX(-50%); pointer-events: none; }
+.app-toast { margin-bottom: 8px; padding: 8px 16px; border-radius: 4px; background: #3a3f4a; color: #fff; box-shadow: 0 2px 8px rgba(26, 29, 36, .16); animation: app-toast-in .18s ease both; }
+@keyframes app-toast-in { from { opacity: 0; transform: translateY(-8px); } }
+
+@media (min-width: 768px) {
+  .app-topbar { padding: 0 24px; }
+}
+
+@media (max-width: 767px) {
+  .app-sidebar { position: fixed; top: var(--app-topbar-height); bottom: 0; left: 0; height: auto; transform: translateX(-100%); box-shadow: 0 6px 24px rgba(26, 29, 36, .16); }
+  .app-sidebar.is-mobile-open { width: min(280px, calc(100vw - 48px)); transform: translateX(0); }
+  .app-sidebar.is-compact { width: min(280px, calc(100vw - 48px)); }
+  .app-sidebar.is-compact .app-menu-label,
+  .app-sidebar.is-compact .app-group-chevron,
+  .app-sidebar.is-compact .app-section-label,
+  .app-sidebar.is-compact .app-bottom-label { display: block; }
+  .app-sidebar.is-compact .app-menu-link,
+  .app-sidebar.is-compact .app-bottom-link { justify-content: flex-start; padding-right: 8px; padding-left: 8px; }
+  .app-sidebar.is-compact .app-submenu { display: block; }
+  .app-collapse-button { display: none; }
+  .app-mobile-menu { display: inline-grid; }
+  .app-account-name,
+  .app-account-chevron { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .app-collapse-button,
+  .app-submenu,
+  .app-group-chevron,
+  .app-spinner,
+  .app-toast { transition: none; animation: none; }
+}
+</style></head>
+<body>
+
+  <div class="app-shell">
+    <header id="appTopbar" class="app-topbar">
+      <div class="app-topbar-left">
+        <button id="appMobileMenu" class="app-icon-button app-mobile-menu" type="button" aria-label="展开导航" aria-controls="appSidebar" aria-expanded="false">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a class="app-brand-link" href="../index.html#home" data-app-route="home" aria-label="云登后台工作台">
+          <span class="app-brand-mark">云</span>
+          <span class="app-brand-copy">云登后台</span>
+        </a>
+      </div>
+      <div class="app-topbar-right">
+<button id="appNoticeButton" class="app-icon-button relative" type="button" aria-label="通知" aria-haspopup="dialog">
+          <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+          <span id="appNoticeDot" class="app-notice-dot"></span>
+        </button>
+        <span class="app-topbar-separator" aria-hidden="true"></span>
+        <button id="appAccountButton" class="app-account-button" type="button" aria-label="管理员账号" aria-haspopup="menu">
+          <span class="app-avatar">数</span>
+          <span class="app-account-name">数据管理员</span>
+          <i data-lucide="chevron-down" class="app-account-chevron w-3.5 h-3.5 text-ink-muted"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="app-shell-body">
+      <aside id="appSidebar" class="app-sidebar" aria-label="主导航">
+        <nav id="appPrimaryNav" class="app-primary-nav" aria-label="后台功能导航"></nav>
+
+        <div class="app-sidebar-footer">
+          <div class="app-sidebar-divider" aria-hidden="true"></div>
+          <button class="app-bottom-link" type="button" data-app-global-action="settings">
+            <i data-lucide="settings-2" class="app-menu-icon"></i>
+            <span class="app-bottom-label">系统设置</span>
+          </button>
+        </div>
+
+        <button id="appCollapseButton" class="app-collapse-button" type="button" aria-label="收起侧栏" aria-controls="appSidebar" aria-expanded="true" title="收起侧栏"></button>
+      </aside>
+
+      <button id="appMobileOverlay" class="app-mobile-overlay" type="button" aria-label="关闭导航" hidden></button>
+
+      <div class="app-workspace">
+        <main id="appContent" class="app-content" tabindex="-1">
+          <div id="appRouteOutlet" class="app-route-outlet" aria-live="polite"></div>
+        </main>
+      </div>
+    </div>
+  </div>
+
+  <div id="appNoticePopover" class="app-popover app-notice-popover" role="dialog" aria-label="通知" hidden>
+    <div class="app-popover-header">
+      <strong>通知</strong>
+      <button id="appReadAll" class="app-link-button" type="button">全部已读</button>
+    </div>
+    <div id="appNoticeList"></div>
+    <button class="app-account-action justify-center" type="button" data-app-global-action="notice-center">查看全部通知</button>
+  </div>
+
+  <div id="appAccountPopover" class="app-popover app-account-popover" role="menu" aria-label="管理员账号菜单" hidden>
+    <div class="app-account-meta">角色：数据管理员<br>数据范围：全部授权团队</div>
+    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="profile"><i data-lucide="user-round" class="w-4 h-4"></i>账号资料</button>
+    <button class="app-account-action" type="button" role="menuitem" data-app-global-action="security"><i data-lucide="shield-check" class="w-4 h-4"></i>安全设置</button>
+  </div>
+
+  <div id="appCompactFlyout" class="app-compact-flyout" role="menu" aria-label="口径治理二级菜单" hidden></div>
+  <div id="appToastContainer" class="app-toast-container" aria-live="polite"></div>
+</div>
+
+<script>window.__YundengInlineRoute="team-list";window.__YundengInlineBundle={"id":"team-list","file":"团队列表.html","title":"团队列表","html":"<section class=\"app-business-module\" data-module-root=\"team-list\" aria-label=\"团队列表\"><main id=\"mainContent\" class=\"flex-1 overflow-auto p-4 main-padding\" tabindex=\"-1\">\n        <div id=\"pageContent\" class=\"max-w-[1680px] mx-auto space-y-4\">\n          <!-- 筛选区 -->\n          <section class=\"bg-card rounded-lg border border-line p-5 md:p-6\" aria-labelledby=\"filterTitle\">\n            <div class=\"flex items-center justify-between gap-3 flex-wrap\"><div><h1 id=\"filterTitle\" class=\"text-[18px] font-semibold text-ink-title inline-block\" >团队列表</h1><p class=\"text-[12px] text-ink-sub mt-1\">按业务视图管理授权范围内的团队主体</p></div><span class=\"mono text-[11px] text-ink-muted\">TEAM / PLATFORM</span></div>\n            <div class=\"tabs-underline mt-4\" id=\"viewTabs\" ></div>\n            <div class=\"filter-flow\" id=\"filterFlow\">\n              <div class=\"filter-item\"><label class=\"filter-label\" for=\"keyword\">关键词</label><div class=\"filter-control relative\"><input id=\"keyword\" class=\"control pr-8\" maxlength=\"40\" placeholder=\"搜团队名 / team_id / company_id\"><button id=\"clearKeyword\" class=\"hidden absolute right-2 top-1/2 -translate-y-1/2 text-ink-muted hover:text-ink-sub\" type=\"button\" aria-label=\"清空关键词\"><i data-lucide=\"x\" class=\"w-4 h-4\"></i></button></div></div>\n              <div class=\"filter-item\"><label class=\"filter-label\" for=\"typeFilter\">团队类型</label><div class=\"filter-control\"><select id=\"typeFilter\" class=\"control\"><option value=\"\">全部类型</option><option value=\"personal\">个人团队</option><option value=\"enterprise\">企业团队</option></select></div></div>\n              <div class=\"filter-item\"><label class=\"filter-label\" for=\"statusFilter\">团队状态</label><div class=\"filter-control\"><select id=\"statusFilter\" class=\"control\"><option value=\"\">全部状态</option><option value=\"normal\">正常</option><option value=\"disabled\">停用</option></select></div></div>\n              <div class=\"filter-item\"><label class=\"filter-label\" for=\"ownerFilter\">负责人</label><div class=\"filter-control\"><select id=\"ownerFilter\" class=\"control\"><option value=\"\">全部负责人</option><option value=\"林晓\">林晓</option><option value=\"周璇\">周璇</option><option value=\"陈默\">陈默</option><option value=\"待完善\">待完善</option></select></div></div>\n              <div class=\"filter-item\"><label class=\"filter-label\" for=\"dateStart\">创建时间</label><div class=\"filter-control flex items-center gap-2\"><input id=\"dateStart\" class=\"control\" type=\"date\" aria-label=\"创建开始日期\"><span class=\"text-ink-muted\">至</span><input id=\"dateEnd\" class=\"control\" type=\"date\" aria-label=\"创建结束日期\"></div></div>\n              <div class=\"flex items-center gap-3\" ><button id=\"queryBtn\" type=\"button\" class=\"h-8 px-4 rounded bg-primary hover:bg-primary-hover text-white font-medium inline-flex items-center gap-1.5\"><i data-lucide=\"search\" class=\"w-4 h-4\"></i>查询</button><button id=\"resetBtn\" type=\"button\" class=\"h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body font-medium\">重置</button></div>\n            </div>\n          </section>\n\n          <!-- 数据区 -->\n          <section class=\"bg-card rounded-lg border border-line p-5 md:p-6\" aria-labelledby=\"tableTitle\">\n            <div class=\"flex items-center justify-between flex-wrap gap-3 mb-4\"><div><h2 id=\"tableTitle\" class=\"text-[18px] font-semibold text-ink-title inline-block\" >团队识别</h2><p id=\"tableDescription\" class=\"text-[12px] text-ink-sub mt-1\">确认团队主体、负责人和可用状态</p></div><div class=\"flex items-center gap-2\"><button id=\"exportBtn\" type=\"button\" class=\"h-8 px-3 rounded border border-line bg-card hover:bg-hover text-ink-body inline-flex items-center gap-1.5\" ><i data-lucide=\"download\" class=\"w-4 h-4\"></i>导出</button><button id=\"createBtn\" type=\"button\" class=\"h-8 px-4 rounded bg-primary hover:bg-primary-hover text-white inline-flex items-center gap-1.5\" ><i data-lucide=\"plus\" class=\"w-4 h-4\"></i>创建团队</button></div></div>\n            <div id=\"metricGrid\" class=\"metric-grid grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4\"></div>\n            <div class=\"overflow-x-auto rounded border border-line\" id=\"tableWrap\"><table class=\"data-table\"><thead id=\"tableHead\"></thead><tbody id=\"tableBody\"></tbody></table></div>\n            <div id=\"emptyState\" class=\"hidden empty-state border border-line border-t-0 rounded-b\"></div>\n            <div id=\"pagination\" class=\"flex items-center justify-end flex-wrap gap-4 pt-5 text-[12px]\"></div>\n          </section>\n        </div>\n      </main><div id=\"noticePopover\" class=\"hidden fixed right-20 top-12 z-40 w-[340px] max-w-[calc(100vw-32px)] bg-card border border-line rounded-lg popover\"><div class=\"px-4 py-3 border-b border-line flex items-center justify-between\"><strong class=\"text-[16px] text-ink-title\">通知</strong><button id=\"readAll\" class=\"text-primary hover:text-primary-hover\">全部已读</button></div><div id=\"noticeList\" class=\"max-h-[320px] overflow-auto\"></div></div><div id=\"accountPopover\" class=\"hidden fixed right-4 top-12 z-40 w-48 bg-card border border-line rounded-lg popover p-1\"></div><div id=\"toastContainer\" class=\"fixed top-4 left-1/2 -translate-x-1/2 z-[60] space-y-2 pointer-events-none\"></div><div id=\"editorOverlay\" class=\"hidden fixed inset-0 z-[1200] bg-black/30\"><section id=\"editorPanel\" class=\"drawer-panel absolute right-0 top-0 h-full w-[520px] max-w-full bg-card shadow-[-4px_0_24px_rgba(0,0,0,.10)] flex flex-col\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"editorTitle\"><div class=\"h-14 shrink-0 px-5 border-b border-line flex items-center justify-between\"><h2 id=\"editorTitle\" class=\"text-[16px] font-semibold text-ink-title\" >创建团队</h2><button id=\"closeEditor\" type=\"button\" class=\"w-8 h-8 rounded flex items-center justify-center text-ink-muted hover:bg-hover\" aria-label=\"关闭\"><i data-lucide=\"x\" class=\"w-5 h-5\"></i></button></div><form id=\"editorForm\" class=\"flex-1 overflow-y-auto p-5\"><div class=\"field-row\"><label for=\"teamName\"><span class=\"required\">*</span>团队名称</label><div class=\"field-main\"><input id=\"teamName\" class=\"control\" maxlength=\"40\" placeholder=\"请输入团队名称\"><p id=\"teamNameError\" class=\"field-error hidden\"></p></div></div><div class=\"field-row\"><label for=\"teamType\"><span class=\"required\">*</span>团队类型</label><div class=\"field-main\"><select id=\"teamType\" class=\"control\"><option value=\"personal\">个人团队</option><option value=\"enterprise\">企业团队</option></select><p class=\"text-[12px] text-ink-muted mt-1\">创建后不可修改团队类型</p></div></div><div class=\"field-row\"><label for=\"teamOwner\"><span class=\"required\">*</span>负责人</label><div class=\"field-main\"><select id=\"teamOwner\" class=\"control\"><option value=\"\">请选择负责人</option><option value=\"林晓\">林晓</option><option value=\"周璇\">周璇</option><option value=\"陈默\">陈默</option></select><p id=\"teamOwnerError\" class=\"field-error hidden\"></p></div></div><div class=\"field-row\"><label for=\"teamNote\">备注</label><div class=\"field-main\"><textarea id=\"teamNote\" class=\"control h-24 py-2 resize-none\" maxlength=\"200\" placeholder=\"补充团队用途或管理说明\"></textarea><div class=\"text-right text-[11px] text-ink-muted mt-1\"><span id=\"noteCount\">0</span>/200</div></div></div></form><div class=\"shrink-0 px-5 py-4 border-t border-line flex justify-end gap-3\"><button id=\"cancelEditor\" type=\"button\" class=\"h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body\">取消</button><button id=\"saveEditor\" type=\"submit\" form=\"editorForm\" class=\"h-8 px-4 rounded bg-primary hover:bg-primary-hover text-white inline-flex items-center gap-1.5\"><i data-lucide=\"check\" class=\"w-4 h-4\"></i>保存</button></div></section></div><div id=\"confirmOverlay\" class=\"hidden fixed inset-0 z-[1250] bg-black/30 flex items-center justify-center p-4\"><section id=\"confirmPanel\" class=\"modal-panel w-[600px] max-w-[92vw] min-h-[250px] bg-card rounded-lg shadow-[0_8px_32px_rgba(0,0,0,.12)] flex flex-col\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"confirmTitle\"><div class=\"relative flex-1 flex items-center px-6 py-8\"><button id=\"closeConfirm\" type=\"button\" class=\"absolute top-3 right-4 text-[20px] text-ink-muted hover:text-ink-body\" aria-label=\"关闭\">×</button><span id=\"confirmIcon\" class=\"w-5 h-5 rounded-full bg-warning-bg text-warning flex items-center justify-center shrink-0 mr-3\"><i data-lucide=\"triangle-alert\" class=\"w-3.5 h-3.5\"></i></span><div><h2 id=\"confirmTitle\" class=\"text-[16px] font-semibold text-ink-title\" >确认停用该团队吗？</h2><p id=\"confirmText\" class=\"text-[13px] text-ink-sub mt-2 leading-relaxed\">停用后，团队成员将无法进入团队，已有数据和资源会被保留。</p></div></div><div class=\"px-6 py-4 border-t border-line flex justify-end gap-3\"><button id=\"cancelConfirm\" type=\"button\" class=\"h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body\">取消</button><button id=\"submitConfirm\" type=\"button\" class=\"h-8 px-4 rounded bg-danger hover:bg-danger text-white\">确定</button></div></section></div><div id=\"annoDesc\" class=\"p-5 text-[14px] text-ink-body leading-relaxed\"></div></div></div><div class=\"app-module-compat\" hidden aria-hidden=\"true\"><aside id=\"sidebar\" class=\"sidebar sticky top-0 h-screen shrink-0 bg-card flex flex-col overflow-hidden\" aria-label=\"主导航\">\n      <div class=\"brand-row h-14 px-5 flex items-center gap-2 shrink-0\">\n        <a href=\"index.html\" class=\"brand-link flex items-center gap-2 min-w-0\" aria-label=\"云登后台首页\"><span class=\"w-7 h-7 rounded-md bg-primary text-white flex items-center justify-center font-bold text-[15px]\">云</span><span class=\"brand-copy font-semibold text-ink-title text-[16px] tracking-tight\">云登后台</span></a>\n        <button id=\"collapseBtn\" class=\"ml-auto w-8 h-8 shrink-0 rounded flex items-center justify-center text-ink-sub hover:bg-hover\" title=\"收起侧栏\" aria-label=\"收起侧栏\"><i data-lucide=\"panel-left-close\" class=\"w-[18px] h-[18px]\"></i></button>\n      </div>\n      <nav id=\"sidebarNav\" class=\"px-3 flex-1 overflow-y-auto pb-3\" aria-label=\"后台功能导航\"></nav>\n      <div class=\"p-3 space-y-1\"><div class=\"border-t border-line mb-3\" aria-hidden=\"true\"></div><a href=\"index.html\" class=\"bottom-link w-full h-8 px-2 flex items-center gap-3 rounded text-ink-sub\"><i data-lucide=\"settings-2\" class=\"menu-icon\"></i><span class=\"bottom-label\">系统设置</span></a></div>\n    </aside><header class=\"h-14 shrink-0 bg-card shadow-[0_4px_8px_-4px_rgba(0,0,0,.12)] z-10 flex items-center justify-between px-4 md:px-6\" style=\"clip-path:inset(0 0 -12px 0)\">\n        <div class=\"flex items-center gap-3 min-w-0\"><button id=\"mobileMenu\" class=\"md:hidden text-ink-sub\" aria-label=\"展开导航\"><i data-lucide=\"menu\" class=\"w-5 h-5\"></i></button><span id=\"breadcrumb\" class=\"text-ink-sub truncate\">用户管理 / 团队列表</span></div>\n        <div class=\"flex items-center gap-1 md:gap-2\"><button id=\"noticeBtn\" class=\"relative w-8 h-8 rounded flex items-center justify-center text-ink-sub hover:bg-hover\" aria-label=\"通知\"><i data-lucide=\"bell\" class=\"w-[18px] h-[18px]\"></i><span class=\"absolute right-1 top-1 w-2 h-2 bg-danger rounded-full border border-white\"></span></button><span class=\"h-5 border-l border-line mx-1\"></span><button id=\"accountBtn\" class=\"flex items-center gap-2 rounded px-1 py-1 hover:bg-hover\"><span class=\"w-7 h-7 rounded-full bg-primary-bg text-primary flex items-center justify-center font-semibold\">管</span><span class=\"hidden sm:block text-ink-body\">平台管理员</span><i data-lucide=\"chevron-down\" class=\"hidden sm:block w-3.5 h-3.5 text-ink-muted\"></i></button></div>\n      </header></div></section>","styles":["\n    *{box-sizing:border-box}\n    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei','Hiragino Sans GB','Segoe UI',system-ui,sans-serif;color:#3A3F4A}\n    .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}\n    .sidebar{width:220px;transition:width .22s ease}\n    .sidebar.compact{width:68px}\n    .sidebar.compact .brand-copy,.sidebar.compact .menu-label,.sidebar.compact .group-chevron,.sidebar.compact .section-label,.sidebar.compact .phase-badge,.sidebar.compact .bottom-label{display:none}\n    .sidebar.compact .menu-link,.sidebar.compact .bottom-link{justify-content:center;padding-left:0;padding-right:0}\n    .sidebar.compact .submenu{display:none!important}\n    .sidebar.compact .brand-row{justify-content:center;padding-left:0;padding-right:0}\n    .sidebar.compact .brand-link{display:none}\n    .sidebar.compact #collapseBtn{margin-left:0}\n    .menu-link{min-height:38px;border-radius:4px;color:#3A3F4A;transition:background .15s,color .15s}\n    .menu-link:hover,.bottom-link:hover{background:#F3F4F6}\n    .menu-link.active-leaf{color:#0066FF;background:#E6F0FF;font-weight:600}\n    .menu-link.active-group{color:#0066FF;background:#F3F4F6;font-weight:600}\n    .section-label{color:#9DA2AC;font-size:11px;line-height:28px;padding:8px 8px 0;letter-spacing:.02em}\n    .submenu .menu-link{min-height:34px;font-size:13px;padding-left:36px}\n    .phase-badge{margin-left:auto;padding:1px 5px;border-radius:4px;color:#6E7685;background:#F0F1F3;font:500 10px/16px 'JetBrains Mono',monospace}\n    .compact-flyout{left:76px;box-shadow:0 6px 24px rgba(0,0,0,.12)}\n    .menu-icon{width:18px;height:18px;flex:0 0 18px}\n    .popover{box-shadow:0 6px 24px rgba(0,0,0,.12)}\n    .toast{animation:toast-in .2s ease both}\n    @keyframes toast-in{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}\n    @keyframes drawer-in{from{transform:translateX(100%)}to{transform:translateX(0)}}\n    @keyframes modal-in{from{transform:scale(.98);opacity:0}to{transform:scale(1);opacity:1}}\n    .drawer-panel{animation:drawer-in .22s ease}\n    .modal-panel{animation:modal-in .15s ease}\n    .anno-badge{position:fixed;width:20px;height:20px;border-radius:50%;background:#0066FF;color:#fff;font:700 11px/20px 'JetBrains Mono',monospace;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.15);pointer-events:auto;cursor:pointer;transition:transform .15s;z-index:9998}\n    .anno-badge:hover{transform:scale(1.2)}\n    .data-table{width:100%;min-width:1180px;border-collapse:collapse;font-size:13px}\n    .data-table th{background:#F0F1F3;color:#6E7685;font-size:12px;font-weight:600;padding:9px 12px;text-align:left;white-space:nowrap;border-bottom:1px solid #DFE1E5}\n    .data-table td{padding:10px 12px;border-bottom:1px solid #F0F1F3;text-align:left;white-space:nowrap;vertical-align:middle}\n    .data-table tbody tr{transition:background .15s}\n    .data-table tbody tr:hover{background:#F3F4F6}\n    .data-table tbody tr.row-selected{background:#E6F0FF}\n    .control{height:32px;border:1px solid #DFE1E5;border-radius:4px;padding:0 8px;width:100%;outline:none;background:#fff;color:#3A3F4A;font:inherit}\n    .control:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12)}\n    .filter-flow{display:flex;flex-wrap:wrap;align-items:center;gap:16px;max-width:2184px}\n    .filter-item{flex:0 0 500px;width:500px;display:flex;align-items:center;gap:12px}\n    .filter-label{width:88px;flex:none;text-align:right;font-size:13px;line-height:18px;color:#3A3F4A}\n    .filter-label::after{content:'：'}\n    .filter-control{width:400px;max-width:100%;position:relative}\n    .tabs-underline{display:flex;gap:28px;border-bottom:1px solid #DFE1E5;margin-bottom:16px;overflow-x:auto}\n    .tab{height:40px;padding:0 8px;margin:0;border:0;border-radius:0;background:transparent;color:#3A3F4A;font-size:14px;position:relative;cursor:pointer;white-space:nowrap}\n    .tab:hover:not(.active){color:#0066FF}\n    .tab.active{color:#0066FF;font-weight:600}\n    .tab.active::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#0066FF;border-radius:2px 2px 0 0}\n    .tree-node{min-height:36px;border-radius:4px;display:flex;align-items:center;gap:6px;padding:0 6px;color:#3A3F4A;transition:background .15s}\n    .tree-node:hover{background:#F3F4F6}\n    .tree-node.active{background:#E6F0FF;color:#0066FF;font-weight:600}\n    .tree-indent-1{padding-left:24px}.tree-indent-2{padding-left:42px}\n    .tree-count{font:11px 'JetBrains Mono',monospace;color:#9DA2AC}\n    .badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:12px;line-height:18px;border:1px solid transparent}\n    .status-normal{color:#0FC060;background:#E7F9F0;border-color:#B5EDD0}\n    .status-disabled{color:#9DA2AC;background:#F0F1F3;border-color:#DFE1E5}\n    .status-risk{color:#D9001B;background:#FFE8EB;border-color:#F5B5BD}\n    .status-info{color:#0091D5;background:#E4F4FB;border-color:#AFDDF2}\n    .status-warning{color:#E7772D;background:#FDF2E9;border-color:#F5D5B9}\n    .metric-card{min-height:76px;padding:12px;border:1px solid #DFE1E5;border-radius:6px;background:#F7F8FA}\n    .metric-value{font:600 20px/1.2 'JetBrains Mono',monospace;color:#1A1D24;font-variant-numeric:tabular-nums}\n    .metric-value.text{font:600 16px/1.3 -apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif}\n    .switch{width:34px;height:20px;border-radius:10px;background:#C7CAD1;position:relative;transition:background .15s;display:inline-flex;align-items:center;padding:2px;cursor:pointer}\n    .switch::after{content:'';width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .15s}\n    .switch.on{background:#0066FF}.switch.on::after{transform:translateX(14px)}\n    .switch.disabled{opacity:.5;cursor:not-allowed}\n    .field-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}\n    .field-row>label{width:88px;flex:none;text-align:right;line-height:32px;color:#1A1D24;font-size:13px}\n    .field-main{flex:1;min-width:0;max-width:400px}\n    .required{color:#D9001B;margin-right:4px}\n    .field-error{color:#D9001B;font-size:12px;line-height:18px;margin-top:4px}\n    .empty-state{min-height:250px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#9DA2AC}\n    .empty-icon{width:72px;height:54px;margin-bottom:14px;color:#C7CAD1}\n    @media(max-width:1180px){.filter-item{flex-basis:100%;width:100%}.filter-control{flex:1;width:auto}.team-layout{grid-template-columns:1fr!important}.tree-panel{max-height:none!important}}\n    @media(max-width:767px){.sidebar{position:fixed;z-index:50;height:100vh;box-shadow:0 6px 24px rgba(0,0,0,.12)}.sidebar.compact{width:0;overflow:hidden}.field-row>label{width:76px}.main-padding{padding:12px!important}.filter-label{width:76px}.filter-flow{gap:12px}.metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}\n  "],"styleLinks":[],"externalScripts":[],"scripts":["\n    // ---------- Mock data ----------\n    const teams = [\n      {teamId:'team_271099',companyId:'271099',name:'13680760370 的团队',type:'personal',owner:'林晓',ownerPhone:'138****6789',status:'normal',memberCount:1,activeMemberCount:1,environmentCount:2,proxyCount:2,lastActiveAt:'2026-08-13 09:24:18',firstOrderAt:'2026-07-22 17:41:22',totalConsumeAmount:89.44,risk:'low',createdAt:'2026-07-22',note:'自然流量注册团队',version:3},\n      {teamId:'team_271098',companyId:'271098',name:'frrrank20 的团队',type:'personal',owner:'陈默',ownerPhone:'159****2345',status:'normal',memberCount:1,activeMemberCount:0,environmentCount:0,proxyCount:0,lastActiveAt:'2026-08-06 18:20:04',firstOrderAt:'-',totalConsumeAmount:0,risk:'high',createdAt:'2026-07-22',note:'待引导完成首启',version:2},\n      {teamId:'team_271097',companyId:'271097',name:'13429639161 的团队',type:'personal',owner:'待完善',ownerPhone:'-',status:'disabled',memberCount:1,activeMemberCount:0,environmentCount:0,proxyCount:0,lastActiveAt:'2026-07-29 11:02:31',firstOrderAt:'-',totalConsumeAmount:0,risk:'medium',createdAt:'2026-07-21',note:'负责人待补充',version:1},\n      {teamId:'team_271095',companyId:'271095',name:'15350011727 的团队',type:'enterprise',owner:'周璇',ownerPhone:'187****5918',status:'normal',memberCount:12,activeMemberCount:8,environmentCount:36,proxyCount:28,lastActiveAt:'2026-08-13 10:16:42',firstOrderAt:'2026-07-18 14:06:12',totalConsumeAmount:12680.2,risk:'low',createdAt:'2026-07-20',note:'跨境电商运营团队',version:6},\n      {teamId:'team_271086',companyId:'271086',name:'黄总TK跨境',type:'enterprise',owner:'周璇',ownerPhone:'136****7721',status:'normal',memberCount:26,activeMemberCount:19,environmentCount:84,proxyCount:63,lastActiveAt:'2026-08-13 10:05:17',firstOrderAt:'2026-07-10 09:32:44',totalConsumeAmount:48320.7,risk:'low',createdAt:'2026-07-19',note:'TikTok 跨境业务团队',version:9},\n      {teamId:'team_271084',companyId:'271084',name:'杭州云登科技运营组',type:'enterprise',owner:'林晓',ownerPhone:'138****6789',status:'normal',memberCount:18,activeMemberCount:14,environmentCount:45,proxyCount:31,lastActiveAt:'2026-08-12 17:42:09',firstOrderAt:'2026-06-28 16:08:22',totalConsumeAmount:29880.5,risk:'low',createdAt:'2026-06-28',note:'内部运营与客服协作',version:8},\n      {teamId:'team_271082',companyId:'271082',name:'海外广告测试组',type:'enterprise',owner:'陈默',ownerPhone:'159****2345',status:'disabled',memberCount:7,activeMemberCount:0,environmentCount:12,proxyCount:9,lastActiveAt:'2026-07-31 15:18:07',firstOrderAt:'2026-07-02 12:30:10',totalConsumeAmount:3290,risk:'medium',createdAt:'2026-06-21',note:'阶段性测试，暂时停用',version:4},\n      {teamId:'team_271080',companyId:'271080',name:'星河工作室',type:'personal',owner:'林晓',ownerPhone:'138****6789',status:'normal',memberCount:4,activeMemberCount:3,environmentCount:9,proxyCount:7,lastActiveAt:'2026-08-11 20:06:55',firstOrderAt:'2026-07-15 13:24:51',totalConsumeAmount:1680.8,risk:'medium',createdAt:'2026-06-18',note:'独立站投放',version:5},\n      {teamId:'team_271078',companyId:'271078',name:'北岸内容工作室',type:'personal',owner:'陈默',ownerPhone:'159****2345',status:'normal',memberCount:3,activeMemberCount:1,environmentCount:5,proxyCount:3,lastActiveAt:'2026-08-04 09:44:32',firstOrderAt:'2026-07-11 10:20:03',totalConsumeAmount:840.3,risk:'high',createdAt:'2026-06-12',note:'近 7 天活跃度下降',version:3},\n      {teamId:'team_271076',companyId:'271076',name:'远航电商增长组',type:'enterprise',owner:'周璇',ownerPhone:'187****5918',status:'normal',memberCount:31,activeMemberCount:22,environmentCount:106,proxyCount:78,lastActiveAt:'2026-08-13 08:52:11',firstOrderAt:'2026-06-20 11:12:45',totalConsumeAmount:68210.9,risk:'low',createdAt:'2026-06-09',note:'多平台经营，稳定复购',version:10},\n      {teamId:'team_271074',companyId:'271074',name:'新锐出海一组',type:'enterprise',owner:'林晓',ownerPhone:'138****6789',status:'normal',memberCount:9,activeMemberCount:6,environmentCount:24,proxyCount:16,lastActiveAt:'2026-08-10 14:31:27',firstOrderAt:'2026-07-05 18:09:33',totalConsumeAmount:9360.1,risk:'medium',createdAt:'2026-06-03',note:'新团队观察期',version:2},\n      {teamId:'team_271072',companyId:'271072',name:'晨光创作者联盟',type:'enterprise',owner:'待完善',ownerPhone:'-',status:'disabled',memberCount:15,activeMemberCount:0,environmentCount:30,proxyCount:19,lastActiveAt:'2026-07-25 16:13:08',firstOrderAt:'2026-06-18 10:07:52',totalConsumeAmount:5200,risk:'high',createdAt:'2026-05-26',note:'待确认主体归属',version:7}\n    ];\n\n    const views = {\n      identify:{label:'团队识别',description:'确认团队主体、负责人和可用状态',columns:[['name','团队名称'],['ids','团队 ID / company_id'],['type','团队类型'],['owner','负责人'],['status','状态'],['createdAt','创建时间'],['actions','操作']]},\n      resources:{label:'成员与资源',description:'查看团队规模、活跃成员和资源使用量',columns:[['name','团队名称'],['memberCount','成员数'],['activeMemberCount','活跃成员'],['environmentCount','环境数'],['proxyCount','代理数'],['lastActiveAt','最近活跃'],['status','状态'],['actions','操作']]},\n      activity:{label:'活跃与经营',description:'判断团队活跃度、消费贡献和经营风险',columns:[['name','团队名称'],['lastActiveAt','最近活跃'],['firstOrderAt','首单时间'],['totalConsumeAmount','累计消费'],['risk','活跃风险'],['memberCount','成员数'],['actions','操作']]}\n    };\n    let activeView='identify', currentPage=1, pageSize=10, editingId=null, pendingStatus=null;\n    const annoScopeStack=[];\n    const annotations={\n      1:{title:'团队列表入口',desc:['触发：页面加载。','响应：展示授权范围内团队主体，并沿用用户管理导航。','规则：团队列表只管理团队主体，不承载成员和企业认证表单。']},\n      2:{title:'业务视图 Tab',desc:['触发：点击团队识别、成员与资源或活跃与经营。','响应：切换表格列、摘要指标和说明。','规则：筛选条件保持，统计口径跟随当前视图和当前筛选。']},\n      3:{title:'团队筛选',desc:['触发：点击查询或在关键词输入框按回车。','响应：条件按 AND 关系过滤，页码回到第 1 页。','规则：关键词最多 40 字；重置恢复默认条件。']},\n      4:{title:'团队数据区',desc:['触发：页面加载、Tab 切换或查询完成。','响应：展示摘要、团队表格和分页。','规则：全局人数与资源指标来自服务端聚合口径，原型用 Mock 数据演示。']},\n      5:{title:'导出当前视图',desc:['触发：点击导出并确认。','响应：创建当前 Tab 与筛选条件下的异步任务。','规则：原型只提示任务已提交，不伪造文件下载。']},\n      6:{title:'创建团队',desc:['触发：点击创建团队。','响应：打开右侧抽屉，校验团队名称、类型和负责人。','规则：提交期间防重复点击，成功后刷新列表。']},\n      7:{title:'团队行操作',desc:['触发：点击进入团队、编辑或状态操作。','响应：进入成员列表、打开编辑抽屉或打开启停确认。','规则：停用团队不可进入，主会话团队不能直接停用。']},\n      8:{title:'团队标识复制',desc:['触发：点击团队 ID 旁复制按钮。','响应：复制脱敏范围内的团队标识并提示成功。','规则：不复制负责人手机号等敏感信息。']},\n      9:{title:'团队状态保护',desc:['触发：切换启用/停用。','响应：先二次确认，再由服务端判定。','规则：失败时恢复原状态；停用不是删除，历史数据保留。']},\n      10:{title:'团队编辑抽屉',desc:['触发：创建或编辑团队。','响应：展示字段级校验、备注计数和保存/取消。','规则：关闭不保存；有未保存修改时应二次确认。']},\n      11:{title:'团队编辑字段',desc:['触发：输入团队名称、类型、负责人或备注。','响应：实时更新表单状态和字数。','规则：团队名称 1-40 字且在授权范围内唯一；类型创建后不可修改。']},\n      12:{title:'启停确认',desc:['触发：行操作点击启用或停用。','响应：展示影响范围和取消/确定按钮。','规则：当前会话团队或仍有运行资源时由服务端最终拒绝。']}\n    };\n\n    // ---------- Shared shell helpers ----------\n    const $=id=>document.getElementById(id);\n    function toast(message,kind='info',action){const colors={success:'bg-success',warning:'bg-warning',danger:'bg-danger',info:'bg-info'};const node=document.createElement('div');node.className=`toast ${colors[kind]||colors.info} text-white px-4 py-2 rounded shadow-[0_2px_8px_rgba(0,0,0,.12)] text-[13px] pointer-events-auto flex items-center gap-3`;node.innerHTML=`<span>${message}</span>${action?`<button class=\"underline font-medium\" data-toast-action=\"${action}\">查看</button>`:''}`;$('toastContainer').append(node);setTimeout(()=>node.remove(),3200)}\n    function openPopover(id){['noticePopover','accountPopover'].forEach(x=>{if(x!==id)$(x).classList.add('hidden')});$(id).classList.toggle('hidden')}\n    function renderNotices(){$('noticeList').innerHTML='<button class=\"w-full text-left px-4 py-3 hover:bg-hover border-b border-line-lighter\"><p class=\"font-medium text-ink-title\">团队停用待确认</p><p class=\"text-[12px] text-ink-sub mt-1\">海外广告测试组等待管理员处理。</p><p class=\"mono text-[11px] text-ink-muted mt-1\">今天 09:12</p></button><button class=\"w-full text-left px-4 py-3 hover:bg-hover\"><p class=\"font-medium text-ink-title\">导出任务已完成</p><p class=\"text-[12px] text-ink-sub mt-1\">昨日团队数据可下载。</p><p class=\"mono text-[11px] text-ink-muted mt-1\">昨天 18:20</p></button>'}\n\n    // ---------- Team list rendering ----------\n    function filteredTeams(){const kw=$('keyword').value.trim().toLowerCase();const type=$('typeFilter').value;const status=$('statusFilter').value;const owner=$('ownerFilter').value;const start=$('dateStart').value;const end=$('dateEnd').value;return teams.filter(team=>{const keyHit=!kw||[team.name,team.teamId,team.companyId].join(' ').toLowerCase().includes(kw);const typeHit=!type||team.type===type;const statusHit=!status||team.status===status;const ownerHit=!owner||team.owner===owner;const startHit=!start||team.createdAt>=start;const endHit=!end||team.createdAt<=end;return keyHit&&typeHit&&statusHit&&ownerHit&&startHit&&endHit})}\n    function currentRows(){const rows=filteredTeams();const start=(currentPage-1)*pageSize;return rows.slice(start,start+pageSize)}\n    function badge(text,kind){return `<span class=\"badge ${kind}\">${text}</span>`}\n    function statusBadge(status){return status==='normal'?badge('正常','status-normal'):badge('停用','status-disabled')}\n    function typeBadge(type){return type==='enterprise'?badge('企业团队','status-info'):badge('个人团队','status-warning')}\n    function riskBadge(risk){return risk==='low'?badge('低','status-normal'):risk==='medium'?badge('中','status-warning'):badge('高','status-risk')}\n    function renderTabs(){ $('viewTabs').innerHTML=Object.entries(views).map(([key,view])=>`<button type=\"button\" class=\"tab ${activeView===key?'active':''}\" data-view=\"${key}\">${view.label}</button>`).join(''); lucide.createIcons() }\n    function renderMetrics(rows){const total=rows.length,normal=rows.filter(x=>x.status==='normal').length,members=rows.reduce((sum,x)=>sum+x.memberCount,0),active=rows.filter(x=>x.lastActiveAt>='2026-08-06').length;const values=[['团队总数',total,''],['正常团队',normal,''],['总成员数',members,''],['近 7 天活跃团队',active,'']];$('metricGrid').innerHTML=values.map(([label,value])=>`<div class=\"metric-card\"><div class=\"text-[12px] text-ink-sub\">${label}</div><div class=\"metric-value mt-2\">${value}</div></div>`).join('')}\n    function actionButtons(team){const enter=team.status==='normal'?`<button class=\"text-primary hover:text-primary-hover\" data-action=\"enter\" data-id=\"${team.teamId}\">进入团队</button>`:`<button class=\"text-ink-muted cursor-not-allowed\" title=\"团队已停用，无法进入\" data-action=\"blocked\">进入团队</button>`;const manage=`<button class=\"text-primary hover:text-primary-hover\" data-action=\"edit\" data-id=\"${team.teamId}\">编辑</button>`;const toggle=team.status==='normal'?`<button class=\"text-danger hover:text-danger\" data-action=\"status\" data-id=\"${team.teamId}\">停用</button>`:`<button class=\"text-success hover:text-success\" data-action=\"status\" data-id=\"${team.teamId}\">启用</button>`;return `<div class=\"flex items-center gap-3\" data-anno=\"7\">${enter}${manage}${toggle}</div>`}\n    function cell(team,key){if(key==='name')return `<div class=\"flex items-center gap-2\"><span class=\"w-7 h-7 rounded-md bg-primary-bg text-primary flex items-center justify-center font-semibold\">${team.name.slice(0,1)}</span><div><button class=\"font-medium text-ink-title hover:text-primary text-left\" data-action=\"edit\" data-id=\"${team.teamId}\">${team.name}</button><div class=\"text-[11px] text-ink-muted mt-0.5\">${team.type==='enterprise'?'企业主体':'个人主体'}</div></div></div>`;if(key==='ids')return `<div class=\"flex items-center gap-2\"><span class=\"mono text-[12px]\">${team.teamId}</span><button class=\"text-ink-muted hover:text-primary\" title=\"复制团队 ID\" data-action=\"copy\" data-id=\"${team.teamId}\" data-anno=\"8\"><i data-lucide=\"copy\" class=\"w-3.5 h-3.5\"></i></button><div class=\"mono text-[11px] text-ink-muted\">${team.companyId}</div></div>`;if(key==='type')return typeBadge(team.type);if(key==='owner')return team.owner==='待完善'?`<span class=\"text-warning\">待完善</span>`:`<div><div>${team.owner}</div><div class=\"mono text-[11px] text-ink-muted mt-0.5\">${team.ownerPhone}</div></div>`;if(key==='status')return statusBadge(team.status);if(key==='createdAt')return `<span class=\"mono\">${team.createdAt}</span>`;if(key==='memberCount'||key==='activeMemberCount'||key==='environmentCount'||key==='proxyCount')return `<span class=\"mono\">${team[key].toLocaleString('zh-CN')}</span>`;if(key==='lastActiveAt'||key==='firstOrderAt')return `<span class=\"mono\">${team[key]}</span>`;if(key==='totalConsumeAmount')return `<span class=\"mono\">￥${team[key].toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2})}</span>`;if(key==='risk')return riskBadge(team.risk);if(key==='actions')return actionButtons(team);return '—'}\n    function renderTable(){const rows=filteredTeams();const visible=currentRows();const view=views[activeView];$('tableTitle').textContent=view.label;$('tableDescription').textContent=view.description;renderMetrics(rows);$('tableHead').innerHTML=`<tr>${view.columns.map(([,label])=>`<th>${label}</th>`).join('')}</tr>`;if(!visible.length){$('tableWrap').classList.add('hidden');$('emptyState').classList.remove('hidden');const hasFilter=$('keyword').value||$('typeFilter').value||$('statusFilter').value||$('ownerFilter').value||$('dateStart').value||$('dateEnd').value;$('emptyState').innerHTML=`<svg class=\"empty-icon\" viewBox=\"0 0 96 72\" fill=\"none\" aria-hidden=\"true\"><rect x=\"14\" y=\"22\" width=\"68\" height=\"42\" rx=\"4\" fill=\"#F0F1F3\" stroke=\"#DFE1E5\" stroke-width=\"1.5\"/><path d=\"M14 34h20l6 8h16l6-8h20\" stroke=\"#C7CAD1\" stroke-width=\"1.5\"/><rect x=\"30\" y=\"10\" width=\"36\" height=\"18\" rx=\"3\" fill=\"#fff\" stroke=\"#DFE1E5\" stroke-width=\"1.5\"/><circle cx=\"48\" cy=\"19\" r=\"3\" fill=\"#C7CAD1\"/></svg><strong class=\"text-[15px] text-ink-body\">${hasFilter?'未找到符合条件的团队':'暂无团队数据'}</strong><p class=\"text-[13px] mt-2 max-w-[320px]\">${hasFilter?'请调整筛选条件后重试。':'当前授权范围内还没有团队主体。'}</p>${hasFilter?'<button class=\"mt-4 h-8 px-4 rounded border border-line bg-card hover:bg-hover text-ink-body\" data-empty=\"clear\">清空筛选</button>':''}` }else{$('tableWrap').classList.remove('hidden');$('emptyState').classList.add('hidden');$('tableBody').innerHTML=visible.map(team=>`<tr>${view.columns.map(([key])=>`<td>${cell(team,key)}</td>`).join('')}</tr>`).join('');lucide.createIcons()}renderPagination(rows.length);renderAnnoBadges()}\n    function renderPagination(total){const pages=Math.max(1,Math.ceil(total/pageSize));if(currentPage>pages)currentPage=pages;const nums=[];for(let i=1;i<=pages;i++)nums.push(i);$('pagination').innerHTML=`<div class=\"flex items-center gap-1\"><button class=\"h-[30px] min-w-[30px] px-2 rounded border border-line ${currentPage===1?'text-ink-muted bg-page cursor-not-allowed':'hover:border-primary hover:text-primary'}\" ${currentPage===1?'disabled':''} data-page=\"${currentPage-1}\">‹</button>${nums.length<=7?nums.map(n=>pageButton(n)).join(''):`${pageButton(1)}<span class=\"px-1 text-ink-muted\">…</span>${pageButton(currentPage)}<span class=\"px-1 text-ink-muted\">…</span>${pageButton(pages)}`}<button class=\"h-[30px] min-w-[30px] px-2 rounded border border-line ${currentPage===pages?'text-ink-muted bg-page cursor-not-allowed':'hover:border-primary hover:text-primary'}\" ${currentPage===pages?'disabled':''} data-page=\"${currentPage+1}\">›</button></div><label class=\"flex items-center gap-2 text-ink-sub\">每页<select id=\"pageSize\" class=\"h-[30px] rounded border border-line bg-card px-2\" aria-label=\"每页条数\"><option ${pageSize===10?'selected':''}>10</option><option ${pageSize===20?'selected':''}>20</option><option ${pageSize===50?'selected':''}>50</option></select>条</label><label class=\"flex items-center gap-2 text-ink-sub\">跳至<input id=\"pageJump\" class=\"w-11 h-[30px] rounded border border-line text-center mono\" value=\"${currentPage}\" aria-label=\"跳转页码\">页</label><span class=\"text-ink-muted\">共 ${total} 条记录　第 ${currentPage}/${pages} 页</span>`}\n    function pageButton(n){return `<button class=\"h-[30px] min-w-[30px] px-2 rounded border ${n===currentPage?'bg-primary border-primary text-white':'border-line bg-card hover:border-primary hover:text-primary text-ink-body'}\" data-page=\"${n}\">${n}</button>`}\n    function refresh(){renderTabs();renderTable()}\n\n    // ---------- Editor and status dialogs ----------\n    function openEditor(id=null){editingId=id;$('editorTitle').textContent=id?'编辑团队':'创建团队';const team=teams.find(x=>x.teamId===id);$('teamName').value=team?.name||'';$('teamType').value=team?.type||'personal';$('teamType').disabled=Boolean(id);$('teamOwner').value=team?.owner&&team.owner!=='待完善'?team.owner:'';$('teamNote').value=team?.note||'';$('teamNameError').classList.add('hidden');$('teamOwnerError').classList.add('hidden');$('noteCount').textContent=$('teamNote').value.length;$('editorOverlay').classList.remove('hidden');pushAnnoScope($('editorPanel'));setTimeout(()=>$('teamName').focus(),30)}\n    function closeEditor(){if($('editorOverlay').classList.contains('hidden'))return;$('editorOverlay').classList.add('hidden');popAnnoScope($('editorPanel'));editingId=null}\n    function validateEditor(){let ok=true;const name=$('teamName').value.trim();const owner=$('teamOwner').value;if(!name){$('teamNameError').textContent='请输入团队名称';$('teamNameError').classList.remove('hidden');ok=false}else if(teams.some(x=>x.name===name&&x.teamId!==editingId)){$('teamNameError').textContent='团队名称已存在';$('teamNameError').classList.remove('hidden');ok=false}else $('teamNameError').classList.add('hidden');if(!owner){$('teamOwnerError').textContent='请选择团队负责人';$('teamOwnerError').classList.remove('hidden');ok=false}else $('teamOwnerError').classList.add('hidden');return ok}\n    function saveEditor(){if(!validateEditor())return;const name=$('teamName').value.trim();const owner=$('teamOwner').value;const note=$('teamNote').value;const existing=teams.find(x=>x.teamId===editingId);if(existing){existing.name=name;existing.owner=owner;existing.ownerPhone=owner==='林晓'?'138****6789':owner==='周璇'?'187****5918':'159****2345';existing.note=note;existing.version+=1;closeEditor();refresh();toast('团队信息已更新','success')}else{const id=`team_${String(Date.now()).slice(-6)}`;teams.unshift({teamId:id,companyId:String(Date.now()).slice(-6),name,type:$('teamType').value,owner,ownerPhone:owner==='林晓'?'138****6789':owner==='周璇'?'187****5918':'159****2345',status:'normal',memberCount:0,activeMemberCount:0,environmentCount:0,proxyCount:0,lastActiveAt:'-',firstOrderAt:'-',totalConsumeAmount:0,risk:'medium',createdAt:'2026-08-13',note,version:1});closeEditor();currentPage=1;refresh();toast('团队创建成功','success')}}\n    function openStatus(team){pendingStatus=team;$('confirmTitle').textContent=team.status==='normal'?'确认停用该团队吗？':'确认启用该团队吗？';$('confirmText').textContent=team.status==='normal'?'停用后，团队成员将无法进入团队，已有数据和资源会被保留。':'启用后，团队成员可以恢复进入团队并使用授权资源。';$('submitConfirm').className=`h-8 px-4 rounded ${team.status==='normal'?'bg-danger':'bg-primary'} text-white`;$('confirmOverlay').classList.remove('hidden');pushAnnoScope($('confirmPanel'));}\n    function closeStatus(){if($('confirmOverlay').classList.contains('hidden'))return;$('confirmOverlay').classList.add('hidden');popAnnoScope($('confirmPanel'));pendingStatus=null}\n    function submitStatus(){if(!pendingStatus)return;const team=pendingStatus;team.status=team.status==='normal'?'disabled':'normal';closeStatus();refresh();toast(team.status==='normal'?'团队已启用':'团队已停用','success')}\n\n    // ---------- Portal annotation layer ----------\n    function pushAnnoScope(el){const i=annoScopeStack.indexOf(el);if(i>=0)annoScopeStack.splice(i,1);annoScopeStack.push(el);renderAnnoBadges()}\n    function popAnnoScope(el){const i=annoScopeStack.indexOf(el);if(i>=0)annoScopeStack.splice(i,1);renderAnnoBadges()}\n    function resolveAnnoTarget(el){const rect=el.getBoundingClientRect();return(rect.width>800||rect.width>innerWidth*.7)?el.querySelector('h1,h2,h3,button,input')||el:el}\n    let annoVisible=false;\n    function renderAnnoBadges(){const layer=$('annoLayer');layer.innerHTML='';if(!annoVisible)return;const root=annoScopeStack.at(-1)||document;root.querySelectorAll('[data-anno]').forEach(el=>{const target=resolveAnnoTarget(el),rect=target.getBoundingClientRect();if(rect.width===0||rect.height===0)return;const badgeEl=document.createElement('button');badgeEl.className='anno-badge';badgeEl.textContent=el.dataset.anno;badgeEl.style.top=`${rect.top-10}px`;badgeEl.style.left=`${rect.right-10}px`;badgeEl.setAttribute('aria-label',`查看交互说明 ${el.dataset.anno}`);badgeEl.onclick=()=>showAnno(el.dataset.anno);layer.append(badgeEl)})}\n    function showAnno(id){const item=annotations[id];if(!item)return;$('annoTitle').textContent=`${id}. ${item.title}`;$('annoDesc').innerHTML=`<ul class=\"list-disc pl-5 space-y-2\">${item.desc.map(x=>`<li>${x}</li>`).join('')}</ul>`;$('annoPopup').classList.remove('hidden');pushAnnoScope($('annoPopup'))}\n    function closeAnno(){$('annoPopup').classList.add('hidden');popAnnoScope($('annoPopup'))}\n\n    // ---------- Events ----------\n    document.addEventListener('click',event=>{const tab=event.target.closest('[data-view]'),action=event.target.closest('[data-action]'),page=event.target.closest('[data-page]'),empty=event.target.closest('[data-empty]'),toastAction=event.target.closest('[data-toast-action]');if(tab){activeView=tab.dataset.view;currentPage=1;refresh()}if(action){const id=action.dataset.id,team=teams.find(x=>x.teamId===id);if(action.dataset.action==='enter'&&team){window.location.href=`成员列表.html?teamId=${encodeURIComponent(id)}`}else if(action.dataset.action==='blocked'){toast('团队已停用，无法进入','warning')}else if(action.dataset.action==='edit'&&team)openEditor(id);else if(action.dataset.action==='status'&&team)openStatus(team);else if(action.dataset.action==='copy'&&team){navigator.clipboard?.writeText(team.teamId).then(()=>toast('团队 ID 已复制','success')).catch(()=>toast('复制失败，请手动选择','warning'))}}if(page&&!page.disabled){currentPage=Math.max(1,Number(page.dataset.page));renderTable()}if(empty?.dataset.empty==='clear'){$('resetBtn').click()}if(toastAction&&toastAction.dataset.toastAction==='task'){toast('任务中心将在对应模块开放','info')}});\n    $('queryBtn').onclick=()=>{currentPage=1;refresh();toast('查询已更新','success')};$('resetBtn').onclick=()=>{$('keyword').value='';$('typeFilter').value='';$('statusFilter').value='';$('ownerFilter').value='';$('dateStart').value='';$('dateEnd').value='';currentPage=1;refresh();toast('筛选条件已重置','info')};$('clearKeyword').onclick=()=>{$('keyword').value='';$('keyword').focus();$('clearKeyword').classList.add('hidden')};$('keyword').addEventListener('input',()=>{$('clearKeyword').classList.toggle('hidden',!$('keyword').value)});$('keyword').addEventListener('keydown',event=>{if(event.key==='Enter')$('queryBtn').click()});['typeFilter','statusFilter','ownerFilter','dateStart','dateEnd'].forEach(id=>$(id).addEventListener('change',()=>{}));$('exportBtn').onclick=()=>toast('导出任务已提交，请前往任务中心查看','info','task');$('createBtn').onclick=()=>openEditor();$('closeEditor').onclick=closeEditor;$('cancelEditor').onclick=closeEditor;$('editorOverlay').onclick=event=>{if(event.target===$('editorOverlay'))closeEditor()};$('editorForm').onsubmit=event=>{event.preventDefault();saveEditor()};$('teamNote').addEventListener('input',()=>{$('noteCount').textContent=$('teamNote').value.length});$('closeConfirm').onclick=closeStatus;$('cancelConfirm').onclick=closeStatus;$('submitConfirm').onclick=submitStatus;$('confirmOverlay').onclick=event=>{if(event.target===$('confirmOverlay'))closeStatus()};$('pageContent').addEventListener('click',event=>{const size=event.target.closest('#pageSize'),jump=event.target.closest('#pageJump');if(size){pageSize=Number(size.value);currentPage=1;renderTable()}if(jump&&event.key==='Enter'){currentPage=Math.min(Math.max(1,Number(jump.value)||1),Math.max(1,Math.ceil(filteredTeams().length/pageSize)));renderTable()}});document.addEventListener('change',event=>{if(event.target.id==='pageSize'){pageSize=Number(event.target.value);currentPage=1;renderTable()} });document.addEventListener('keydown',event=>{if(event.key==='Escape'){if(!$('editorOverlay').classList.contains('hidden'))closeEditor();if(!$('confirmOverlay').classList.contains('hidden'))closeStatus();if(!$('annoPopup').classList.contains('hidden'))closeAnno();openPopover('none')}});\n    $('noticeBtn').onclick=()=>openPopover('noticePopover');$('accountBtn').onclick=()=>openPopover('accountPopover');$('accountPopover').innerHTML='<div class=\"px-3 py-2 text-[12px] text-ink-sub border-b border-line-lighter\">平台管理员 · 全部授权团队</div><button class=\"w-full text-left px-3 py-2 rounded hover:bg-hover\">账号信息</button><button class=\"w-full text-left px-3 py-2 rounded hover:bg-hover\">退出登录</button>';renderNotices();\n    $('annoToggle').onclick=()=>{annoVisible=!annoVisible;$('annoToggle').classList.toggle('bg-primary',annoVisible);$('annoToggle').classList.toggle('bg-ink-muted',!annoVisible);$('annoToggle').setAttribute('aria-pressed',String(annoVisible));renderAnnoBadges()};$('closeAnno').onclick=event=>{event.stopPropagation();closeAnno()};$('annoPopup').onclick=event=>{if(event.target===$('annoPopup'))closeAnno()};$('mainContent').addEventListener('scroll',renderAnnoBadges);window.addEventListener('resize',renderAnnoBadges);\n    let dragState=null;$('annoDrag').addEventListener('pointerdown',event=>{if(event.target.closest('button'))return;const panel=$('annoDrag').parentElement,r=panel.getBoundingClientRect();dragState={x:event.clientX,y:event.clientY,left:r.left,top:r.top,panel};$('annoDrag').setPointerCapture(event.pointerId);panel.style.position='fixed';panel.style.margin='0'});$('annoDrag').addEventListener('pointermove',event=>{if(!dragState)return;dragState.panel.style.left=Math.max(8,Math.min(innerWidth-dragState.panel.offsetWidth-8,dragState.left+event.clientX-dragState.x))+'px';dragState.panel.style.top=Math.max(8,Math.min(innerHeight-dragState.panel.offsetHeight-8,dragState.top+event.clientY-dragState.y))+'px'});$('annoDrag').addEventListener('pointerup',()=>{dragState=null});\n    // 公共侧栏脚本需在页面 DOM 建好后加载，确保 team-list 路由高亮。\n    lucide.createIcons();refresh();\n  "],"usesAnnotations":false};</script>
+<script data-inline="app-shell">(function () {
+  'use strict';
+
+  const MODULE_VERSION = '20260822-inline-html';
+  const APP_ENTRY = 'index.html';
+  const RESOURCE_ROOT = 'Prototype/';
+  const INLINE_BUNDLE = window.__YundengInlineBundle || null;
+  const INLINE_ROUTE = window.__YundengInlineRoute || '';
+  const ROUTE_FILES = {"home":"index.html","user-list":"用户列表.html","user-statistics":"用户统计.html","team-list":"团队列表.html","enterprise-list":"企业列表.html","member-list":"成员列表.html","order-list":"订单列表.html","package-order":"套餐订单.html","invoice-management":"发票管理.html","environment-management":"环境管理.html","proxy-list":"代理列表.html","tracking-overview":"数据概览.html","tracking-events":"事件管理.html","tracking-metrics":"指标管理.html","tracking-debug":"联调验证.html","tracking-quality":"质量监控.html","tracking-detail":"明细排查.html","tracking-analysis":"数据分析.html","tracking-dashboards":"资产沉淀.html","tracking-insights":"决策复盘.html"};
+  if (INLINE_ROUTE === 'home') {
+    const requestedRoute = decodeURIComponent(location.hash.slice(1));
+    if (requestedRoute && requestedRoute !== 'home' && ROUTE_FILES[requestedRoute]) location.replace('Prototype/' + ROUTE_FILES[requestedRoute]);
+  }
+
+  const SIDEBAR_STATE_KEY = 'yundeng-app-shell-sidebar-compact';
+  const GROUP_STATE_KEY = 'yundeng-app-shell-group-state';
+  const MODULE_STATE_PREFIX = 'yundeng-app-shell-module-state:';
+
+  const navigation = [
+    {
+      id: 'section-workbench',
+      label: '工作台',
+      items: [
+        { id: 'home', label: '工作台', icon: 'layout-grid', module: 'home', description: '系统功能入口与运行概览' }
+      ]
+    },
+    {
+      id: 'section-user',
+      label: '用户管理',
+      items: [
+        { id: 'user-list', label: '用户列表', icon: 'users', state: 'planning', description: '查看和管理平台用户' },
+        { id: 'user-statistics', label: '用户统计', icon: 'chart-no-axes-column', module: 'user-statistics', description: '查看用户规模、活跃与结构统计' },
+        { id: 'team-list', label: '团队列表', icon: 'users-round', module: 'team-list', description: '查看和管理团队主体' },
+        { id: 'enterprise-list', label: '企业列表', icon: 'building-2', module: 'enterprise-list', description: '查看和管理企业认证主体' },
+        { id: 'member-list', label: '成员列表', icon: 'contact-round', module: 'member-list', description: '查看团队和企业成员' }
+      ]
+    },
+    {
+      id: 'section-order',
+      label: '订单管理',
+      items: [
+        { id: 'order-list', label: '订单列表', icon: 'receipt-text', module: 'order-list', description: '查看全部业务订单与支付状态' },
+        { id: 'package-order', label: '套餐订单', icon: 'package-check', module: 'package-order', description: '查看套餐购买、续费与退款订单' }
+      ]
+    },
+    {
+      id: 'section-finance',
+      label: '财务管理',
+      items: [
+        { id: 'invoice-management', label: '发票管理', icon: 'file-check-2', module: 'invoice-management', description: '审核开票申请并处理票据、红冲与交付' }
+      ]
+    },
+    {
+      id: 'section-resource',
+      label: '资源管理',
+      items: [
+        { id: 'environment-management', label: '环境管理', icon: 'monitor-cog', module: 'environment-management', description: '管理浏览器环境和运行状态' },
+        { id: 'proxy-list', label: '代理列表', icon: 'network', state: 'planning', description: '查看代理资源、分配和可用状态' }
+      ]
+    },
+    {
+      id: 'section-tracking',
+      label: '数据埋点',
+      items: [
+        { id: 'tracking-overview', label: '数据概览', icon: 'layout-dashboard', module: 'tracking-overview', description: '查看数据链路核心指标与异常' },
+        {
+          id: 'tracking-governance',
+          label: '口径治理',
+          icon: 'book-check',
+          group: true,
+          children: [
+            { id: 'tracking-events', label: '事件管理', module: 'tracking-events', description: '管理事件、属性、版本和生命周期' },
+            { id: 'tracking-metrics', label: '指标管理', module: 'tracking-metrics', description: '管理指标口径、计算规则和版本' }
+          ]
+        },
+        { id: 'tracking-debug', label: '联调验证', icon: 'radio-tower', module: 'tracking-debug', description: '实时监听并校验测试事件' },
+        { id: 'tracking-quality', label: '质量监控', icon: 'shield-alert', module: 'tracking-quality', description: '监控数据完整性、准确性和稳定性' },
+        { id: 'tracking-detail', label: '明细排查', icon: 'list-filter', module: 'tracking-detail', description: '检索脱敏明细并定位数据问题' },
+        { id: 'tracking-analysis', label: '数据分析', icon: 'chart-column-increasing', module: 'tracking-analysis', description: '开展漏斗、留存、路径和分群分析' },
+        { id: 'tracking-dashboards', label: '资产沉淀', icon: 'panels-top-left', module: 'tracking-dashboards', description: '沉淀可复用看板和分析资产' },
+        { id: 'tracking-insights', label: '决策复盘', icon: 'lightbulb', module: 'tracking-insights', description: '记录洞察、行动和迭代效果' }
+      ]
+    }
+  ];
+
+  const legacyRoutes = {
+    'index.html': 'home',
+    '系统框架.html': 'home',
+    '用户统计.html': 'user-statistics',
+    '团队列表.html': 'team-list',
+    '企业列表.html': 'enterprise-list',
+    '成员列表.html': 'member-list',
+    '订单列表.html': 'order-list',
+    '套餐订单.html': 'package-order',
+    '发票管理.html': 'invoice-management',
+    '环境管理.html': 'environment-management',
+    '数据概览.html': 'tracking-overview',
+    '事件管理.html': 'tracking-events',
+    '指标管理.html': 'tracking-metrics',
+    '联调验证.html': 'tracking-debug',
+    '质量监控.html': 'tracking-quality',
+    '明细排查.html': 'tracking-detail',
+    '数据分析.html': 'tracking-analysis',
+    '资产沉淀.html': 'tracking-dashboards',
+    '决策复盘.html': 'tracking-insights'
+  };
+
+  const notices = [
+    { title: '质量监控待处理', desc: 'browser_start_success 事件成功率低于阈值。', time: '5 分钟前', unread: true },
+    { title: '指标口径待确认', desc: '代理购买转化率 V2 草案等待审核。', time: '今天 09:30', unread: true },
+    { title: '历史数据补偿完成', desc: '2026-08-10 PC 端缺失事件已完成回补。', time: '昨天 18:20', unread: false }
+  ];
+
+  const routes = new Map();
+  const routeParents = new Map();
+  navigation.forEach((section) => {
+    section.items.forEach((item) => {
+      routes.set(item.id, { ...item, section: section.label });
+      if (item.children) {
+        item.children.forEach((child) => {
+          routes.set(child.id, { ...child, section: section.label, parentLabel: item.label });
+          routeParents.set(child.id, item.id);
+        });
+      }
+    });
+  });
+
+  const $ = (id) => document.getElementById(id);
+  const outlet = $('appRouteOutlet');
+  const content = $('appContent');
+  const sidebar = $('appSidebar');
+  let currentRoute = resolveRoute(INLINE_ROUTE || decodeURIComponent(location.hash.slice(1)) || 'home');
+  let groupState = readJson(GROUP_STATE_KEY, { 'tracking-governance': true });
+  let moduleReady = false;
+  let reloadScheduled = false;
+
+  function readJson(key, fallback) {
+    try {
+      const value = localStorage.getItem(key);
+      return value ? { ...fallback, ...JSON.parse(value) } : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  function writeJson(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (_) {}
+  }
+
+  function resolveRoute(routeId) {
+    const route = routes.get(routeId);
+    if (!route) return routes.get('home');
+    if (route.group) return routes.get(route.children[0].id);
+    return route;
+  }
+
+  function routeHref(routeId, search = '') {
+    const file = ROUTE_FILES[routeId] || APP_ENTRY;
+    const inPrototype = /\/Prototype\//.test(location.pathname);
+    const target = routeId === 'home' ? (inPrototype ? '../index.html' : 'index.html') : (inPrototype ? file : 'Prototype/' + file);
+    return target + (search || '');
+  }
+
+  function icon(name, className = 'app-menu-icon') {
+    return `<i data-lucide="${name}" class="${className}"></i>`;
+  }
+
+  function renderNavigation() {
+    const activeParent = routeParents.get(currentRoute.id);
+    $('appPrimaryNav').innerHTML = navigation.map((section) => {
+      const items = section.items.map((item) => {
+        if (!item.group) {
+          const active = item.id === currentRoute.id;
+          return `<a class="app-menu-link${active ? ' is-active' : ''}" href="${routeHref(item.id)}" data-app-route="${item.id}" ${active ? 'aria-current="page"' : ''}>${icon(item.icon)}<span class="app-menu-label">${item.label}</span></a>`;
+        }
+        const active = activeParent === item.id;
+        const expanded = groupState[item.id] !== false;
+        return `<div class="app-menu-group"><button class="app-menu-link app-group-toggle${active ? ' is-group-active' : ''}" type="button" data-app-group="${item.id}" aria-expanded="${expanded}" aria-controls="app-submenu-${item.id}">${icon(item.icon)}<span class="app-menu-label">${item.label}</span>${icon('chevron-down', 'app-group-chevron')}</button><div id="app-submenu-${item.id}" class="app-submenu${expanded ? '' : ' is-collapsed'}">${item.children.map((child) => {
+          const childActive = child.id === currentRoute.id;
+          return `<a class="app-menu-link${childActive ? ' is-active' : ''}" href="${routeHref(child.id)}" data-app-route="${child.id}" ${childActive ? 'aria-current="page"' : ''}><span class="app-menu-label">${child.label}</span></a>`;
+        }).join('')}</div></div>`;
+      }).join('');
+      return `<div class="app-section-label">${section.label}</div>${items}`;
+    }).join('');
+    window.lucide?.createIcons();
+  }
+
+  function renderRouteTitle() {
+    document.title = `云登后台 · ${currentRoute.label}`;
+  }
+
+  function setSidebarCompact(compact) {
+    sidebar.classList.toggle('is-compact', compact);
+    $('appCollapseButton').setAttribute('aria-label', compact ? '展开侧栏' : '收起侧栏');
+    $('appCollapseButton').setAttribute('title', compact ? '展开侧栏' : '收起侧栏');
+    $('appCollapseButton').setAttribute('aria-expanded', String(!compact));
+    try { localStorage.setItem(SIDEBAR_STATE_KEY, String(compact)); } catch (_) {}
+    window.lucide?.createIcons();
+  }
+
+  function readSidebarCompact() {
+    if (innerWidth < 768) return false;
+    try {
+      const saved = localStorage.getItem(SIDEBAR_STATE_KEY);
+      return saved === null ? innerWidth < 1100 : saved === 'true';
+    } catch (_) {
+      return innerWidth < 1100;
+    }
+  }
+
+  function openMobileSidebar() {
+    sidebar.classList.add('is-mobile-open');
+    $('appMobileOverlay').hidden = false;
+    $('appMobileMenu').setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMobileSidebar() {
+    sidebar.classList.remove('is-mobile-open');
+    $('appMobileOverlay').hidden = true;
+    $('appMobileMenu').setAttribute('aria-expanded', 'false');
+  }
+
+  function renderCompactFlyout(groupId, trigger) {
+    const group = routes.get(groupId);
+    const flyout = $('appCompactFlyout');
+    const rect = trigger.getBoundingClientRect();
+    flyout.style.top = `${Math.min(innerHeight - 120, Math.max(60, rect.top))}px`;
+    flyout.innerHTML = group.children.map((child) => `<a class="app-menu-link${child.id === currentRoute.id ? ' is-active' : ''}" href="${routeHref(child.id)}" data-app-route="${child.id}"><span class="app-menu-label">${child.label}</span></a>`).join('');
+    flyout.hidden = false;
+  }
+
+  function closeCompactFlyout() { $('appCompactFlyout').hidden = true; }
+
+  function renderNotices() {
+    $('appNoticeList').innerHTML = notices.map((item) => `<button type="button" class="app-notice-item"><span class="app-notice-item-dot${item.unread ? '' : ' is-read'}"></span><span class="min-w-0"><span class="app-notice-title">${item.title}</span><span class="app-notice-desc block">${item.desc}</span><span class="app-notice-time mono block">${item.time}</span></span></button>`).join('');
+  }
+
+  function togglePopover(id) {
+    ['appNoticePopover', 'appAccountPopover'].forEach((popoverId) => {
+      if (popoverId !== id) $(popoverId).hidden = true;
+    });
+    $(id).hidden = !$(id).hidden;
+  }
+
+  function closePopovers() {
+    $('appNoticePopover').hidden = true;
+    $('appAccountPopover').hidden = true;
+  }
+
+  function toast(message) {
+    const element = document.createElement('div');
+    element.className = 'app-toast';
+    element.textContent = message;
+    $('appToastContainer').append(element);
+    setTimeout(() => element.remove(), 2600);
+  }
+
+  function moduleStateKey(routeId) { return `${MODULE_STATE_PREFIX}${routeId}`; }
+
+  function controlKey(element, index) {
+    if (element.id) return `id:${element.id}`;
+    if (element.name) return `name:${element.name}:${index}`;
+    return `index:${index}`;
+  }
+
+  function activeKey(element, index) {
+    if (element.id) return `id:${element.id}`;
+    for (const key of ['tab', 'view', 'page', 'status', 'mode', 'type']) {
+      if (element.dataset[key] !== undefined) return `data-${key}:${element.dataset[key]}`;
+    }
+    return `text:${(element.textContent || '').trim()}:${index}`;
+  }
+
+  function captureModuleState() {
+    if (!moduleReady || !currentRoute?.id) return;
+    const controls = [...outlet.querySelectorAll('input, select, textarea')]
+      .filter((element) => !element.closest('.app-module-compat') && element.type !== 'password' && element.type !== 'file')
+      .map((element, index) => ({
+        key: controlKey(element, index),
+        value: element.type === 'checkbox' || element.type === 'radio' ? element.checked : element.value,
+        checked: element.type === 'checkbox' || element.type === 'radio'
+      }));
+    const active = [...outlet.querySelectorAll('.tab.active, .pg-btn.active, [role="tab"][aria-selected="true"], [data-view].active, [data-page].active')]
+      .filter((element) => !element.closest('.app-module-compat'))
+      .map((element, index) => activeKey(element, index));
+    const scrollables = [...outlet.querySelectorAll('main, [data-module-scroll]')]
+      .filter((element) => !element.closest('.app-module-compat'))
+      .map((element, index) => ({ key: element.id || `index:${index}`, top: element.scrollTop, left: element.scrollLeft }));
+    const state = { controls, active, contentScroll: { top: content.scrollTop, left: content.scrollLeft }, scrollables, savedAt: Date.now() };
+    try { sessionStorage.setItem(moduleStateKey(currentRoute.id), JSON.stringify(state)); } catch (_) {}
+  }
+
+  function restoreModuleState() {
+    let state;
+    try { state = JSON.parse(sessionStorage.getItem(moduleStateKey(currentRoute.id)) || 'null'); } catch (_) {}
+    if (!state) return;
+
+    const controls = [...outlet.querySelectorAll('input, select, textarea')]
+      .filter((element) => !element.closest('.app-module-compat') && element.type !== 'password' && element.type !== 'file');
+    const controlMap = new Map(controls.map((element, index) => [controlKey(element, index), element]));
+    state.controls?.forEach((entry) => {
+      const element = controlMap.get(entry.key);
+      if (!element) return;
+      if (entry.checked) element.checked = Boolean(entry.value);
+      else element.value = entry.value;
+    });
+
+    const activeElements = [...outlet.querySelectorAll('.tab, .pg-btn, [role="tab"], [data-view], [data-page]')]
+      .filter((element) => !element.closest('.app-module-compat'));
+    const activeMap = new Map(activeElements.map((element, index) => [activeKey(element, index), element]));
+    state.active?.forEach((key) => {
+      const element = activeMap.get(key);
+      if (element && !element.classList.contains('active')) element.click();
+    });
+
+    requestAnimationFrame(() => {
+      content.scrollTo(state.contentScroll || { top: 0, left: 0 });
+      const scrollables = [...outlet.querySelectorAll('main, [data-module-scroll]')]
+        .filter((element) => !element.closest('.app-module-compat'));
+      state.scrollables?.forEach((entry) => {
+        const element = entry.key.startsWith('index:') ? scrollables[Number(entry.key.slice(6))] : document.getElementById(entry.key);
+        element?.scrollTo({ top: entry.top, left: entry.left });
+      });
+    });
+  }
+
+  function loadScript(src, marker = 'resource') {
+    const absolute = new URL(src, document.baseURI).href;
+    const existing = [...document.scripts].find((script) => script.src === absolute);
+    if (existing) {
+      if (existing.dataset.loaded === 'true' || !existing.dataset.appDynamic) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        existing.addEventListener('load', resolve, { once: true });
+        existing.addEventListener('error', reject, { once: true });
+      });
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.dataset.appDynamic = marker;
+      script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
+      script.addEventListener('error', () => reject(new Error(`无法加载脚本：${src}`)), { once: true });
+      document.head.append(script);
+    });
+  }
+
+  function moduleResource(src) {
+    return /^(?:[a-z]+:|\/|data:)/i.test(src) ? src : `${RESOURCE_ROOT}${src}`;
+  }
+
+  function loadStyle(href) {
+    const resourceHref = /^(?:[a-z]+:|\/|data:)/i.test(href) ? href : `${RESOURCE_ROOT}${href}`;
+    const absolute = new URL(resourceHref, document.baseURI).href;
+    if ([...document.styleSheets].some((sheet) => sheet.href === absolute)) return;
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = resourceHref;
+    link.dataset.appModuleStyle = currentRoute.id;
+    document.head.append(link);
+  }
+
+  function runInlineScript(source, index) {
+    const script = document.createElement('script');
+    script.dataset.appModuleScript = `${currentRoute.id}:${index}`;
+    script.textContent = `${source}\n//# sourceURL=yundeng-module-${currentRoute.id}-${index}.js`;
+    document.body.append(script);
+  }
+
+  function disableInvoiceAnnotations(route) {
+    if (route.id !== 'invoice-management') return;
+    const moduleRoot = outlet.querySelector('[data-module-root="invoice-management"]');
+    if (!moduleRoot) return;
+    const toggle = moduleRoot.querySelector('#invoiceAnnoToggle');
+    const popup = moduleRoot.querySelector('#invoiceAnnoPopup');
+    const layer = moduleRoot.querySelector('#invoiceAnnoLayer');
+    if (toggle) {
+      toggle.remove();
+    }
+    if (popup) {
+      popup.remove();
+    }
+    if (layer) {
+      layer.replaceChildren();
+      layer.hidden = true;
+      layer.setAttribute('aria-hidden', 'true');
+    }
+    const stripAnchors = () => moduleRoot.querySelectorAll('[data-anno]').forEach((element) => element.removeAttribute('data-anno'));
+    stripAnchors();
+    const anchorObserver = new MutationObserver(stripAnchors);
+    anchorObserver.observe(moduleRoot, { childList: true, subtree: true, attributes: true, attributeFilter: ['data-anno'] });
+  }
+
+  function rewriteLegacyLink(anchor) {
+    const raw = anchor.getAttribute('href');
+    if (!raw || raw.startsWith('#') || /^(javascript:|mailto:|tel:)/i.test(raw)) return;
+    let url;
+    try { url = new URL(raw, document.baseURI); } catch (_) { return; }
+    if (url.origin !== location.origin && location.protocol !== 'file:') return;
+    const file = decodeURIComponent(url.pathname.split('/').pop() || '');
+    let routeId = legacyRoutes[file];
+    if ((file === '系统框架.html' || file === 'index.html') && url.hash) routeId = decodeURIComponent(url.hash.slice(1));
+    if (!routeId) return;
+    anchor.href = routeHref(routeId, url.search);
+    anchor.dataset.appRoute = routeId;
+  }
+
+  function rewriteLegacyLinks(root = outlet) {
+    root.querySelectorAll?.('a[href]').forEach(rewriteLegacyLink);
+  }
+
+  async function loadModule(route) {
+    outlet.innerHTML = '<div class="app-route-loading" role="status"><div><span class="app-spinner"></span><span>正在加载业务模块</span></div></div>';
+    if (!route.module) {
+      renderPlanning(route);
+      return;
+    }
+
+    const bundle = INLINE_BUNDLE && INLINE_BUNDLE.id === route.module ? INLINE_BUNDLE : null;
+    if (!bundle) throw new Error(`当前页面未内嵌模块：${route.module}`);
+
+    bundle.styleLinks.forEach(loadStyle);
+    bundle.styles.forEach((css, index) => {
+      const style = document.createElement('style');
+      style.dataset.appModuleStyle = `${route.id}:${index}`;
+      style.textContent = css;
+      document.head.append(style);
+    });
+
+    // Page-local dependencies are embedded in this HTML file.
+
+    outlet.innerHTML = bundle.html;
+    rewriteLegacyLinks();
+    const observer = new MutationObserver((records) => {
+      records.forEach((record) => record.addedNodes.forEach((node) => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          if (node.matches?.('a[href]')) rewriteLegacyLink(node);
+          rewriteLegacyLinks(node);
+        }
+      }));
+    });
+    observer.observe(outlet, { childList: true, subtree: true });
+
+    window.lucide?.createIcons();
+    bundle.scripts.forEach(runInlineScript);
+    window.lucide?.createIcons();
+    disableInvoiceAnnotations(route);
+    moduleReady = true;
+    restoreModuleState();
+  }
+
+  function renderPlanning(route) {
+    outlet.innerHTML = `<section class="app-planning"><div class="app-planning-inner"><div class="app-planning-copy"><span class="app-planning-icon">${icon('calendar-clock', 'w-6 h-6')}</span><h1>${route.label}</h1><p>${route.description}。该模块已纳入统一系统框架，目前保留稳定路由入口，业务内容将在后续里程碑中开发。</p></div></div></section>`;
+    window.lucide?.createIcons();
+    moduleReady = true;
+  }
+
+  function renderLoadError(error) {
+    console.error(error);
+    outlet.innerHTML = `<section class="app-planning"><div class="app-planning-inner"><div class="app-planning-copy"><span class="app-planning-icon">${icon('triangle-alert', 'w-6 h-6')}</span><h1>模块加载失败</h1><p>${String(error.message || error)}</p><button type="button" class="app-account-action mt-4 justify-center" id="appRetryModule">重新加载</button></div></div></section>`;
+    $('appRetryModule')?.addEventListener('click', () => location.reload());
+    window.lucide?.createIcons();
+  }
+
+  function navigate(routeId) {
+    const target = resolveRoute(routeId);
+    captureModuleState();
+    closeMobileSidebar();
+    closeCompactFlyout();
+    if (target.id === currentRoute.id) {
+      content.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    location.assign(routeHref(target.id, location.search));
+  }
+
+  function scheduleReload() {
+    if (reloadScheduled) return;
+    reloadScheduled = true;
+    captureModuleState();
+    location.reload();
+  }
+
+  function bindEvents() {
+    $('appCollapseButton').addEventListener('click', () => setSidebarCompact(!sidebar.classList.contains('is-compact')));
+    $('appMobileMenu').addEventListener('click', openMobileSidebar);
+    $('appMobileOverlay').addEventListener('click', closeMobileSidebar);
+    $('appNoticeButton').addEventListener('click', (event) => { event.stopPropagation(); togglePopover('appNoticePopover'); });
+    $('appAccountButton').addEventListener('click', (event) => { event.stopPropagation(); togglePopover('appAccountPopover'); });
+    $('appReadAll').addEventListener('click', () => { notices.forEach((item) => { item.unread = false; }); renderNotices(); $('appNoticeDot').hidden = true; toast('通知已全部标记为已读'); });
+
+    document.addEventListener('click', (event) => {
+      const routeLink = event.target.closest('[data-app-route]');
+      if (routeLink) {
+        event.preventDefault();
+        navigate(routeLink.dataset.appRoute);
+        return;
+      }
+      const groupButton = event.target.closest('[data-app-group]');
+      if (groupButton) {
+        const groupId = groupButton.dataset.appGroup;
+        if (sidebar.classList.contains('is-compact') && innerWidth >= 768) {
+          renderCompactFlyout(groupId, groupButton);
+        } else {
+          groupState[groupId] = groupButton.getAttribute('aria-expanded') !== 'true';
+          writeJson(GROUP_STATE_KEY, groupState);
+          renderNavigation();
+        }
+        return;
+      }
+      if (!event.target.closest('.app-popover, #appNoticeButton, #appAccountButton')) closePopovers();
+      if (!event.target.closest('#appCompactFlyout, [data-app-group]')) closeCompactFlyout();
+      const globalAction = event.target.closest('[data-app-global-action]');
+      if (globalAction) toast(`${globalAction.textContent.trim()}将在对应功能模块开放`);
+    });
+
+    window.addEventListener('hashchange', scheduleReload);
+    window.addEventListener('popstate', scheduleReload);
+    window.addEventListener('pagehide', captureModuleState);
+    window.addEventListener('beforeunload', captureModuleState);
+    window.addEventListener('resize', () => {
+      if (innerWidth >= 768) closeMobileSidebar();
+      closeCompactFlyout();
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape') return;
+      closePopovers();
+      closeCompactFlyout();
+      closeMobileSidebar();
+    });
+  }
+
+  async function init() {
+    if (!location.hash || !routes.has(decodeURIComponent(location.hash.slice(1)))) {
+      history.replaceState(null, '', `${location.pathname}${location.search}#${currentRoute.id}`);
+    } else if (routes.get(decodeURIComponent(location.hash.slice(1)))?.group) {
+      history.replaceState(null, '', `${location.pathname}${location.search}#${currentRoute.id}`);
+    }
+    setSidebarCompact(readSidebarCompact());
+    document.body.dataset.appRoute = currentRoute.id;
+    renderNavigation();
+    renderRouteTitle();
+    renderNotices();
+    bindEvents();
+    window.lucide?.createIcons();
+    try { await loadModule(currentRoute); } catch (error) { renderLoadError(error); }
+  }
+
+  window.YundengAppShell = {
+    navigation,
+    legacyRoutes,
+    navigate,
+    captureModuleState,
+    routeHref
+  };
+
+  init();
+})();
+</script>
+</body>
+</html>

@@ -264,22 +264,24 @@
 
 ### 5.4 筛选区
 
-> 筛选区统一采用“右对齐标签 + 300px 定宽控件 + 流式换行”的响应式布局。查询控件基准宽度固定为 300px，字段名称与组件之间不留水平间距；单行最多展示 4 个查询条件，可用宽度不足时按 4→3→2→1 项自然换行，不产生页面级横向滚动。
+> 筛选区统一采用“右对齐标签 + 300px 定宽控件 + 自适应栅格”的响应式布局。查询控件基准宽度固定为 300px，字段名称与组件之间不留水平间距；单行按可用宽度尽可能展示更多查询条件，不固定列数，列间保持栅栏对齐，不产生页面级横向滚动。
 
-**容器 `.filter-flow`**：`display:flex; flex-wrap:wrap; align-items:center; column-gap:16px; row-gap:12px; max-width:1776px;`。横向间距 16px 用于区分不同查询维度；换行后的上下两行保持 12px 间距。最大宽度可容纳 4 个完整筛选项及末尾查询操作组，但不能容纳第 5 个筛选项。
+**容器 `.filter-flow`**：`display:grid; grid-template-columns:repeat(auto-fill,minmax(388px,1fr)); align-items:center; column-gap:16px; row-gap:12px; width:100%; max-width:none;`。388px 为 88px 标签与 300px 控件的最小组合宽度；栅格按容器可用宽度自动决定每行列数，横向间距 16px 用于区分不同查询维度，换行后的上下两行保持 12px 间距。使用 `auto-fill` 保留空轨道，确保不同数据行的标签和控件起始边缘持续对齐。
 
-**筛选项 `.filter-item`**：`flex:0 0 388px; width:388px; display:flex; flex-direction:row; align-items:center; gap:0;`。388px 由 88px 标签和 300px 控件组成，标签与组件直接相邻，不增加 margin 或 padding 形成额外间距。
+**筛选项 `.filter-item`**：`min-width:0; width:100%; display:flex; flex-direction:row; align-items:center; gap:0;`。栅格轨道最小宽度为 388px，由 88px 标签和 300px 控件组成；标签与组件直接相邻，不增加 margin 或 padding 形成额外间距。
 
 **标签 `.filter-label`**：标签位于控件左侧并右对齐，`width:88px; flex:none; text-align:right; font-size:13px; line-height:18px; color:#3A3F4A;`；通过 `::after` 统一追加中文冒号 `：`。控件起始边缘在同一筛选项内左对齐。
 
 **控件 `.control`**：筛选区内使用 `width:300px; max-width:100%;`。非筛选表单继续按对应组件规范确定宽度。
+
+**范围组件 `.range-control`**：最小值-最大值组合整体使用 `width:300px; max-width:100%;`，内部两个输入框平分剩余空间，分隔符固定占位；组件总宽度不得因输入框宽度叠加而超过 300px。
 
 - 内部 `input` / `select`：`width:100%; height:32px; font-size:14px; padding:0 8px; border-radius:4px; border:1px solid #DFE1E5; color:#3A3F4A; outline:none; font-family:inherit; background:#fff;`
 - placeholder 样式：`color:#9DA2AC; font-size:14px;`
 - focus 态：`border-color:#0066FF; box-shadow:0 0 0 2px rgba(0,102,255,.12);`
 - select 下拉箭头使用内联 SVG background-image 替代浏览器默认样式，`padding-right:24px;`
 
-**日期范围 `.date-range`**：筛选区使用一个 300px 组合输入组件，`display:flex; align-items:center; gap:4px; position:relative;`，内部依次为日历图标、开始日期、分隔符和结束日期；字段名与该组件间距仍为 0px。
+**日期范围 `.date-range`**：筛选区使用一个 300px 组合输入组件，`display:flex; align-items:center; gap:0; position:relative; border:1px solid line;`，内部依次为开始时间、分隔符、结束时间和右侧日历图标；内部只读输入框使用透明背景，外层描边必须完整可见，字段名与该组件间距仍为 0px。
 
 - 分隔符 `.date-sep`：`font-size:14px; color:#9DA2AC; flex-shrink:0; margin:0 2px;`
 - 日期输入框使用只读 `type="text"` + `placeholder` 展示提示文字，点击组件任意输入区域展开自定义日期范围下拉框，不再依赖浏览器原生单日期面板。
@@ -291,9 +293,9 @@
 
 **查询/重置按钮**使用 `.filter-actions` 作为一个不可拆分的末尾操作组，紧跟最后一个查询条件右侧；按钮间距 12px，高度 32px。操作组不得通过绝对定位或空标签占位实现，容器不足时应整体换行。
 
-**筛选字段顺序建议**：搜索框放第一位，日期范围合并为一个字段（`创建时间：[开始时间 - 结束时间]`），其余按业务优先级排列。单行最多 4 个查询条件，超过 4 个从下一行继续；查询/重置始终位于全部条件之后。
+**筛选字段顺序建议**：搜索框放第一位，日期范围合并为一个字段（`创建时间：[开始时间 - 结束时间]`），其余按业务优先级排列。每行根据可用宽度自动排布，查询/重置始终位于全部条件之后。
 
-**响应式降级**：当筛选区可用宽度不足 388px 时，`.filter-item` 切换为 `width:100%`，仍保持标签在左、控件在右；控件使用剩余宽度并允许小于 300px，操作组保持左对齐并整组换行。其余宽度保持 300px 控件基准宽度，由 Flex 容器依据实际可用宽度决定每行展示数量。
+**响应式降级**：当筛选区可用宽度不足 388px 时，`.filter-flow` 切换为单列栅格，`.filter-item` 使用 `width:100%`，仍保持标签在左、控件在右；所有筛选组件在可用空间不小于 300px 时均保持 300px，只有空间不足 300px 时才压缩至可用宽度。操作组保持左对齐并整组换行；其余宽度保持 300px 控件基准宽度，由栅格依据实际可用宽度决定每行展示数量。
 
 **搜索框清空按钮**：搜索输入框在有内容时，右侧显示清空按钮 `✕`（位于搜索图标对面），点击后清空输入内容并保持焦点；无内容时按钮隐藏。清空按钮样式：`position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;font-size:12px;color:#9DA2AC;cursor:pointer`，hover 时颜色变深 `#6E7685`。
 

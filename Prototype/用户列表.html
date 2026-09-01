@@ -365,7 +365,619 @@ a { -webkit-tap-highlight-color: transparent; }
   <div id="appToastContainer" class="app-toast-container" aria-live="polite"></div>
 </div>
 
-<script>window.__YundengInlineRoute="user-list";window.__YundengInlineBundle=null;</script>
+<script>window.__YundengInlineRoute="user-list";window.__YundengInlineBundle={"id":"user-list","file":"用户列表.html","title":"用户列表","html":"<section class=\"app-business-module user-list-module\" data-module-root=\"user-list\" aria-label=\"用户列表\"><main id=\"userMain\" class=\"w-full max-w-none p-4\" tabindex=\"-1\"><section class=\"w-full max-w-none bg-white rounded-lg border-0 p-5 md:p-6 mb-4\" aria-label=\"用户筛选\"><form id=\"filterForm\" class=\"filter-flow is-collapsed\"><div class=\"filter-item\"><label class=\"filter-label\" for=\"registeredRange\">注册时间<\/label><div id=\"registeredRange\" class=\"control date-range\"><i data-lucide=\"calendar-days\" class=\"date-icon\"><\/i><input readonly placeholder=\"开始日期\"><span class=\"date-sep\">-<\/span><input readonly placeholder=\"结束日期\"><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"mobileFilter\">手机号<\/label><div class=\"control search-control\"><input id=\"mobileFilter\" placeholder=\"手机号\"><button class=\"clear-btn\" type=\"button\" aria-label=\"清空手机号\" data-clear=\"mobileFilter\">×<\/button><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"emailFilter\">邮箱<\/label><div class=\"control search-control\"><input id=\"emailFilter\" placeholder=\"邮箱\"><button class=\"clear-btn\" type=\"button\" aria-label=\"清空邮箱\" data-clear=\"emailFilter\">×<\/button><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"usedMobileFilter\">曾用手机号<\/label><div class=\"control search-control\"><input id=\"usedMobileFilter\" placeholder=\"曾用手机号\"><button class=\"clear-btn\" type=\"button\" aria-label=\"清空曾用手机号\" data-clear=\"usedMobileFilter\">×<\/button><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"usedEmailFilter\">曾用邮箱<\/label><div class=\"control search-control\"><input id=\"usedEmailFilter\" placeholder=\"曾用邮箱\"><button class=\"clear-btn\" type=\"button\" aria-label=\"清空曾用邮箱\" data-clear=\"usedEmailFilter\">×<\/button><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"lastLoginRange\">最后登录时间<\/label><div id=\"lastLoginRange\" class=\"control date-range\"><i data-lucide=\"calendar-days\" class=\"date-icon\"><\/i><input readonly placeholder=\"开始日期\"><span class=\"date-sep\">-<\/span><input readonly placeholder=\"结束日期\"><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"loginPortFilter\">登录端口<\/label><select id=\"loginPortFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"client\">客户端<\/option><option value=\"mobile\">移动端<\/option><option value=\"wechat\">微信小程序<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"keywordFilter\">关键词<\/label><div class=\"control search-control\"><input id=\"keywordFilter\" placeholder=\"关键词\"><button class=\"clear-btn\" type=\"button\" aria-label=\"清空关键词\" data-clear=\"keywordFilter\">×<\/button><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"pulledFilter\">是否拉起支付<\/label><select id=\"pulledFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"yes\">是<\/option><option value=\"no\">否<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"payStatusFilter\">付费状态<\/label><select id=\"payStatusFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"paid\">已付费<\/option><option value=\"unpaid\">未付费<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"amountRangeMin\">付费金额<\/label><div class=\"control range-control\"><input id=\"amountRangeMin\" placeholder=\"最小值\"><span>-<\/span><input id=\"amountRangeMax\" placeholder=\"最大值\"><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"balanceRangeMin\">账户余额<\/label><div class=\"control range-control\"><input id=\"balanceRangeMin\" placeholder=\"最小值\"><span>-<\/span><input id=\"balanceRangeMax\" placeholder=\"最大值\"><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"consumeRangeMin\">消费金额<\/label><div class=\"control range-control\"><input id=\"consumeRangeMin\" placeholder=\"最小值\"><span>-<\/span><input id=\"consumeRangeMax\" placeholder=\"最大值\"><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"ipFilter\">IP<\/label><div class=\"control search-control\"><input id=\"ipFilter\" placeholder=\"ip\"><button class=\"clear-btn\" type=\"button\" aria-label=\"清空IP\" data-clear=\"ipFilter\">×<\/button><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"abnormalFilter\">异常用户<\/label><select id=\"abnormalFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"yes\">是<\/option><option value=\"no\">否<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"channelFilter\">渠道<\/label><select id=\"channelFilter\" class=\"control\"><option value=\"all\">请选择渠道<\/option><option value=\"mini\">新媒体-小程序<\/option><option value=\"sem\">SEM-必应<\/option><option value=\"organic\">谷歌自然流量<\/option><option value=\"partner\">渠道代理<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"sourcePageFilter\">来源页面<\/label><select id=\"sourcePageFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"wechat\">微信公众号菜单栏<\/option><option value=\"official\">官网<\/option><option value=\"cloud\">云登浏览器<\/option><option value=\"ad\">搜索广告<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"paymentRange\">支付时间<\/label><div id=\"paymentRange\" class=\"control date-range\"><i data-lucide=\"calendar-days\" class=\"date-icon\"><\/i><input readonly placeholder=\"开始日期\"><span class=\"date-sep\">-<\/span><input readonly placeholder=\"结束日期\"><\/div><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"inviteFilter\">是否海鸥邀请<\/label><select id=\"inviteFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"yes\">是<\/option><option value=\"no\">否<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"authFilter\">认证类型<\/label><select id=\"authFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"personal\">个人<\/option><option value=\"enterprise\">企业<\/option><option value=\"none\">未认证<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"inviteTypeFilter\">邀请类型<\/label><select id=\"inviteTypeFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"team\">团队邀请<\/option><option value=\"platform\">平台代理<\/option><option value=\"none\">无<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"versionFilter\">终端版本<\/label><select id=\"versionFilter\" class=\"control\"><option value=\"all\">终端版本<\/option><option value=\"Windows\">Windows<\/option><option value=\"Mac\">Mac<\/option><option value=\"Android\">Android<\/option><option value=\"iOS\">iOS<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"registerTypeFilter\">注册类型<\/label><select id=\"registerTypeFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"personal\">个人<\/option><option value=\"enterprise\">企业<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"cloudFilter\">是否使用云浏览器<\/label><select id=\"cloudFilter\" class=\"control\"><option value=\"all\">请选择<\/option><option value=\"yes\">是<\/option><option value=\"no\">否<\/option><\/select><\/div><div class=\"filter-item\"><label class=\"filter-label\" for=\"userIdFilter\">用户ID<\/label><div class=\"control search-control\"><input id=\"userIdFilter\" placeholder=\"输入用户ID\"><button class=\"clear-btn\" type=\"button\" aria-label=\"清空用户ID\" data-clear=\"userIdFilter\">×<\/button><\/div><\/div><div class=\"filter-actions\"><button class=\"btn btn-primary\" type=\"submit\"><i data-lucide=\"search\" class=\"w-4 h-4\"><\/i>查询<\/button><button id=\"resetBtn\" class=\"btn btn-default\" type=\"button\"><i data-lucide=\"rotate-ccw\" class=\"w-4 h-4\"><\/i>重置<\/button><button id=\"foldBtn\" class=\"btn btn-text\" type=\"button\" aria-expanded=\"false\"><i data-lucide=\"chevron-down\" class=\"w-4 h-4\"><\/i><span>展开<\/span><\/button><\/div><\/form><\/section><section class=\"w-full max-w-none bg-white rounded-lg border-0 p-5 md:p-6\"><div class=\"list-header\"><div class=\"flex items-center gap-3 flex-wrap\"><h2 class=\"text-[16px] font-semibold text-ink-title\">用户列表<\/h2><span id=\"resultCount\" class=\"text-[12px] text-ink-muted\">共 0 条<\/span><div class=\"batch-actions in-list\"><button class=\"btn btn-primary\" type=\"button\" data-batch=\"copy\">一键复制<\/button><button class=\"btn btn-primary\" type=\"button\" data-batch=\"cancel-test\">取消测试<\/button><button class=\"btn btn-primary\" type=\"button\" data-batch=\"set-test\">设为测试<\/button><button class=\"btn btn-primary\" type=\"button\" data-batch=\"source\">修改来源<\/button><button class=\"btn btn-primary\" type=\"button\" data-batch=\"enable\">取消禁用<\/button><button class=\"btn btn-primary\" type=\"button\" data-batch=\"disable\">设置禁用<\/button><\/div><\/div><div class=\"flex items-center gap-2\"><button id=\"refreshBtn\" class=\"btn btn-default\" type=\"button\"><i data-lucide=\"refresh-cw\" class=\"w-4 h-4\"><\/i>刷新<\/button><button id=\"exportBtn\" class=\"btn btn-primary\" type=\"button\"><i data-lucide=\"download\" class=\"w-4 h-4\"><\/i>导出查询结果<\/button><\/div><\/div><div class=\"today-panel\"><h3 class=\"text-[16px] font-semibold text-ink-title\">今日统计<\/h3><div id=\"todayStats\" class=\"today-grid\"><\/div><\/div><div class=\"table-toolbar\"><div id=\"selectionInfo\" class=\"text-[12px] text-ink-muted\">已选 0 条<\/div><\/div><div class=\"overflow-x-auto\" id=\"tableScroll\"><table class=\"data-table user-table\"><thead id=\"tableHead\"><\/thead><tbody id=\"tableBody\"><\/tbody><\/table><\/div><div class=\"empty-state hidden\" id=\"emptyState\"><i data-lucide=\"inbox\" class=\"w-8 h-8\"><\/i><p>暂无符合条件的用户<\/p><\/div><div class=\"pagination pt-5\" id=\"pagination\"><div class=\"pg-nav\" id=\"pgNav\"><\/div><label class=\"pg-select-wrap\"><select id=\"pageSize\" class=\"pg-select\" aria-label=\"每页条数\"><option value=\"10\">10 条/页<\/option><option value=\"20\" selected>20 条/页<\/option><option value=\"50\">50 条/页<\/option><\/select><\/label><div class=\"pg-jump\">跳至 <input id=\"jumpPage\" class=\"pg-jump-input\" value=\"1\" inputmode=\"numeric\" aria-label=\"跳转页码\"> 页 <span id=\"pgStats\" class=\"pg-stats\">共 0 条记录　第 1/1 页<\/span><\/div><\/div><\/section><\/main><div id=\"sourceModal\" class=\"modal-layer hidden\"><div class=\"modal-panel\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"sourceTitle\"><div class=\"modal-head\"><h2 id=\"sourceTitle\">修改用户来源<\/h2><button id=\"sourceClose\" class=\"modal-close\" type=\"button\" aria-label=\"关闭\">×<\/button><\/div><div class=\"modal-body\"><div class=\"form-line\"><label for=\"sourceInput\">来源唯一标识码或 linkuuid：<\/label><input id=\"sourceInput\" maxlength=\"64\"><span id=\"sourceError\" class=\"form-error\"><\/span><\/div><\/div><div class=\"modal-foot\"><button id=\"sourceCancel\" class=\"btn btn-default\" type=\"button\">取消<\/button><button id=\"sourceConfirm\" class=\"btn btn-primary\" type=\"button\">确认<\/button><\/div><\/div><\/div><div id=\"confirmDialog\" class=\"dialog-layer hidden\"><div class=\"dialog-panel\" role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"dialogTitle\"><button id=\"dialogClose\" class=\"dialog-close\" type=\"button\" aria-label=\"关闭\">×<\/button><div class=\"dialog-content\"><span class=\"dialog-ico\">?<\/span><div><h2 id=\"dialogTitle\">确认操作<\/h2><p id=\"dialogDesc\"><\/p><\/div><\/div><div class=\"dialog-foot\"><button id=\"dialogCancel\" class=\"btn btn-default\" type=\"button\">取消<\/button><button id=\"dialogConfirm\" class=\"btn btn-primary\" type=\"button\">确认<\/button><\/div><\/div><\/div><div id=\"toastContainer\" class=\"toast-container\" aria-live=\"polite\"><\/div><\/section>","styles":[".user-list-module{width:100%;max-width:none}.filter-flow{display:flex;flex-wrap:wrap;align-items:center;column-gap:16px;row-gap:12px;max-width:1776px}.filter-item{flex:0 0 388px;width:388px;display:flex;align-items:center;gap:0}.filter-label{width:88px;flex:none;text-align:right;font-size:13px;line-height:18px;color:#3A3F4A;white-space:nowrap}.filter-label::after{content:\"：\"}.control{width:300px;max-width:100%;height:32px}.control input,.control select,select.control,input.control{width:100%;height:32px;font-size:14px;padding:0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none;font-family:inherit;background:#fff}.control input::placeholder{color:#9DA2AC}.control input:focus,.control select:focus,select.control:focus,input.control:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12)}select.control{padding-right:24px;appearance:none;-webkit-appearance:none;background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239DA2AC' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\");background-repeat:no-repeat;background-position:right 8px center}.date-range{display:flex;align-items:center;gap:4px;position:relative;border:1px solid #DFE1E5;border-radius:4px;background:#fff;padding:0 8px}.date-range:focus-within{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12)}.date-range input{border:0!important;box-shadow:none!important;padding:0;width:118px;font-size:14px}.date-icon{width:14px;height:14px;color:#9DA2AC;flex:none}.date-sep{font-size:14px;color:#9DA2AC;flex:none;margin:0 2px}.search-control{position:relative}.search-control input{padding-right:28px}.clear-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:16px;height:16px;border:0;background:transparent;color:#9DA2AC;font-size:12px;line-height:16px;cursor:pointer;display:none}.range-control{display:flex;align-items:center;gap:6px}.range-control input{width:132px}.range-control span{color:#9DA2AC}.filter-actions{display:flex;align-items:center;gap:12px;flex:none}.filter-flow.is-collapsed .filter-item:nth-of-type(n+5){display:none}.filter-flow.is-collapsed{max-width:1776px}.btn{height:32px;padding:0 14px;border-radius:4px;font-size:13px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;cursor:pointer}.btn-primary{background:#0066FF;color:#fff;border:1px solid #0066FF}.btn-primary:hover{background:#0052CC;border-color:#0052CC}.btn-default{background:#fff;color:#3A3F4A;border:1px solid #DFE1E5}.btn-default:hover{background:#F3F4F6}.btn-text{border:0;background:#fff;color:#3A3F4A;padding:0 8px}.btn-danger{background:#D9001B;color:#fff;border:1px solid #D9001B}.batch-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.batch-actions.in-list{margin-left:8px}.list-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;border-bottom:1px solid #E8EAED;padding-bottom:12px}.today-panel{margin-bottom:16px}.today-grid{display:grid;grid-template-columns:repeat(11,minmax(108px,1fr));gap:12px;margin-top:12px}.today-item{min-height:78px;padding:12px;border:1px solid #E8EAED;border-radius:6px;background:#F7F8FA;color:#3A3F4A;min-width:0}.today-label{display:block;color:#6E7685;font-size:12px;line-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.today-item .mono{display:block;margin-top:5px;color:#1A1D24;font:600 18px/24px \"JetBrains Mono\",monospace;font-variant-numeric:tabular-nums}.table-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap;border-top:1px solid #E8EAED;padding-top:12px;margin-bottom:16px}.filter-tabs{display:inline-flex;align-items:center;flex-wrap:wrap}.filter-tab{height:30px;padding:0 12px;border:1px solid #DFE1E5;background:#fff;color:#6E7685;font-size:12px;margin-left:-1px}.filter-tab:first-child{margin-left:0;border-radius:4px 0 0 4px}.filter-tab:last-child{border-radius:0 4px 4px 0}.filter-tab.active{position:relative;z-index:1;border-color:#0066FF;background:#E6F0FF;color:#0066FF;font-weight:600}.data-table{width:100%;border-collapse:collapse;font-size:13px}.data-table th{padding:9px 12px;text-align:left;white-space:nowrap;font-size:12px;font-weight:600;color:#6E7685;background:#F0F1F3;border-bottom:1px solid #DFE1E5}.data-table td{padding:9px 12px;text-align:left;color:#3A3F4A;border-bottom:1px solid #F0F1F3;vertical-align:middle}.data-table tbody tr:hover{background:#F3F4F6}.user-table{min-width:2860px}.select-col{width:46px}.info-dot{display:inline-flex;width:14px;height:14px;align-items:center;justify-content:center;border-radius:50%;background:#3A3F4A;color:#fff;font-size:10px}.status-success{color:#0FC060;font-weight:500}.status-danger{color:#D9001B;font-weight:500}.status-warning{color:#E7772D;font-weight:500}.status-muted{color:#9DA2AC}.action-links{display:flex;flex-direction:column;align-items:flex-start;gap:4px}.action-links button{white-space:nowrap}.user-table th:last-child,.user-table td:last-child{position:sticky;right:0;z-index:2;background:#fff;box-shadow:-1px 0 0 #E8EAED}.user-table th:last-child{z-index:3;background:#F0F1F3}.user-table tbody tr:hover td:last-child{background:#F3F4F6}.action-links button,.inline-link{border:0;background:transparent;color:#0066FF;font-weight:600;cursor:pointer}.empty-state{display:grid;place-items:center;min-height:220px;color:#9DA2AC;gap:8px}.empty-state.hidden{display:none!important}.pagination{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:16px;font-size:12px}.pg-nav{display:flex;gap:4px}.pg-btn{min-width:30px;height:30px;padding:0 8px;font:500 12px inherit;color:#3A3F4A;background:#fff;border:1px solid #DFE1E5;border-radius:4px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}.pg-current{background:#0066FF!important;border-color:#0066FF!important;color:#fff!important}.pg-btn:disabled{color:#C7CAD1;background:#F7F8FA;cursor:not-allowed}.pg-ellipsis{min-width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;color:#9DA2AC}.pg-select-wrap{position:relative;display:inline-flex;align-items:center}.pg-select-wrap::after{content:\"▼\";position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none}.pg-select{font:12px inherit;height:30px;padding:0 28px 0 8px;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none}.pg-jump{display:flex;align-items:center;gap:6px;color:#6E7685}.pg-jump-input{font:12px inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none}.pg-stats{color:#9DA2AC;white-space:nowrap}.modal-layer,.dialog-layer{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}.modal-layer.hidden,.dialog-layer.hidden{display:none!important}.modal-panel{width:760px;max-width:92vw;background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);display:flex;flex-direction:column}.modal-head{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid #E8EAED}.modal-head h2{font-size:16px;font-weight:600;color:#1A1D24}.modal-close,.dialog-close{border:0;background:transparent;color:#9DA2AC;font-size:20px;cursor:pointer}.modal-body{padding:32px 24px}.form-line{display:grid;grid-template-columns:180px 400px;align-items:start;justify-content:center;gap:0}.form-line label{text-align:right;line-height:32px;color:#3A3F4A}.form-line input{width:400px;height:30px;border:1px solid #DFE1E5;border-radius:4px;padding:0 8px;outline:none}.form-error{grid-column:2;color:#D9001B;font-size:12px;margin-top:6px;min-height:18px}.modal-foot{height:56px;display:flex;align-items:center;justify-content:flex-end;gap:12px;padding:0 24px;border-top:1px solid #E8EAED}.dialog-panel{width:600px;max-width:92vw;height:250px;background:#fff;border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);display:flex;flex-direction:column;position:relative}.dialog-close{position:absolute;top:14px;right:18px}.dialog-content{flex:1;display:flex;align-items:center;padding:0 24px}.dialog-ico{width:20px;height:20px;border-radius:50%;flex-shrink:0;background:#FDF2E9;color:#E7772D;display:inline-flex;align-items:center;justify-content:center;font-weight:600}.dialog-content>div{margin-left:12px}.dialog-content h2{font-size:16px;font-weight:600;color:#1A1D24}.dialog-content p{font-size:14px;color:#6E7685;margin-top:6px}.dialog-foot{padding:0 24px 20px;display:flex;justify-content:flex-end;gap:12px}.toast-container{position:fixed;top:16px;left:50%;z-index:1300;transform:translateX(-50%);pointer-events:none}.toast{margin-bottom:8px;padding:8px 16px;border-radius:4px;background:#3A3F4A;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.12);font-size:13px}@media(max-width:980px){.filter-item{flex:0 0 100%;width:100%}.control{width:calc(100% - 88px)}.today-grid{grid-template-columns:repeat(4,minmax(118px,1fr));overflow-x:auto}.range-control input{width:calc((100% - 18px)/2)}}@media(max-width:520px){.today-grid{grid-template-columns:repeat(2,minmax(128px,1fr));overflow-x:auto}.pagination{align-items:flex-start;justify-content:flex-start;flex-direction:column}.pg-jump{flex-wrap:wrap}.form-line{grid-template-columns:1fr}.form-line label{text-align:left}.form-line input{width:100%}.form-error{grid-column:1}}"],"styleLinks":[],"externalScripts":[],"scripts":["\n(function(){'use strict';var $=function(id){return document.getElementById(id)};var stats=[['今日注册数','43'],['今日付费金额','5924.53'],['今日消费金额','9221.96'],['今日新增环境数','13275'],['今日删除环境数','13309'],['今日新增平台代理数','47'],['今日即将过期代理数/今日此刻已经过期代理数','151/51'],['今日新增自有代理数','142'],['今日新增第三方API数','0'],['今日新增API接口数','105'],['今日新增成员数','3']];\nvar base=[['281644','18526283888','未付费','Android','linux,1.54','4','未使用','未使用','125.38.36.225','中国天津天津','2026-08-28 14:16:38','2026-08-28 14:17:33','新媒体-小程序 / 微信公众号菜单栏 / 小程序','移动端 微信小程序\\n客户端 Windows：4.0.3.1','276913','0 / 0','0 / 0 / 0','0 / 0\\n0 / 0\\n0 / 0','0 / 0','正常','否'],['281643','19877686500','未付费','Android','','4','未使用','未使用','117.181.67.189','中国广西百色','2026-08-28 13:51:56','2026-08-28 13:51:57','新媒体-小程序 / 微信搜索 / 小程序','移动端 微信小程序','276912','0 / 0','0 / 0 / 0','0 / 0\\n0 / 0\\n0 / 0','0 / 10\\n0 / 1','正常','否'],['281642','15923795811','已付费','windows','','1\\n黑ROM IP','未使用','未使用','182.240.76.81','中国云南曲靖','2026-08-28 13:49:48','2026-08-28 13:49:50','SEM-必应 / 云登浏览器 / 云登浏览器','客户端 Windows64','276911','1 / 0','0 / 0 / 0','0 / 0\\n0 / 0\\n0 / 0','1 / 10\\n0 / 1','正常','否'],['281641','277073030@qq.com','未付费','Mac OS','linux,3.54','1\\n代理','未使用','未使用','124.72.86.146\\n2602:f988:91:8b9::e39','中国福建厦门','2026-08-28 13:34:36','2026-08-28 13:43:02','谷歌自然流量 / 自然流量 / 官网','客户端 Mac：4.0.2.4','276910','1 / 0','0 / 0 / 0','1 / 0\\n0 / 0\\n0 / 0','1 / 10\\n0 / 1','正常','否'],['281640','15029759065','未付费','Android','','2','未使用','未使用','36.112.41.79','中国陕西西安','2026-08-28 13:15:24','','渠道代理 / 合作注册链接 / 小程序','移动端 Android：1.0.10','276909','0 / 0','0 / 1 / 0','0 / 1\\n0 / 0\\n0 / 0','0 / 10\\n0 / 1','正常','否'],['281639','181855645@qq.com','已付费','Windows','windows,4.02','0','已使用','已使用','58.246.191.12','中国上海上海','2026-08-28 12:48:08','2026-08-28 13:08:26','官网 / 价格页 / 搜索词：云登','客户端 Windows：4.0.3.1','276908','22 / 18','4 / 1 / 2','2 / 0\\n1 / 0\\n3 / 0','1 / 50\\n6 / 20','正常','否'],['281638','186****7721','未付费','iOS','','3\\n异地登录','未使用','未使用','223.104.63.88','中国广东广州','2026-08-28 11:22:10','2026-08-28 11:26:41','新媒体-小程序 / 视频号 / 小程序','移动端 iOS：1.2.0','276907','0 / 0','0 / 0 / 0','0 / 0\\n0 / 0\\n0 / 0','0 / 10\\n0 / 1','正常','否'],['281637','139****0918','已付费','Windows','linux,2.18','5\\n黑ROM IP','已使用','未使用','101.226.26.18','中国上海上海','2026-08-28 10:42:36','2026-08-28 10:49:02','SEM-必应 / 搜索广告 / 官网','客户端 Windows：4.0.3.1','276906','8 / 6','1 / 0 / 0','1 / 0\\n0 / 0\\n1 / 0','1 / 20\\n2 / 5','禁用','是'],['281636','176****3355','未付费','Android','','0','未使用','未使用','111.19.42.62','中国河南郑州','2026-08-27 19:02:16','2026-08-28 09:12:17','谷歌自然流量 / 官网 / 官网','移动端 微信小程序','276905','0 / 0','0 / 0 / 0','0 / 0\\n0 / 0\\n0 / 0','0 / 10\\n0 / 1','正常','否'],['281635','service@linkfoo.cn','已付费','Mac OS','mac,4.01','0','已使用','已使用','120.92.32.77','中国北京北京','2026-08-27 16:38:41','2026-08-28 08:51:33','渠道代理 / 代理后台 / 官网','客户端 Mac：4.0.2.4','276904','68 / 52','8 / 2 / 5','12 / 1\\n4 / 0\\n9 / 0','2 / 200\\n12 / 60','正常','否']];\nvar users=base.map(function(r,i){return{id:r[0],account:r[1],paid:r[2],os:r[3],ping:r[4],risk:r[5],cloud:r[6],api:r[7],ip:r[8],place:r[9],registered:r[10],lastLogin:r[11],channel:r[12],terminal:r[13],company:r[14],env:r[15],platform:r[16],agents:r[17],packages:r[18],status:r[19],disabled:r[20],type:i%3===0?'企业':i%3===1?'':'个人',amount:i>4?'47.84\\n47.84\\n0\\n0':'¥ 0\\n¥ 0\\n¥ 0\\n¥ 0',cycle:r[10]+' 至 2026-08-31 14:16:38'}});\nvar state={page:1,pageSize:20,selected:{}};var allColumns=['sel','type','id','account','used','paid','ping','risk','cloud','api','ip','registered','lastIp','lastLogin','channel','terminal','pulled','free','payCycle','amount','company','members','env','platform','agents','packages','cycle','invite','linked','sales','remark','status','disabled','actions'];var head={sel:'',type:'',id:'ID',account:'手机号/邮箱\\n账号名',used:'曾用手机号/邮箱',paid:'是否付费\\n系统',ping:'Ping',risk:'IP风控等级\\nIP风控标签',cloud:'云浏览器',api:'API',ip:'IP\\n所在地',registered:'注册时间',lastIp:'最后登录IP',lastLogin:'最后登录时间',channel:'渠道/关键词/来源页面/搜索词',terminal:'终端和版本',actions:'操作',pulled:'是否拉起支付\\n最后待支付时间',free:'禁用支付',payCycle:'付费周期\\n复购周期',amount:'付费金额\\n已消费金额\\n账户余额\\n赠送金额',company:'企业ID\\n企业名',members:'成员数',env:'环境数',platform:'平台代理数',agents:'自有代理数\\n三方代理数\\nAPI代理数',packages:'套餐数',cycle:'套餐周期',invite:'是否被邀请',linked:'关联账号',sales:'归属销售',remark:'备注',status:'状态',disabled:'是否禁用'};\nfunction esc(x){return String(x==null?'':x).replace(/[&<>\"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',\"'\":'&#39;'}[c]})}function br(x){return esc(x).replace(/\\\\n/g,'<br>')}function rows(){var kw=($('keywordFilter').value||'').toLowerCase();var pay=$('payStatusFilter').value;return users.filter(function(u){if(kw&&!(u.id+' '+u.account+' '+u.channel).toLowerCase().includes(kw))return false;if(pay==='paid'&&u.paid!=='已付费')return false;if(pay==='unpaid'&&u.paid!=='未付费')return false;if($('userIdFilter').value&&u.id!==$('userIdFilter').value.trim())return false;return true})}\nfunction cell(k,u){if(k==='sel')return '<td class=\"select-col\"><input data-select=\"'+u.id+'\" type=\"checkbox\" '+(state.selected[u.id]?'checked':'')+'><\/td>';if(k==='type')return '<td>'+(u.type?'<span class=\"status-danger\">'+u.type+'<\/span>':'<span class=\"status-muted\">•<\/span>')+'<\/td>';if(k==='id')return '<td class=\"mono font-semibold\">'+u.id+' <span class=\"info-dot\">i<\/span><\/td>';if(k==='paid')return '<td><span class=\"'+(u.paid==='已付费'?'status-success':'status-danger')+'\">'+u.paid+'<\/span><br>'+u.os+'<\/td>';if(k==='ping')return '<td class=\"mono\">'+br(u.ping)+(u.ping&&u.ping.indexOf('linux')>=0?'<br><span class=\"status-danger\">与系统不符<\/span>':'')+'<\/td>';if(k==='ip')return '<td class=\"mono\">ipv4：'+br(u.ip)+'<br><span class=\"status-danger\">'+u.place+'<\/span><\/td>';if(k==='company')return '<td><span class=\"mono\">'+u.company+'<\/span> <button class=\"inline-link\" type=\"button\">查看<\/button><\/td>';if(k==='actions')return '<td><div class=\"action-links\"><button data-action=\"test\" data-id=\"'+u.id+'\">设为测试<\/button><button data-action=\"source\" data-id=\"'+u.id+'\">修改来源<\/button><button data-action=\"disable\" data-id=\"'+u.id+'\">设置禁用<\/button><button data-action=\"pay\" data-id=\"'+u.id+'\">禁止支付<\/button><\/div><\/td>';var map={account:u.account,used:'',risk:u.risk,cloud:u.cloud,api:u.api,registered:u.registered,lastIp:u.lastLogin?'ipv4：'+u.ip:'',lastLogin:u.lastLogin,channel:u.channel,terminal:u.terminal,pulled:u.paid==='已付费'?'是':'否',free:'否',payCycle:u.paid==='已付费'?'30\\n7':'',amount:u.amount,members:u.type==='企业'?'6':'0',env:u.env,platform:u.platform,agents:u.agents,packages:u.packages,cycle:u.cycle,invite:u.type?'是':'否',linked:'',sales:'',remark:'',status:u.status,disabled:u.disabled};return '<td class=\"'+(['id','registered','lastLogin','amount','cycle'].indexOf(k)>=0?'mono':'')+'\">'+br(map[k])+'<\/td>'}\nfunction render(){var r=rows(),pages=Math.max(1,Math.ceil(r.length/state.pageSize));if(state.page>pages)state.page=pages;var cols=allColumns,pageRows=r.slice((state.page-1)*state.pageSize,state.page*state.pageSize);$('resultCount').textContent='共 '+r.length+' 条';$('tableHead').innerHTML='<tr>'+cols.map(function(k){return '<th'+(k==='sel'?' class=\"select-col\"':'')+'>'+(k==='sel'?'<input id=\"checkAll\" type=\"checkbox\" aria-label=\"全选当前页\">':br(head[k]))+'<\/th>'}).join('')+'<\/tr>';$('tableBody').innerHTML=pageRows.map(function(u){return '<tr>'+cols.map(function(k){return cell(k,u)}).join('')+'<\/tr>'}).join('');$('emptyState').classList.toggle('hidden',r.length>0);$('tableScroll').classList.toggle('hidden',r.length===0);renderPg(r.length,pages);updateSel();window.lucide&&window.lucide.createIcons()}\nfunction renderPg(total,pages){var nav=[],add=function(p,t,d,c){nav.push('<button class=\"pg-btn '+(c?'pg-current':'')+'\" data-page=\"'+p+'\" type=\"button\" '+(d?'disabled':'')+'>'+t+'<\/button>')};add(Math.max(1,state.page-1),'‹',state.page===1,false);for(var p=1;p<=pages;p++)add(p,p,false,p===state.page);add(Math.min(pages,state.page+1),'›',state.page===pages,false);$('pgNav').innerHTML=nav.join('');$('pgStats').textContent='共 '+total+' 条记录　第 '+state.page+'/'+pages+' 页';if(!$('jumpPage').value)$('jumpPage').value='1'}function updateSel(){var n=Object.keys(state.selected).length;$('selectionInfo').textContent='已选 '+n+' 条'}function toast(m){var e=document.createElement('div');e.className='toast';e.textContent=m;$('toastContainer').append(e);setTimeout(function(){e.remove()},2600)}function openSource(){$('sourceInput').value='';$('sourceError').textContent='';$('sourceModal').classList.remove('hidden');setTimeout(function(){$('sourceInput').focus()},0)}function closeSource(){$('sourceModal').classList.add('hidden')}function openConfirm(type,id){var u=users.filter(function(x){return x.id===String(id)})[0]||users[5];$('dialogTitle').textContent=type==='pay'?'修改支付状态':'修改禁用状态';$('dialogDesc').textContent=type==='pay'?'操作成功后无法撤回，是否禁止 '+u.account+' 支付吗？':'确定禁用 '+u.account+' 登录吗';$('confirmDialog').dataset.type=type;$('dialogConfirm').className=type==='pay'?'btn btn-danger':'btn btn-primary';$('confirmDialog').classList.remove('hidden')}function closeConfirm(){$('confirmDialog').classList.add('hidden')}\n$('todayStats').innerHTML=stats.map(function(x){return '<div class=\"today-item\"><span class=\"today-label\">'+x[0]+'：<\/span><span class=\"mono\">'+x[1]+'<\/span><\/div>'}).join('');$('filterForm').addEventListener('submit',function(e){e.preventDefault();state.page=1;state.selected={};render();toast('查询条件已生效')});$('foldBtn').addEventListener('click',function(){var f=$('filterForm'),collapsed=f.classList.toggle('is-collapsed');this.setAttribute('aria-expanded',String(!collapsed));this.innerHTML=collapsed?'<i data-lucide=\"chevron-down\" class=\"w-4 h-4\"><\/i><span>展开<\/span>':'<i data-lucide=\"chevron-up\" class=\"w-4 h-4\"><\/i><span>收起<\/span>';window.lucide&&window.lucide.createIcons()});$('resetBtn').addEventListener('click',function(){$('filterForm').reset();state.page=1;state.selected={};render();toast('筛选条件已重置')});$('refreshBtn').addEventListener('click',function(){render();toast('列表已刷新')});$('exportBtn').addEventListener('click',function(){toast('导出请求已提交')});document.querySelectorAll('[data-clear]').forEach(function(b){b.addEventListener('click',function(){var i=$(b.dataset.clear);i.value='';b.style.display='none';i.focus()})});document.querySelectorAll('input').forEach(function(i){i.addEventListener('input',function(){var b=document.querySelector('[data-clear=\"'+i.id+'\"]');if(b)b.style.display=i.value?'block':'none'})});$('tableBody').addEventListener('click',function(e){var a=e.target.closest('[data-action]');if(a){if(a.dataset.action==='source')openSource();else if(a.dataset.action==='disable')openConfirm('disable',a.dataset.id);else if(a.dataset.action==='pay')openConfirm('pay',a.dataset.id);else toast('已设置为测试用户');return}var c=e.target.closest('[data-select]');if(c){if(c.checked)state.selected[c.dataset.select]=true;else delete state.selected[c.dataset.select];updateSel()}});$('pgNav').addEventListener('click',function(e){var b=e.target.closest('[data-page]');if(!b||b.disabled)return;state.page=Number(b.dataset.page);state.selected={};render()});$('pageSize').addEventListener('change',function(){state.pageSize=Number($('pageSize').value);state.page=1;state.selected={};render()});$('jumpPage').addEventListener('keydown',function(e){if(e.key!=='Enter')return;state.page=Math.max(1,Number($('jumpPage').value)||1);$('jumpPage').value='1';state.selected={};render()});document.querySelectorAll('[data-batch]').forEach(function(b){b.addEventListener('click',function(){if(b.dataset.batch==='source')openSource();else if(b.dataset.batch==='disable')openConfirm('disable',users[5].id);else toast(b.textContent.trim()+'已执行')})});$('sourceClose').onclick=closeSource;$('sourceCancel').onclick=closeSource;$('sourceConfirm').onclick=function(){if(!$('sourceInput').value.trim()){$('sourceError').textContent='请输入来源唯一标识码或 linkuuid';return}closeSource();toast('用户来源已更新')};$('dialogClose').onclick=closeConfirm;$('dialogCancel').onclick=closeConfirm;$('dialogConfirm').onclick=function(){var t=$('confirmDialog').dataset.type;closeConfirm();toast(t==='pay'?'支付状态已更新':'禁用状态已更新')};document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeSource();closeConfirm()}});render();})();"],"usesAnnotations":false};</script>
+<script data-inline="user-list-layout-refinement">
+(function () {
+  'use strict';
+
+  var bundle = window.__YundengInlineBundle;
+  if (!bundle || bundle.id !== 'user-list') return;
+
+  var template = document.createElement('template');
+  template.innerHTML = bundle.html;
+  bundle.html = bundle.html.replace(/导出查询结果/g, '导出').replace(/开始日期/g, '开始时间').replace(/结束日期/g, '结束时间');
+  template.innerHTML = bundle.html;
+  var moduleRoot = template.content.querySelector('[data-module-root="user-list"]');
+  if (!moduleRoot) return;
+
+  bundle.scripts = bundle.scripts.map(function (script) {
+    return script
+      .replace("account:r[1],paid:r[2]", "account:r[1],commission:['15%','20%','25%','30%'][i%4],commissionEffectiveMode:'immediate',commissionEffectiveDate:'',commissionValidityMode:'permanent',commissionExpiryDate:'',paid:r[2]")
+      .replace("'linked','sales','remark'", "'linked','sales','commission','remark'")
+      .replace("sales:'归属销售',remark:'备注'", "sales:'归属销售',commission:'返佣比例',remark:'备注'")
+      .replace("linked:'',sales:'',remark:''", "linked:'',sales:'',commission:u.commission,remark:''")
+      .replace("if(k==='actions')return", "if(k==='commission')return '<td class=\"commission-cell\"><span class=\"commission-value mono\">'+u.commission+'</span><button type=\"button\" class=\"commission-edit\" data-commission-edit=\"true\" data-id=\"'+u.id+'\" aria-label=\"编辑佣金比例\" title=\"编辑佣金比例\"><i data-lucide=\"pencil\" aria-hidden=\"true\"></i></button></td>';if(k==='actions')return")
+      .replace("br(head[k]))+'</th>'", "br(head[k])+(k==='commission'?'<button type=\"button\" class=\"commission-help\" data-help=\"commission\" aria-label=\"返佣比例说明\" title=\"查看返佣比例说明\"><i data-lucide=\"circle-help\" aria-hidden=\"true\"></i></button>':'') )+'</th>'")
+      .replace("render();})();", "window.__YundengUserListRender=render;window.__YundengUserListState={users:users};render();})();");
+  });
+
+  var listHeader = moduleRoot.querySelector('.list-header');
+  var tableToolbar = moduleRoot.querySelector('.table-toolbar');
+  var batchActions = moduleRoot.querySelector('.batch-actions');
+  var listActions = listHeader && listHeader.children[1];
+  var selectionInfo = moduleRoot.querySelector('#selectionInfo');
+  if (tableToolbar && batchActions && listActions && selectionInfo) {
+    selectionInfo.classList.add('selection-info-hidden');
+    selectionInfo.setAttribute('aria-hidden', 'true');
+    tableToolbar.appendChild(batchActions);
+    tableToolbar.appendChild(listActions);
+  }
+
+  var todayTitle = moduleRoot.querySelector('.today-panel h3');
+  if (todayTitle) todayTitle.remove();
+
+  moduleRoot.querySelectorAll('.date-range').forEach(function (range) {
+    range.setAttribute('role', 'group');
+    range.setAttribute('tabindex', '0');
+    range.setAttribute('aria-haspopup', 'dialog');
+    range.setAttribute('aria-controls', 'userDatePicker');
+    range.setAttribute('aria-expanded', 'false');
+    range.querySelectorAll('input').forEach(function (input, index) {
+      input.setAttribute('aria-label', index === 0 ? '开始时间' : '结束时间');
+      input.setAttribute('aria-haspopup', 'dialog');
+      input.setAttribute('aria-controls', 'userDatePicker');
+    });
+  });
+
+  moduleRoot.insertAdjacentHTML('beforeend', '<div id="userDatePicker" class="user-date-picker hidden" role="dialog" aria-label="选择日期范围" aria-hidden="true"></div>');
+  moduleRoot.insertAdjacentHTML('beforeend', '<div id="commissionHelpPopover" class="commission-help-popover hidden" role="tooltip" aria-hidden="true"><strong>返佣比例说明</strong><p>新用户默认使用系统返佣配置中的比例；修改用户佣金比例后，该用户的佣金按最新比例统计。</p></div><div id="commissionModal" class="modal-layer hidden"><div class="modal-panel commission-panel" role="dialog" aria-modal="true" aria-labelledby="commissionTitle"><div class="modal-head"><h2 id="commissionTitle">编辑佣金比例</h2><button id="commissionClose" class="modal-close" type="button" aria-label="关闭">×</button></div><div class="modal-body"><div class="form-line commission-form-line"><label for="commissionOptions"><span class="required-mark">*</span>佣金比例：</label><div id="commissionOptions" class="commission-tabs" role="radiogroup" aria-label="佣金比例"><button class="commission-tab" type="button" role="radio" aria-checked="false" data-commission-value="15%">15%</button><button class="commission-tab" type="button" role="radio" aria-checked="false" data-commission-value="20%">20%</button><button class="commission-tab" type="button" role="radio" aria-checked="false" data-commission-value="25%">25%</button><button class="commission-tab" type="button" role="radio" aria-checked="false" data-commission-value="30%">30%</button></div><span id="commissionError" class="form-error"></span></div></div><div class="modal-foot"><button id="commissionCancel" class="btn btn-default" type="button">取消</button><button id="commissionConfirm" class="btn btn-primary" type="button">确定</button></div></div></div>');
+  var commissionModalBody = moduleRoot.querySelector('#commissionModal .modal-body');
+  if (commissionModalBody) commissionModalBody.insertAdjacentHTML('beforeend', '<div class="form-line commission-form-line"><label><span class="required-mark">*</span>生效时间：</label><div class="commission-line-stack"><div id="commissionEffectiveOptions" class="commission-tabs commission-mode-tabs" role="radiogroup" aria-label="生效时间" aria-required="true"><button class="commission-tab" type="button" role="radio" aria-checked="true" data-commission-effective="immediate">立即生效</button><button class="commission-tab" type="button" role="radio" aria-checked="false" data-commission-effective="date">指定日期生效</button></div><div id="commissionEffectiveDateWrap" class="commission-date-wrap hidden"><input id="commissionEffectiveDate" class="commission-date-input" type="date" aria-label="指定生效日期"></div></div><span id="commissionEffectiveError" class="form-error"></span></div><div class="form-line commission-form-line"><label><span class="required-mark">*</span>有效期：</label><div class="commission-line-stack"><div id="commissionValidityOptions" class="commission-tabs commission-mode-tabs" role="radiogroup" aria-label="有效期" aria-required="true"><button class="commission-tab" type="button" role="radio" aria-checked="true" data-commission-validity="permanent">永久</button><button class="commission-tab" type="button" role="radio" aria-checked="false" data-commission-validity="date">指定截止日期</button></div><div id="commissionExpiryDateWrap" class="commission-date-wrap hidden"><input id="commissionExpiryDate" class="commission-date-input" type="date" aria-label="指定截止日期"></div></div><span id="commissionValidityError" class="form-error"></span></div>');
+  bundle.html = template.innerHTML;
+
+  bundle.styles.push(String.raw`
+    .filter-flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(388px,1fr));align-items:center;column-gap:16px;row-gap:12px;width:100%;max-width:none}
+    .filter-flow.is-collapsed{max-width:none}
+    .filter-item{width:100%;min-width:0;flex:none}
+    .filter-actions{min-width:0}
+    .filter-item>.control{width:300px!important;max-width:100%;min-width:0;flex:0 0 300px;box-sizing:border-box}
+    .list-header{justify-content:flex-start;margin-bottom:12px;padding-bottom:0;border-bottom:0}
+    .list-header>div:first-child{gap:8px}
+    .today-panel{margin-bottom:16px}
+    .today-grid{grid-template-columns:repeat(11,minmax(108px,1fr));gap:12px;margin-top:0;overflow-x:auto;padding-bottom:4px;scrollbar-color:#C7CAD1 transparent;scrollbar-width:thin}
+    .today-grid::-webkit-scrollbar,#tableScroll::-webkit-scrollbar{height:8px}
+    .today-grid::-webkit-scrollbar-thumb,#tableScroll::-webkit-scrollbar-thumb{border:2px solid transparent;border-radius:4px;background:#C7CAD1;background-clip:padding-box}
+    .today-item .mono{font-size:20px;line-height:26px}
+    .table-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:12px;padding-top:0;border-top:0}
+    .table-toolbar .batch-actions{margin-left:0}
+    .table-toolbar>div:last-child{margin-left:auto}
+    .selection-info-hidden{display:none!important}
+    #tableScroll{scrollbar-color:#C7CAD1 transparent;scrollbar-width:thin}
+    .user-table{width:max-content;min-width:4840px;table-layout:auto}
+    .user-table th,.user-table td{white-space:nowrap}
+    .user-table :is(th,td):nth-child(1){min-width:46px;width:46px}
+    .user-table :is(th,td):nth-child(2){min-width:64px}
+    .user-table :is(th,td):nth-child(3){min-width:104px}
+    .user-table :is(th,td):nth-child(4),.user-table :is(th,td):nth-child(5){min-width:176px}
+    .user-table :is(th,td):nth-child(6){min-width:112px}
+    .user-table :is(th,td):nth-child(7){min-width:132px}
+    .user-table :is(th,td):nth-child(8){min-width:144px}
+    .user-table :is(th,td):nth-child(9),.user-table :is(th,td):nth-child(10){min-width:96px}
+    .user-table :is(th,td):nth-child(11),.user-table :is(th,td):nth-child(13){min-width:224px}
+    .user-table :is(th,td):nth-child(12),.user-table :is(th,td):nth-child(14){min-width:184px}
+    .user-table :is(th,td):nth-child(15){min-width:272px}
+    .user-table :is(th,td):nth-child(16){min-width:224px}
+    .user-table :is(th,td):nth-child(17){min-width:168px}
+    .user-table :is(th,td):nth-child(18){min-width:104px}
+    .user-table :is(th,td):nth-child(19){min-width:136px}
+    .user-table :is(th,td):nth-child(20){min-width:184px}
+    .user-table :is(th,td):nth-child(21){min-width:136px}
+    .user-table :is(th,td):nth-child(22),.user-table :is(th,td):nth-child(23),.user-table :is(th,td):nth-child(26){min-width:88px}
+    .user-table :is(th,td):nth-child(24){min-width:112px}
+    .user-table :is(th,td):nth-child(25){min-width:184px}
+    .user-table :is(th,td):nth-child(27){min-width:344px}
+    .user-table :is(th,td):nth-child(28){min-width:104px}
+    .user-table :is(th,td):nth-child(29){min-width:152px}
+    .user-table :is(th,td):nth-child(30){min-width:112px}
+    .user-table :is(th,td):nth-child(31){min-width:136px}
+    .user-table :is(th,td):nth-child(32){min-width:176px}
+    .user-table :is(th,td):nth-child(33),.user-table :is(th,td):nth-child(34){min-width:104px}
+    .user-table :is(th,td):nth-child(35){min-width:96px}
+    .commission-cell{white-space:nowrap}
+    .commission-value{display:inline-block;vertical-align:middle}
+    .commission-edit,.commission-help{display:inline-grid;place-items:center;padding:0;border:0;border-radius:4px;background:transparent;color:#6E7685;cursor:pointer;vertical-align:middle}
+    .commission-edit{width:24px;height:24px;margin-left:6px}
+    .commission-edit svg{width:14px;height:14px}
+    .commission-edit:hover,.commission-help:hover{background:#F3F4F6;color:#0066FF}
+    .commission-help{width:18px;height:18px;margin-left:4px}
+    .commission-help svg{width:15px;height:15px}
+    .commission-help-popover{position:fixed;z-index:1150;width:320px;max-width:calc(100vw - 32px);padding:12px 14px;border:1px solid #DFE1E5;border-radius:6px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.12);color:#3A3F4A;font-size:12px;line-height:18px}
+    .commission-help-popover.hidden{display:none!important}
+    .commission-help-popover strong{display:block;color:#1A1D24;font-size:13px;font-weight:600}
+    .commission-help-popover p{margin:4px 0 0;color:#6E7685}
+    .commission-panel{width:760px}
+    .commission-form-line{grid-template-columns:120px 400px}
+    .commission-form-line>label{line-height:32px;white-space:nowrap}
+    .required-mark{margin-right:4px;color:#D9001B}
+    .commission-tabs{display:inline-flex;align-items:center}
+    .commission-line-stack{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-width:0}
+    .commission-mode-tabs .commission-tab{min-width:104px}
+    .commission-date-wrap{display:inline-flex;align-items:center}
+    .commission-date-wrap.hidden{display:none!important}
+    .commission-date-input{width:180px;height:32px;padding:0 8px;border:1px solid #DFE1E5;border-radius:4px;background:#fff;color:#3A3F4A;font:inherit;font-size:13px;outline:none}
+    .commission-date-input:focus{border-color:#0066FF;box-shadow:0 0 0 2px rgba(0,102,255,.12)}
+    .commission-tab{min-width:72px;height:32px;padding:0 16px;margin-left:-1px;border:1px solid #DFE1E5;border-radius:0;background:#fff;color:#6E7685;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+    .commission-tab:first-child{margin-left:0;border-radius:4px 0 0 4px}
+    .commission-tab:last-child{border-radius:0 4px 4px 0}
+    .commission-tab:hover{background:#F3F4F6;color:#3A3F4A}
+    .commission-tab.is-active{position:relative;z-index:1;border-color:#0066FF;background:#E6F0FF;color:#0066FF;font-weight:600}
+    .commission-tab:focus-visible,.commission-edit:focus-visible,.commission-help:focus-visible{outline:2px solid #0066FF;outline-offset:2px}
+    .commission-form-line .form-error{grid-column:2}
+    .date-range{gap:0;padding:0 10px;cursor:pointer;border:1px solid #DFE1E5!important;background:#fff;box-shadow:none;overflow:visible}
+    .date-range::before{display:none}
+    .date-range>*{position:relative;z-index:1}
+    .date-range:hover{background:#F3F4F6}
+    .date-range:focus-within,.date-range.is-open{border-color:#DFE1E5!important;box-shadow:none}
+    .date-range input{min-width:0;width:0!important;flex:1;padding:0!important;background:transparent!important;cursor:pointer;caret-color:transparent}
+    .date-range input:not(:placeholder-shown){font:400 12px/30px 'JetBrains Mono',monospace}
+    .date-icon{order:3;width:16px;height:16px;margin-right:0;margin-left:8px}
+    .date-sep{margin:0 6px}
+    #foldBtn [data-lucide],#foldBtn svg{width:16px;height:16px;flex:none}
+    .range-control{width:300px!important;max-width:100%;flex:0 0 300px;gap:6px}
+    .range-control input{width:auto;min-width:0;flex:1 1 0}
+    .range-control span{flex:0 0 6px;text-align:center}
+    .user-date-picker{position:fixed;z-index:1100;width:640px;max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);overflow:auto;padding:16px;border:1px solid #DFE1E5;border-radius:8px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.12)}
+    .user-date-picker.hidden{display:none!important}
+    .user-calendar-months{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .user-calendar-month{min-width:0;padding:0 14px 2px}
+    .user-calendar-month+.user-calendar-month{border-left:1px solid #E8EAED}
+    .user-calendar-heading{display:grid;grid-template-columns:60px minmax(0,1fr) 60px;align-items:center;min-height:32px;margin-bottom:8px}
+    .user-calendar-title{text-align:center;color:#1A1D24;font-size:14px;font-weight:600;letter-spacing:0}
+    .user-calendar-nav-group{display:flex;align-items:center;gap:2px}
+    .user-calendar-nav-group.is-end{justify-content:flex-end}
+    .user-calendar-nav-spacer{width:60px;height:28px}
+    .user-calendar-nav{display:inline-grid;width:28px;height:28px;place-items:center;padding:0;border:0;border-radius:4px;background:transparent;color:#6E7685;cursor:pointer}
+    .user-calendar-nav:hover{background:#F3F4F6;color:#0066FF}
+    .user-calendar-nav:focus-visible,.user-calendar-day:focus-visible{outline:2px solid #0066FF;outline-offset:1px}
+    .user-calendar-nav svg{width:15px;height:15px}
+    .user-calendar-week,.user-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+    .user-calendar-week{margin-bottom:3px;color:#9DA2AC;font-size:12px;text-align:center}
+    .user-calendar-week span{height:26px;line-height:26px}
+    .user-calendar-grid{gap:0;justify-items:center}
+    .user-calendar-day{position:relative;width:30px;height:30px;padding:0;border:1px solid transparent;border-radius:4px;background:transparent;color:#3A3F4A;font:12px/30px 'JetBrains Mono',monospace;cursor:pointer}
+    .user-calendar-day:hover{border-color:#0066FF;background:#E6F0FF;color:#0066FF}
+    .user-calendar-day.is-muted{color:#C7CAD1}
+    .user-calendar-day.is-today{border-color:#0066FF;color:#0066FF;font-weight:600}
+    .user-calendar-day.is-in-range{border-radius:0;background:#E6F0FF;color:#0066FF}
+    .user-calendar-day.is-start,.user-calendar-day.is-end{z-index:1;border-color:#0066FF;border-radius:4px;background:#0066FF;color:#fff;font-weight:600}
+    .user-date-picker-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:45px;margin-top:16px;padding-top:12px;border-top:1px solid #E8EAED}
+    .user-date-picker-hint{color:#9DA2AC;font-size:12px;line-height:18px}
+    .user-date-picker-actions{display:flex;align-items:center;gap:8px}
+    .user-date-picker-action{height:28px;padding:0 10px;border:1px solid #DFE1E5;border-radius:4px;background:#fff;color:#3A3F4A;font:inherit;font-size:12px;cursor:pointer}
+    .user-date-picker-action:hover{border-color:#0066FF;color:#0066FF}
+    .user-date-picker-action.is-primary{border-color:#0066FF;background:#0066FF;color:#fff}
+    .user-date-picker-action.is-primary:hover{background:#0052CC}
+    .user-date-picker-action:disabled{border-color:#DFE1E5;background:#F7F8FA;color:#9DA2AC;cursor:not-allowed}
+    @media(max-width:980px){.filter-flow{grid-template-columns:minmax(0,1fr)}.control{width:300px!important;max-width:100%;flex-basis:300px}.range-control{width:300px!important;max-width:100%;flex-basis:300px}.today-grid{grid-template-columns:repeat(11,minmax(118px,1fr))}}
+    @media(max-width:720px){.user-date-picker{width:calc(100vw - 32px)}.user-calendar-months{grid-template-columns:1fr}.user-calendar-month+.user-calendar-month{margin-top:16px;padding-top:16px;border-top:1px solid #E8EAED;border-left:0}}
+    @media(max-width:520px){.today-grid{grid-template-columns:repeat(11,minmax(128px,1fr))}.table-toolbar{align-items:flex-start}.table-toolbar>div:last-child{margin-left:0}}
+  `);
+
+  bundle.scripts.push(String.raw`
+    (function () {
+      'use strict';
+      var root = document.querySelector('[data-module-root="user-list"]');
+      if (!root) return;
+
+      var panel = root.querySelector('#userDatePicker');
+      var ranges = Array.prototype.slice.call(root.querySelectorAll('.date-range'));
+      var activeRange = null;
+      var draftStart = '';
+      var draftEnd = '';
+      var visibleMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+      function pad(value) { return String(value).padStart(2, '0'); }
+      function formatDate(date) { return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()); }
+      function addMonths(date, count) { return new Date(date.getFullYear(), date.getMonth() + count, 1); }
+      function parseMonth(value) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+        var parts = value.split('-').map(Number);
+        return new Date(parts[0], parts[1] - 1, 1);
+      }
+      function calendarMonth(month, side) {
+        var year = month.getFullYear();
+        var monthIndex = month.getMonth();
+        var firstWeekday = new Date(year, monthIndex, 1).getDay();
+        var gridStart = new Date(year, monthIndex, 1 - firstWeekday);
+        var today = formatDate(new Date());
+        var days = [];
+        for (var index = 0; index < 42; index += 1) {
+          var date = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + index);
+          var value = formatDate(date);
+          var classes = ['user-calendar-day'];
+          if (date.getMonth() !== monthIndex) classes.push('is-muted');
+          if (value === today) classes.push('is-today');
+          if (draftStart && draftEnd && value > draftStart && value < draftEnd) classes.push('is-in-range');
+          if (value === draftStart) classes.push('is-start');
+          if (value === draftEnd) classes.push('is-end');
+          days.push('<button type="button" class="' + classes.join(' ') + '" data-date="' + value + '" aria-label="' + year + '年' + (date.getMonth() + 1) + '月' + date.getDate() + '日" aria-pressed="' + (value === draftStart || value === draftEnd) + '"' + (value === today ? ' aria-current="date"' : '') + '>' + date.getDate() + '</button>');
+        }
+        var previous = side === 'left' ? '<span class="user-calendar-nav-group"><button type="button" class="user-calendar-nav" data-calendar-action="previous-year" aria-label="上一年"><i data-lucide="chevrons-left" aria-hidden="true"></i></button><button type="button" class="user-calendar-nav" data-calendar-action="previous-month" aria-label="上一个月"><i data-lucide="chevron-left" aria-hidden="true"></i></button></span>' : '<span class="user-calendar-nav-spacer" aria-hidden="true"></span>';
+        var next = side === 'right' ? '<span class="user-calendar-nav-group is-end"><button type="button" class="user-calendar-nav" data-calendar-action="next-month" aria-label="下一个月"><i data-lucide="chevron-right" aria-hidden="true"></i></button><button type="button" class="user-calendar-nav" data-calendar-action="next-year" aria-label="下一年"><i data-lucide="chevrons-right" aria-hidden="true"></i></button></span>' : '<span class="user-calendar-nav-spacer" aria-hidden="true"></span>';
+        return '<section class="user-calendar-month" aria-label="' + year + '年' + (monthIndex + 1) + '月"><div class="user-calendar-heading">' + previous + '<div class="user-calendar-title">' + year + ' 年 ' + (monthIndex + 1) + ' 月</div>' + next + '</div><div class="user-calendar-week" aria-hidden="true"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div><div class="user-calendar-grid">' + days.join('') + '</div></section>';
+      }
+      function renderPanel() {
+        if (!activeRange) return;
+        var hint = draftStart && draftEnd ? draftStart + ' 至 ' + draftEnd : draftStart ? '请选择结束日期' : '请选择开始日期';
+        panel.innerHTML = '<div class="user-calendar-months">' + calendarMonth(visibleMonth, 'left') + calendarMonth(addMonths(visibleMonth, 1), 'right') + '</div><div class="user-date-picker-footer"><span class="user-date-picker-hint" aria-live="polite">' + hint + '</span><div class="user-date-picker-actions"><button type="button" class="user-date-picker-action" data-calendar-action="clear">清空</button><button type="button" class="user-date-picker-action is-primary" data-calendar-action="confirm"' + (draftStart && draftEnd ? '' : ' disabled') + '>确定</button></div></div>';
+        window.lucide && window.lucide.createIcons();
+        requestAnimationFrame(positionPanel);
+      }
+      function positionPanel() {
+        if (!activeRange || panel.classList.contains('hidden')) return;
+        var rect = activeRange.getBoundingClientRect();
+        var panelWidth = Math.min(640, Math.max(280, window.innerWidth - 32));
+        panel.style.width = panelWidth + 'px';
+        var left = Math.min(Math.max(16, rect.left), Math.max(16, window.innerWidth - panelWidth - 16));
+        panel.style.left = left + 'px';
+        panel.style.top = '16px';
+        var panelHeight = Math.min(panel.scrollHeight, window.innerHeight - 32);
+        var below = rect.bottom + 8;
+        var above = rect.top - panelHeight - 8;
+        var top = below + panelHeight <= window.innerHeight - 16 ? below : above >= 16 ? above : Math.max(16, Math.min(below, window.innerHeight - panelHeight - 16));
+        panel.style.top = top + 'px';
+      }
+      function openPanel(range) {
+        if (activeRange && activeRange !== range) closePanel();
+        activeRange = range;
+        var inputs = range.querySelectorAll('input');
+        draftStart = range.dataset.start || inputs[0].value || '';
+        draftEnd = range.dataset.end || inputs[1].value || '';
+        visibleMonth = parseMonth(draftStart) || new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+        range.classList.add('is-open');
+        range.setAttribute('aria-expanded', 'true');
+        inputs.forEach(function (input) { input.setAttribute('aria-expanded', 'true'); });
+        panel.classList.remove('hidden');
+        panel.setAttribute('aria-hidden', 'false');
+        renderPanel();
+      }
+      function closePanel() {
+        if (activeRange) {
+          activeRange.classList.remove('is-open');
+          activeRange.setAttribute('aria-expanded', 'false');
+          activeRange.querySelectorAll('input').forEach(function (input) { input.setAttribute('aria-expanded', 'false'); });
+        }
+        panel.classList.add('hidden');
+        panel.setAttribute('aria-hidden', 'true');
+        activeRange = null;
+      }
+      function commitRange() {
+        if (!activeRange || !draftStart || !draftEnd) return;
+        var inputs = activeRange.querySelectorAll('input');
+        activeRange.dataset.start = draftStart;
+        activeRange.dataset.end = draftEnd;
+        inputs[0].value = draftStart;
+        inputs[1].value = draftEnd;
+        closePanel();
+      }
+      function selectDate(value) {
+        if (!draftStart || draftEnd) {
+          draftStart = value;
+          draftEnd = '';
+        } else if (value < draftStart) {
+          draftEnd = draftStart;
+          draftStart = value;
+        } else {
+          draftEnd = value;
+        }
+        renderPanel();
+      }
+      function normalizeTableHead() {
+        root.querySelectorAll('#tableHead th').forEach(function (headerCell) {
+          if (headerCell.querySelector('input')) return;
+          var normalized = headerCell.textContent.replace(/\s*\n\s*/g, '/');
+          if (headerCell.textContent !== normalized) headerCell.textContent = normalized;
+        });
+      }
+
+      ranges.forEach(function (range) {
+        range.addEventListener('click', function (event) {
+          event.preventDefault();
+          openPanel(range);
+        });
+        range.addEventListener('keydown', function (event) {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          openPanel(range);
+        });
+      });
+      panel.addEventListener('click', function (event) {
+        var dateButton = event.target.closest('[data-date]');
+        if (dateButton) {
+          selectDate(dateButton.dataset.date);
+          return;
+        }
+        var action = event.target.closest('[data-calendar-action]');
+        if (!action) return;
+        if (action.dataset.calendarAction === 'previous-year') visibleMonth = addMonths(visibleMonth, -12);
+        if (action.dataset.calendarAction === 'previous-month') visibleMonth = addMonths(visibleMonth, -1);
+        if (action.dataset.calendarAction === 'next-month') visibleMonth = addMonths(visibleMonth, 1);
+        if (action.dataset.calendarAction === 'next-year') visibleMonth = addMonths(visibleMonth, 12);
+        if (action.dataset.calendarAction === 'clear') { draftStart = ''; draftEnd = ''; }
+        if (action.dataset.calendarAction === 'confirm') { commitRange(); return; }
+        renderPanel();
+      });
+      document.addEventListener('pointerdown', function (event) {
+        if (!activeRange || activeRange.contains(event.target) || panel.contains(event.target)) return;
+        closePanel();
+      });
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape' && activeRange) closePanel();
+      });
+      window.addEventListener('resize', positionPanel);
+      window.addEventListener('scroll', positionPanel, true);
+      var resetButton = root.querySelector('#resetBtn');
+      if (resetButton) resetButton.addEventListener('click', function () {
+        closePanel();
+        ranges.forEach(function (range) {
+          range.dataset.start = '';
+          range.dataset.end = '';
+          range.querySelectorAll('input').forEach(function (input) { input.value = ''; });
+        });
+      });
+      var tableHead = root.querySelector('#tableHead');
+      if (tableHead) new MutationObserver(normalizeTableHead).observe(tableHead, { childList: true, subtree: true });
+      normalizeTableHead();
+    })();
+  `);
+
+  bundle.scripts.push(String.raw`
+    (function () {
+      'use strict';
+      var root = document.querySelector('[data-module-root="user-list"]');
+      if (!root) return;
+      var state = window.__YundengUserListState;
+      var render = window.__YundengUserListRender;
+      var modal = root.querySelector('#commissionModal');
+      var options = Array.prototype.slice.call(root.querySelectorAll('[data-commission-value]'));
+      var effectiveOptions = Array.prototype.slice.call(root.querySelectorAll('[data-commission-effective]'));
+      var validityOptions = Array.prototype.slice.call(root.querySelectorAll('[data-commission-validity]'));
+      var error = root.querySelector('#commissionError');
+      var effectiveError = root.querySelector('#commissionEffectiveError');
+      var validityError = root.querySelector('#commissionValidityError');
+      var effectiveDateWrap = root.querySelector('#commissionEffectiveDateWrap');
+      var expiryDateWrap = root.querySelector('#commissionExpiryDateWrap');
+      var effectiveDateInput = root.querySelector('#commissionEffectiveDate');
+      var expiryDateInput = root.querySelector('#commissionExpiryDate');
+      var popover = root.querySelector('#commissionHelpPopover');
+      var activeUserId = null;
+      var selectedValue = '';
+      var selectedEffectiveMode = 'immediate';
+      var selectedValidityMode = 'permanent';
+      var helpTrigger = null;
+      var helpTimer = null;
+
+      function userById(id) {
+        return state && state.users ? state.users.filter(function (user) { return user.id === String(id); })[0] : null;
+      }
+      function syncOptions() {
+        options.forEach(function (option) {
+          var active = option.dataset.commissionValue === selectedValue;
+          option.classList.toggle('is-active', active);
+          option.setAttribute('aria-checked', String(active));
+        });
+      }
+      function syncModeOptions(optionList, selectedMode) {
+        optionList.forEach(function (option) {
+          var active = option.dataset.commissionEffective === selectedMode || option.dataset.commissionValidity === selectedMode;
+          option.classList.toggle('is-active', active);
+          option.setAttribute('aria-checked', String(active));
+        });
+      }
+      function syncDateFields() {
+        var needsEffectiveDate = selectedEffectiveMode === 'date';
+        var needsExpiryDate = selectedValidityMode === 'date';
+        effectiveDateWrap.classList.toggle('hidden', !needsEffectiveDate);
+        expiryDateWrap.classList.toggle('hidden', !needsExpiryDate);
+        effectiveDateInput.required = needsEffectiveDate;
+        expiryDateInput.required = needsExpiryDate;
+        effectiveDateInput.setAttribute('aria-required', String(needsEffectiveDate));
+        expiryDateInput.setAttribute('aria-required', String(needsExpiryDate));
+      }
+      function openCommissionModal(id) {
+        var user = userById(id);
+        if (!user) return;
+        clearTimeout(helpTimer);
+        popover.classList.add('hidden');
+        popover.setAttribute('aria-hidden', 'true');
+        helpTrigger = null;
+        activeUserId = String(id);
+        selectedValue = user.commission || '15%';
+        selectedEffectiveMode = user.commissionEffectiveMode || 'immediate';
+        selectedValidityMode = user.commissionValidityMode || 'permanent';
+        effectiveDateInput.value = user.commissionEffectiveDate || '';
+        expiryDateInput.value = user.commissionExpiryDate || '';
+        error.textContent = '';
+        effectiveError.textContent = '';
+        validityError.textContent = '';
+        syncOptions();
+        syncModeOptions(effectiveOptions, selectedEffectiveMode);
+        syncModeOptions(validityOptions, selectedValidityMode);
+        syncDateFields();
+        modal.classList.remove('hidden');
+        setTimeout(function () { (options.filter(function (option) { return option.classList.contains('is-active'); })[0] || options[0]).focus(); }, 0);
+      }
+      function closeCommissionModal() {
+        modal.classList.add('hidden');
+        activeUserId = null;
+        selectedValue = '';
+        error.textContent = '';
+      }
+      function showToast(message) {
+        var toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = message;
+        root.querySelector('#toastContainer').appendChild(toast);
+        setTimeout(function () { toast.remove(); }, 2600);
+      }
+      function showHelp(trigger) {
+        clearTimeout(helpTimer);
+        helpTrigger = trigger;
+        popover.classList.remove('hidden');
+        popover.setAttribute('aria-hidden', 'false');
+        trigger.setAttribute('aria-describedby', 'commissionHelpPopover');
+        requestAnimationFrame(function () {
+          var rect = trigger.getBoundingClientRect();
+          var width = Math.min(320, window.innerWidth - 32);
+          var left = Math.min(Math.max(16, rect.left), Math.max(16, window.innerWidth - width - 16));
+          var height = popover.getBoundingClientRect().height;
+          var below = rect.bottom + 8;
+          var top = below + height <= window.innerHeight - 16 ? below : Math.max(16, rect.top - height - 8);
+          popover.style.width = width + 'px';
+          popover.style.left = left + 'px';
+          popover.style.top = top + 'px';
+        });
+      }
+      function hideHelpSoon() {
+        clearTimeout(helpTimer);
+        helpTimer = setTimeout(function () {
+          if (popover.matches(':hover') || (helpTrigger && helpTrigger.matches(':focus'))) return;
+          popover.classList.add('hidden');
+          popover.setAttribute('aria-hidden', 'true');
+          helpTrigger = null;
+        }, 140);
+      }
+
+      root.querySelector('#tableBody').addEventListener('click', function (event) {
+        var button = event.target.closest('[data-commission-edit]');
+        if (button) openCommissionModal(button.dataset.id);
+      });
+      root.querySelector('#commissionOptions').addEventListener('click', function (event) {
+        var option = event.target.closest('[data-commission-value]');
+        if (!option) return;
+        selectedValue = option.dataset.commissionValue;
+        error.textContent = '';
+        syncOptions();
+      });
+      root.querySelector('#commissionOptions').addEventListener('keydown', function (event) {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        var current = options.indexOf(event.target.closest('[data-commission-value]'));
+        if (current < 0) return;
+        event.preventDefault();
+        var next = event.key === 'ArrowRight' ? Math.min(options.length - 1, current + 1) : Math.max(0, current - 1);
+        options[next].focus();
+        options[next].click();
+      });
+      function moveMode(event, optionList, modeAttribute, selectMode) {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        var current = optionList.indexOf(event.target.closest('[data-' + modeAttribute + ']'));
+        if (current < 0) return;
+        event.preventDefault();
+        var next = event.key === 'ArrowRight' ? Math.min(optionList.length - 1, current + 1) : Math.max(0, current - 1);
+        optionList[next].focus();
+        selectMode(optionList[next].getAttribute('data-' + modeAttribute));
+      }
+      function selectEffectiveMode(mode) {
+        selectedEffectiveMode = mode;
+        effectiveError.textContent = '';
+        syncModeOptions(effectiveOptions, selectedEffectiveMode);
+        syncDateFields();
+      }
+      function selectValidityMode(mode) {
+        selectedValidityMode = mode;
+        validityError.textContent = '';
+        syncModeOptions(validityOptions, selectedValidityMode);
+        syncDateFields();
+      }
+      root.querySelector('#commissionEffectiveOptions').addEventListener('click', function (event) {
+        var option = event.target.closest('[data-commission-effective]');
+        if (option) selectEffectiveMode(option.dataset.commissionEffective);
+      });
+      root.querySelector('#commissionEffectiveOptions').addEventListener('keydown', function (event) {
+        moveMode(event, effectiveOptions, 'commission-effective', selectEffectiveMode);
+      });
+      root.querySelector('#commissionValidityOptions').addEventListener('click', function (event) {
+        var option = event.target.closest('[data-commission-validity]');
+        if (option) selectValidityMode(option.dataset.commissionValidity);
+      });
+      root.querySelector('#commissionValidityOptions').addEventListener('keydown', function (event) {
+        moveMode(event, validityOptions, 'commission-validity', selectValidityMode);
+      });
+      effectiveDateInput.addEventListener('change', function () { effectiveError.textContent = ''; });
+      expiryDateInput.addEventListener('change', function () { validityError.textContent = ''; });
+      root.querySelector('#commissionConfirm').addEventListener('click', function () {
+        var user = userById(activeUserId);
+        if (!user || !selectedValue) {
+          error.textContent = '请选择佣金比例';
+          return;
+        }
+        if (!selectedEffectiveMode) {
+          effectiveError.textContent = '请选择生效时间';
+          return;
+        }
+        if (!selectedValidityMode) {
+          validityError.textContent = '请选择有效期';
+          return;
+        }
+        if (selectedEffectiveMode === 'date' && !effectiveDateInput.value) {
+          effectiveError.textContent = '请选择生效日期';
+          effectiveDateInput.focus();
+          return;
+        }
+        if (selectedValidityMode === 'date' && !expiryDateInput.value) {
+          validityError.textContent = '请选择截止日期';
+          expiryDateInput.focus();
+          return;
+        }
+        var effectiveBoundary = selectedEffectiveMode === 'date' ? effectiveDateInput.value : new Date().toISOString().slice(0, 10);
+        if (selectedValidityMode === 'date' && expiryDateInput.value < effectiveBoundary) {
+          validityError.textContent = '截止日期不能早于生效日期';
+          expiryDateInput.focus();
+          return;
+        }
+        user.commission = selectedValue;
+        user.commissionEffectiveMode = selectedEffectiveMode;
+        user.commissionEffectiveDate = selectedEffectiveMode === 'date' ? effectiveDateInput.value : '';
+        user.commissionValidityMode = selectedValidityMode;
+        user.commissionExpiryDate = selectedValidityMode === 'date' ? expiryDateInput.value : '';
+        render();
+        closeCommissionModal();
+        showToast('佣金比例已更新');
+      });
+      root.querySelector('#commissionClose').addEventListener('click', closeCommissionModal);
+      root.querySelector('#commissionCancel').addEventListener('click', closeCommissionModal);
+      modal.addEventListener('click', function (event) { if (event.target === modal) closeCommissionModal(); });
+      root.addEventListener('mouseover', function (event) {
+        var trigger = event.target.closest('[data-help="commission"]');
+        if (trigger) showHelp(trigger);
+      });
+      root.addEventListener('mouseout', function (event) {
+        var trigger = event.target.closest('[data-help="commission"]');
+        if (!trigger || trigger.contains(event.relatedTarget)) return;
+        hideHelpSoon();
+      });
+      root.addEventListener('focusin', function (event) {
+        var trigger = event.target.closest('[data-help="commission"]');
+        if (trigger) showHelp(trigger);
+      });
+      root.addEventListener('focusout', function (event) {
+        var trigger = event.target.closest('[data-help="commission"]');
+        if (trigger && !trigger.contains(event.relatedTarget)) hideHelpSoon();
+      });
+      popover.addEventListener('mouseenter', function () { clearTimeout(helpTimer); });
+      popover.addEventListener('mouseleave', hideHelpSoon);
+      window.addEventListener('resize', function () { if (helpTrigger) showHelp(helpTrigger); });
+      document.addEventListener('keydown', function (event) {
+        if (event.key !== 'Escape') return;
+        if (!modal.classList.contains('hidden')) closeCommissionModal();
+        if (helpTrigger) hideHelpSoon();
+      });
+    })();
+  `);
+  bundle.scripts.push(String.raw`
+    (function () {
+      'use strict';
+      function refreshUserListIcons() {
+        if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+      }
+      refreshUserListIcons();
+      setTimeout(refreshUserListIcons, 0);
+      setTimeout(refreshUserListIcons, 180);
+      window.addEventListener('load', refreshUserListIcons);
+    })();
+  `);
+})();
+</script>
 <script data-inline="app-shell">(function () {
   'use strict';
 
@@ -396,7 +1008,7 @@ a { -webkit-tap-highlight-color: transparent; }
       id: 'section-user',
       label: '用户管理',
       items: [
-        { id: 'user-list', label: '用户列表', icon: 'users', state: 'planning', description: '查看和管理平台用户' },
+        { id: 'user-list', label: '用户列表', icon: 'users', module: 'user-list', description: '查看和管理平台用户' },
         { id: 'user-statistics', label: '用户统计', icon: 'chart-no-axes-column', module: 'user-statistics', description: '查看用户规模、活跃与结构统计' },
         { id: 'team-list', label: '团队列表', icon: 'users-round', module: 'team-list', description: '查看和管理团队主体' },
         { id: 'enterprise-list', label: '企业列表', icon: 'building-2', module: 'enterprise-list', description: '查看和管理企业认证主体' },

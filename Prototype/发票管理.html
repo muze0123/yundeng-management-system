@@ -8,6 +8,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script>
+    window.tailwind = window.tailwind || {};
     tailwind.config = {
       theme: {
         extend: {
@@ -372,14 +373,40 @@ a { -webkit-tap-highlight-color: transparent; }
   if (!bundle || !Array.isArray(bundle.scripts)) return;
   bundle.scripts = bundle.scripts.map(function (source) {
     source = source.replace("application('IA-20260819-0012', '上海云栈信息科技有限公司', '企业', 268000, 'PENDING_REVIEW', 'NOT_SUBMITTED', 'NONE', 'NOT_SENT', '2026-08-19 09:42', '林财务', 'ORD-20260819-0841', '信息技术服务*技术服务费', '6%', '支付宝', '—', '同主体订单可合并，待核验销售主体快照'),", "application('IA-20260819-0012', '上海云栈信息科技有限公司', '企业', 268000, 'PENDING_REVIEW', 'NOT_SUBMITTED', 'NONE', 'NOT_SENT', '2026-08-19 09:42', '林财务', 'ORD-20260819-0841', '信息技术服务*技术服务费', '6%', '支付宝', '—', '单订单待审核，待核验销售主体快照'),");
-    source = source.replace("application('IA-20260818-0025', '上海云栈信息科技有限公司', '企业', 418000, 'APPROVED', 'PARTIAL', 'PARTIALLY_RED', 'PARTIALLY_DELIVERED', '2026-08-18 17:26', '林财务', 'ORD-20260816-0337', '信息技术服务*技术服务费', '6%', '支付宝', '林财务', '3 张票据中 1 张红冲处理中'),", "application('IA-20260818-0025', '上海云栈信息科技有限公司', '企业', 418000, 'APPROVED', 'SUCCEEDED', 'RED_PENDING', 'PARTIALLY_DELIVERED', '2026-08-18 17:26', '林财务', 'ORD-20260816-0337', '信息技术服务*技术服务费', '6%', '支付宝', '林财务', '单票红冲处理中，邮件交付部分送达'),");
+    source = source.replace("application('IA-20260818-0025', '上海云栈信息科技有限公司', '企业', 418000, 'APPROVED', 'PARTIAL', 'PARTIALLY_RED', 'PARTIALLY_DELIVERED', '2026-08-18 17:26', '林财务', 'ORD-20260816-0337', '信息技术服务*技术服务费', '6%', '支付宝', '林财务', '3 张票据中 1 张红冲处理中'),", "application('IA-20260818-0025', '上海云栈信息科技有限公司', '企业', 418000, 'APPROVED', 'SUCCEEDED', 'RED_PENDING', 'PARTIALLY_DELIVERED', '2026-08-18 17:26', '林财务', 'ORD-20260816-0337', '信息技术服务*技术服务费', '6%', '支付宝', '林财务', '单票红冲处理中，邮件待重发'),");
+    source = source.replace("application('IA-20260818-0019', '合肥远见科技有限公司', '企业', 218000, 'DRAFT', 'NOT_SUBMITTED', 'NONE', 'NOT_SENT', '2026-08-18 11:52', '—', 'ORD-20260812-0038', '信息技术服务*技术服务费', '6%', '支付宝', '—', '草稿不占用可开票余额'),", "application('IA-20260818-0019', '合肥远见科技有限公司', '企业', 218000, 'APPROVED', 'SUCCEEDED', 'PARTIALLY_RED', 'DELIVERED', '2026-08-18 11:52', '林财务', 'ORD-20260812-0038', '信息技术服务*技术服务费', '6%', '支付宝', '林财务', '原票已红冲部分退款金额，剩余金额仍有效'),");
+    source = source.replace("['applications', '申请管理', 14, '']", "['applications', '申请管理', 15, '']");
     source = source.replace("['PARTIAL', '部分开票异常'], ", '');
+    source = source.replace("['PARTIALLY_RED', '已部分红冲']", "['PARTIALLY_RED', '部分红冲']");
+    source = source.replace("['FULLY_RED', '已红冲']", "['FULLY_RED', '已全额红冲']");
     source = source.replace("if (item.issuance === 'PARTIAL') return 'PARTIAL'; ", '');
     source = source.replace("PARTIAL: ['部分红冲成功', 'warning']", "PARTIAL: ['部分红冲', 'warning']");
+    source = source.replace(/,?\s*PARTIALLY_DELIVERED: \['(?:部分送达|部分渠道送达)', 'warning'\]/g, '');
+    source = source.replace(/<option value="PARTIALLY_DELIVERED">(?:部分送达|部分渠道送达)<\/option>/g, '');
+    source = source.replace(/'PARTIALLY_DELIVERED'/g, "'DELIVERY_FAILED'");
+    source = source.replace("['部分成功', '拆票任务部分成功，失败子任务待处置'],\n          ", '');
+    source = source.replace(/\s*\['(?:部分送达|部分渠道送达)', '[^']*'\],?/g, '');
+    source = source.replace("var scopeNote = kind === 'delivery' ? '<span><b>口径：</b>系统固定按站内、邮件两个交付单元聚合，用户无需选择交付类型</span>' : '';", "var scopeNote = kind === 'delivery' ? '<span><b>口径：</b>交付状态仅按邮件发送结果计算</span>' : '';");
+    source = source.replace("['未发送', '票据文件尚未发送']", "['未发送', '邮件尚未发送']");
+    source = source.replace("['发送中', '正在按渠道投递']", "['发送中', '邮件正在发送']");
+    source = source.replace("['已送达', '全部收件人已收到票据']", "['已送达', '邮件已发送成功']");
+    source = source.replace("['交付失败', '当前必达交付单元均失败，需按失败渠道处置']", "['交付失败', '邮件发送失败，可更新邮箱后重新发送']");
+    source = source.replace("站内文件可访问，联系邮箱发送失败可重发", "邮件发送失败，可更新邮箱后重新发送");
+    source = source.replace("站内文件不受邮件失败影响", "交付状态仅按邮件发送结果统计");
+    source = source.replace("同一申请可拆成多个 ProviderTask 或票据，但申请总额不变。", "一份申请只关联一个订单和一张发票，开具、票据效力与交付状态仍独立记录。");
+    source = source.replace("全部目标蓝票金额整组原子占额，红冲全部成功后才生成唯一重开草稿。", "当前原票按金额原子占额，红冲完成后生成唯一重开申请。");
     source = source.replace('value="PARTIAL">部分红冲成功', 'value="PARTIAL">部分红冲');
     source = source.replace('value="PARTIAL">部分成功', 'value="PARTIAL">部分红冲');
     source = source.replace("'<div class=\"muted\">票据 ' + esc(item.progress) + '</div>'", "'<div class=\"muted\">' + (item.status === 'PARTIAL' ? '金额部分成功' : '票据 ' + esc(item.progress)) + '</div>'");
-    source = source.replace(/\s*\{ id: 'DOC-20260819-0078', applicationId: 'IA-20260818-0025'[\s\S]*?\n        \{ id: 'DOC-20260819-0075',/, "\n        { id: 'DOC-20260819-0078', applicationId: 'IA-20260818-0025', invoiceNo: '数电票-04438144', subject: '上海云栈信息科技有限公司', amount: 418000, type: '数电专票', document: 'RED_PENDING', delivery: 'PARTIALLY_DELIVERED', file: 'ACTIVE', channel: '站内、邮件', recipient: 'f***@yunstack.cn', issued: '2026-08-18 17:38', provider: '百望云', action: 'red' },\n        { id: 'DOC-20260819-0075',");
+    source = source.replace(/\s*\{ id: 'DOC-20260819-0078', applicationId: 'IA-20260818-0025'[\s\S]*?\n        \{ id: 'DOC-20260819-0075',/, "\n        { id: 'DOC-20260819-0078', applicationId: 'IA-20260818-0025', invoiceNo: '数电票-04438144', subject: '上海云栈信息科技有限公司', amount: 418000, type: '数电专票', document: 'RED_PENDING', delivery: 'DELIVERY_FAILED', file: 'ACTIVE', channel: '邮件', recipient: 'f***@yunstack.cn', issued: '2026-08-18 17:38', provider: '百望云', action: 'resend' },\n        { id: 'DOC-20260819-0075',");
+    source = source.replace("var documents = [", "var documents = [\n        { id: 'DOC-20260818-0070', applicationId: 'IA-20260818-0019', invoiceNo: '数电票-04437106', subject: '合肥远见科技有限公司', amount: 218000, type: '数电专票', document: 'PARTIALLY_RED', delivery: 'DELIVERED', file: 'ACTIVE', channel: '站内、邮件', recipient: 'finance@yuanjian.cn', issued: '2026-08-18 12:08', provider: '百望云', action: 'download' },");
+    source = source.replace(/channel: '站内、邮件'/g, "channel: '邮件'");
+    source = source.replace(/(\{ id: 'DOC-20260819-0078'[\s\S]*?action: )'red'/, "$1'resend'");
+    source = source.replace("{ id: 'RT-20260819-004', source: 'REFUND', sourceName: '退款红冲', invoiceNo: '数电票-04438146', applicationId: 'IA-20260818-0025', subject: '上海云栈信息科技有限公司', amount: 42000", "{ id: 'RT-20260819-004', source: 'REFUND', sourceName: '退款红冲', invoiceNo: '数电票-04438144', applicationId: 'IA-20260818-0025', subject: '上海云栈信息科技有限公司', amount: 42000");
+    source = source.replace("{ id: 'RT-20260819-003', source: 'FINANCE_CORRECTION', sourceName: '财务纠错', invoiceNo: '数电票-04438145', applicationId: 'IA-20260818-0025', subject: '上海云栈信息科技有限公司'", "{ id: 'RT-20260819-003', source: 'FINANCE_CORRECTION', sourceName: '财务纠错', invoiceNo: '数电票-04437201', applicationId: 'IA-20260817-0138', subject: '广州云迹科技有限公司'");
+    source = source.replace("{ id: 'RT-20260818-017', source: 'REFUND', sourceName: '退款红冲', invoiceNo: '数电票-04437106', applicationId: 'IA-20260817-0112', subject: '宁波远舟科技有限公司', amount: 80000, status: 'PARTIAL', progress: '1/2'", "{ id: 'RT-20260818-017', source: 'REFUND', sourceName: '退款红冲', invoiceNo: '数电票-04437106', applicationId: 'IA-20260818-0019', subject: '合肥远见科技有限公司', amount: 80000, status: 'PARTIAL', progress: 'AMOUNT_PARTIAL'");
+    source = source.replace("{ id: 'CR-20260819-006', subject: '上海云栈信息科技有限公司', targets: '04438145、04438146', amount: 280000", "{ id: 'CR-20260819-006', subject: '上海云栈信息科技有限公司', targets: '04438145', amount: 140000");
+    source = source.replace("item.targets.split('、')[0]", "item.targets");
     source = source.replace("<tr><td class=\"mono\">ORD-20260817-0132</td><td>服务续费</td><td>支付宝</td><td class=\"amount\">¥0.00</td><td class=\"amount\">¥0.00</td><td>不满足法币支付</td></tr>", '');
     return source;
   });
@@ -2003,9 +2030,17 @@ a { -webkit-tap-highlight-color: transparent; }
       return clone.textContent.trim() || '—';
     };
     if (kind === 'correction') {
+      if (cells.length >= 12) {
+        var status = primary(7);
+        var reopenId = primary(10);
+        var draft = reopenId !== '—' ? reopenId : status === '待审核' ? '待红冲' : status === '红冲失败' ? '待处置' : status === '审核通过' ? '红冲任务待处理' : '—';
+        return { id: target.dataset.id, created: primary(1), subject: primary(2), target: primary(4), amount: primary(6), status: status, draft: draft, applicant: primary(3), reason: primary(5) };
+      }
       return { id: target.dataset.id, created: muted(0), subject: primary(1), target: primary(2), amount: primary(3), status: primary(4), draft: primary(5), applicant: muted(1), reason: muted(2) };
     }
-    return { id: target.dataset.id, created: muted(0), source: cells[1] && cells[1].querySelector('.invoice-badge') ? cells[1].querySelector('.invoice-badge').textContent.trim() : primary(1), reason: muted(1), invoice: primary(2), subject: muted(2), amount: primary(3), progress: muted(3), status: primary(4), owner: primary(5) };
+    var progress = muted(3);
+    if (progress === '—') progress = primary(4);
+    return { id: target.dataset.id, created: muted(0), source: cells[1] && cells[1].querySelector('.invoice-badge') ? cells[1].querySelector('.invoice-badge').textContent.trim() : primary(1), reason: muted(1), invoice: primary(2), subject: muted(2), amount: primary(3), progress: progress, status: primary(4), owner: primary(5) };
   }
 
   function ensureRedDetailDrawer() {
@@ -2035,7 +2070,7 @@ a { -webkit-tap-highlight-color: transparent; }
     if (dialog.classList.contains('invoice-config-editor-overlay')) closeConfigEditor(false);
     else dialog.hidden = true;
     var body = isCorrection
-      ? '<section class="invoice-red-detail-section"><h3>申请信息</h3><dl class="invoice-red-detail-grid">' + detailField('申请编号', data.id, true) + detailField('申请时间', data.created, true) + detailField('受票主体', data.subject) + detailField('申请人', data.applicant) + detailField('目标蓝票', data.target) + detailField('更正原因', data.reason) + '</dl></section><section class="invoice-red-detail-section"><h3>审核与重开</h3><dl class="invoice-red-detail-grid">' + detailField('整组金额', data.amount, true) + detailField('更正状态', data.status) + detailField('重开草稿', data.draft) + detailField('处理说明', data.status === '待审核' ? '等待更正审核员处理' : '按关联红冲任务事实推进') + '</dl></section>'
+      ? '<section class="invoice-red-detail-section"><h3>申请信息</h3><dl class="invoice-red-detail-grid">' + detailField('申请编号', data.id, true) + detailField('申请时间', data.created, true) + detailField('受票主体', data.subject) + detailField('申请人', data.applicant) + detailField('原发票', data.target) + detailField('更正原因', data.reason) + '</dl></section><section class="invoice-red-detail-section"><h3>审核与重开</h3><dl class="invoice-red-detail-grid">' + detailField('更正金额', data.amount, true) + detailField('更正状态', data.status) + detailField('重开草稿', data.draft) + detailField('处理说明', data.status === '待审核' ? '等待更正审核员处理' : '按关联红冲任务事实推进') + '</dl></section>'
       : '<section class="invoice-red-detail-section"><h3>任务信息</h3><dl class="invoice-red-detail-grid">' + detailField('任务编号', data.id, true) + detailField('创建时间', data.created, true) + detailField('来源类型', data.source) + detailField('来源原因', data.reason) + detailField('负责人', data.owner) + detailField('任务状态', data.status) + '</dl></section><section class="invoice-red-detail-section"><h3>原票与金额</h3><dl class="invoice-red-detail-grid">' + detailField('原蓝票', data.invoice, true) + detailField('受票主体', data.subject) + detailField('目标金额', data.amount, true) + detailField('红冲进度', data.progress, true) + detailField('确认状态', data.status === '待受票方确认' ? '待受票方确认' : '无需受票方确认') + detailField('第三方进度', data.status === '结果未知' ? '结果未知，仅允许查询原任务' : '按任务状态持续同步') + '</dl></section><section class="invoice-red-detail-section"><h3>时间线与审计</h3><p class="invoice-dialog-copy">创建、金额占用、第三方提交和状态回调均按任务版本记录；详情仅展示归一化结果，不展示第三方原始报文。</p></section>';
     overlay.querySelector('#invoiceRedDetailTitle').textContent = title;
     overlay.querySelector('#invoiceRedDetailBody').innerHTML = body;
@@ -2197,12 +2232,8 @@ a { -webkit-tap-highlight-color: transparent; }
   var root = document.querySelector('[data-module-root="invoice-management"]');
   if (!root) return;
 
-  /* Mock applications with multiple order allocations for the list prototype. */
-  var applicationOrders = {
-    'IA-20260819-0012': ['ORD-20260819-0841', 'ORD-20260819-0842', 'ORD-20260819-0850'],
-    'IA-20260818-0025': ['ORD-20260816-0337', 'ORD-20260816-0341', 'ORD-20260816-0342'],
-    'IA-20260818-0021': ['ORD-20260814-0111', 'ORD-20260814-0112']
-  };
+  /* Single-order invoices do not expose multi-order aggregation controls. */
+  var applicationOrders = {};
   var popover = null;
   var activeButton = null;
   var closeTimer = null;
@@ -2695,6 +2726,10 @@ a { -webkit-tap-highlight-color: transparent; }
     body.querySelectorAll('.invoice-config-callout').forEach(function (callout) {
       if (/审批锁|领取锁|status=PENDING_REVIEW/i.test(callout.textContent)) callout.remove();
     });
+    var copy = body.querySelector('.invoice-dialog-copy');
+    if (copy && /按原票顺序|短事务内/.test(copy.textContent)) {
+      copy.innerHTML = copy.innerHTML.replace('系统将按原票顺序在短事务内重校验可红冲余额并创建唯一红冲任务。', '系统将重新校验当前原票的可红冲余额，并创建唯一红冲任务。');
+    }
   }
 
   new MutationObserver(removeApprovalLockPrompt).observe(body, {
@@ -2847,9 +2882,8 @@ a { -webkit-tap-highlight-color: transparent; }
       if (row.children.length < 5 || row.dataset.partialProgressReady === 'true') return;
       var status = row.children[4].textContent.trim();
       var progress = row.children[3] && row.children[3].querySelector('.muted');
-      if (status === '部分红冲' && progress && progress.textContent.trim().indexOf('票据') === 0) {
-        progress.textContent = '金额部分成功';
-      }
+      if (progress && status === '部分红冲') progress.textContent = '已红冲部分金额';
+      else if (progress) progress.remove();
       row.dataset.partialProgressReady = 'true';
     });
   }
@@ -3000,11 +3034,22 @@ a { -webkit-tap-highlight-color: transparent; }
     var row = table && Array.from(table.querySelectorAll('tbody tr')).find(function (item) {
       return item.textContent.indexOf('申请 ' + app.id) >= 0;
     });
-    var invoiceNo = row && row.children[0] ? row.children[0].textContent.trim().split('\n')[0] : '—';
-    var documentStatus = row && row.children[3] ? row.children[3].textContent.trim() : '未生成';
-    var fileStatus = row && row.children[4] ? row.children[4].textContent.trim() : '未生成';
-    var deliveryStatus = row && row.children[5] ? row.children[5].textContent.trim() : '未发送';
-    var actionId = row && row.querySelector('[data-action="preview-document"]') ? row.querySelector('[data-action="preview-document"]').dataset.id : '';
+    var documentByApplication = {
+      'IA-20260819-0009': ['数电票-04438291', '有效', '有效', '已送达', 'DOC-20260819-0081'],
+      'IA-20260818-0026': ['数电票-04438191', '有效', '有效', '交付失败', 'DOC-20260819-0079'],
+      'IA-20260818-0025': ['数电票-04438144', '红冲处理中', '有效', '交付失败', 'DOC-20260819-0078'],
+      'IA-20260818-0020': ['数电票-04437981', '已全额红冲', '有效', '已送达', 'DOC-20260819-0074'],
+      'IA-20260818-0019': ['数电票-04437106', '部分红冲', '有效', '已送达', 'DOC-20260818-0070'],
+      'IA-20260817-0017': ['数电票-04436992', '红冲失败', '有效', '已送达', 'DOC-20260817-0068'],
+      'IA-20260819-0010': ['—', '未生成', '未生成', '未发送', ''],
+      'IA-20260818-0021': ['—', '未生成', '未生成', '未发送', '']
+    };
+    var fallback = documentByApplication[app.id] || ['—', '未生成', '未生成', '未发送', ''];
+    var invoiceNo = row && row.children[0] ? row.children[0].textContent.trim().split('\n')[0] : fallback[0];
+    var documentStatus = row && row.children[3] ? row.children[3].textContent.trim() : fallback[1];
+    var fileStatus = row && row.children[4] ? row.children[4].textContent.trim() : fallback[2];
+    var deliveryStatus = row && row.children[5] ? row.children[5].textContent.trim() : fallback[3];
+    var actionId = row && row.querySelector('[data-action="preview-document"]') ? row.querySelector('[data-action="preview-document"]').dataset.id : fallback[4];
     return '<section class="invoice-detail-section" data-continuous-detail="documents"><h3>票据交付</h3><div class="invoice-table-wrap"><table class="invoice-table data-table" aria-label="票据交付明细"><thead><tr><th>票据号</th><th>票据状态</th><th>文件</th><th>交付状态</th><th>操作</th></tr></thead><tbody><tr><td class="mono">' + esc(invoiceNo) + '</td><td>' + esc(documentStatus) + '</td><td>' + esc(fileStatus) + '</td><td>' + esc(deliveryStatus) + '</td><td>' + (actionId ? '<button type="button" class="invoice-btn-link" data-action="preview-document" data-id="' + esc(actionId) + '">预览</button>' : '<span class="muted">—</span>') + '</td></tr></tbody></table></div></section>';
   }
 
@@ -3317,6 +3362,136 @@ a { -webkit-tap-highlight-color: transparent; }
 
   new MutationObserver(normalizeCorrectionFlow).observe(root, { childList: true, subtree: true });
   normalizeCorrectionFlow();
+})();
+</script>
+<script data-inline="invoice-single-order-status-clarity">
+(function () {
+  var root = document.querySelector('[data-module-root="invoice-management"]');
+  if (!root) return;
+  var scheduled = false;
+
+  var statusHelp = {
+    document: {
+      title: '票据状态说明',
+      items: [
+        ['有效', '尚未发生成功红冲，当前有效金额等于原票金额'],
+        ['红冲处理中', '存在待处理、处理中或结果未知的红冲金额'],
+        ['部分红冲', '累计成功红冲金额大于 0，且剩余有效金额仍大于 0'],
+        ['已全额红冲', '累计成功红冲金额等于原票金额，剩余有效金额为 0'],
+        ['红冲失败', '红冲明确失败且任务尚未关闭或恢复']
+      ]
+    },
+    delivery: {
+      title: '交付状态说明',
+      items: [
+        ['未发送', '邮件尚未发送'],
+        ['发送中', '邮件正在发送，尚未返回最终结果'],
+        ['已送达', '邮件已发送成功'],
+        ['交付失败', '邮件发送失败，可更新邮箱后重新发送']
+      ]
+    }
+  };
+
+  function esc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char];
+    });
+  }
+
+  function positionHelp(help) {
+    var button = help.querySelector('button');
+    var popover = help.querySelector('.invoice-status-help-popover');
+    if (!button || !popover) return;
+    var rect = button.getBoundingClientRect();
+    var width = popover.offsetWidth || 320;
+    var height = popover.offsetHeight || 180;
+    popover.style.left = Math.max(8, Math.min(window.innerWidth - width - 8, rect.left)) + 'px';
+    var top = rect.bottom + 8;
+    if (top + height > window.innerHeight - 8) top = Math.max(8, rect.top - height - 8);
+    popover.style.top = top + 'px';
+  }
+
+  function bindHelp(help) {
+    if (help.dataset.singleOrderHelpBound === 'true') return;
+    var button = help.querySelector('button');
+    var popover = help.querySelector('.invoice-status-help-popover');
+    if (!button || !popover) return;
+    help.dataset.singleOrderHelpBound = 'true';
+    help.dataset.open = 'false';
+    var over = false;
+    var focused = false;
+    var timer = null;
+    function open() {
+      if (timer) clearTimeout(timer);
+      help.dataset.open = 'true';
+      button.setAttribute('aria-expanded', 'true');
+      positionHelp(help);
+    }
+    function close() {
+      help.dataset.open = 'false';
+      button.setAttribute('aria-expanded', 'false');
+    }
+    function scheduleClose() {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(function () { if (!over && !focused) close(); }, 140);
+    }
+    button.addEventListener('mouseenter', function () { over = true; open(); });
+    button.addEventListener('mouseleave', function () { over = false; scheduleClose(); });
+    button.addEventListener('focus', function () { focused = true; open(); });
+    button.addEventListener('blur', function () { focused = false; scheduleClose(); });
+    button.addEventListener('click', open);
+    button.addEventListener('keydown', function (event) { if (event.key === 'Escape') { close(); button.blur(); } });
+    popover.addEventListener('mouseenter', function () { over = true; open(); });
+    popover.addEventListener('mouseleave', function () { over = false; scheduleClose(); });
+  }
+
+  function helpMarkup(kind) {
+    var config = statusHelp[kind];
+    var id = 'invoice-single-order-' + kind + '-help';
+    return '<span class="invoice-status-help" data-status-help data-single-order-status-help="' + kind + '"><button type="button" aria-expanded="false" aria-controls="' + id + '" aria-label="' + esc(config.title) + '" title="查看' + esc(config.title) + '">?</button><span id="' + id + '" class="invoice-status-help-popover" role="tooltip"><strong>' + esc(config.title) + '</strong>' + config.items.map(function (item) { return '<span><b>' + esc(item[0]) + '：</b>' + esc(item[1]) + '</span>'; }).join('') + '</span></span>';
+  }
+
+  function ensureHeaderHelp() {
+    var table = root.querySelector('table[aria-label="票据列表"]');
+    if (!table || !table.tHead || !table.tHead.rows[0]) return;
+    Array.from(table.tHead.rows[0].cells).forEach(function (header) {
+      var label = header.textContent.trim();
+      var kind = label === '票据状态' ? 'document' : label === '交付状态' ? 'delivery' : '';
+      if (!kind || header.querySelector('[data-single-order-status-help]')) return;
+      header.innerHTML = '<span class="invoice-th-with-help">' + esc(label) + helpMarkup(kind) + '</span>';
+      bindHelp(header.querySelector('[data-single-order-status-help]'));
+    });
+  }
+
+  function normalizeDeliveryCopy() {
+    root.querySelectorAll('option, .invoice-badge, .invoice-detail-state-value, td').forEach(function (element) {
+      var value = element.textContent.trim();
+      if (value !== '部分送达' && value !== '部分渠道送达') return;
+      if (element.tagName === 'OPTION') element.remove();
+      else if (element.children.length === 0) element.textContent = '交付失败';
+    });
+    root.querySelectorAll('td').forEach(function (element) {
+      if (element.children.length === 0 && element.textContent.trim() === '站内、邮件') element.textContent = '邮件';
+    });
+  }
+
+  function normalizeStatusClarity() {
+    scheduled = false;
+    normalizeDeliveryCopy();
+    ensureHeaderHelp();
+  }
+
+  function scheduleNormalize() {
+    if (scheduled) return;
+    scheduled = true;
+    requestAnimationFrame(normalizeStatusClarity);
+  }
+
+  new MutationObserver(scheduleNormalize).observe(root, { childList: true, subtree: true });
+  window.addEventListener('resize', function () {
+    root.querySelectorAll('[data-single-order-status-help][data-open="true"]').forEach(positionHelp);
+  });
+  scheduleNormalize();
 })();
 </script>
 </body>

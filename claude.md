@@ -167,6 +167,7 @@
 
 - 一级菜单：`class="menu-item l1"` + `data-page="页面名"`（无子菜单）或 `data-sub="sub-xxx"`（有子菜单）+ `onclick="menuSelect(this)"`
 - 二级菜单：`class="menu-item l2"` + `data-page="目标.html"` + `onclick="menuSelect(this)"`，放在对应 `id="sub-xxx"` 的 `.submenu` 容器内
+- 菜单排版：仅一级菜单显示 16×16px Lucide 功能图标；二级菜单及侧栏折叠态二级 Flyout 仅显示文字，不渲染或预留功能图标；侧栏静态分组标题及全部菜单文字统一为 14px，二级菜单文字与一级菜单文字左对齐
 - 菜单 JS 函数（`menuSelect`、`handleL1`、`handleL2`、`collapseAllExcept`、`clearAllActive`、`navigateToPage`）为框架内置，新页面直接使用，不得删除或替换
 
 

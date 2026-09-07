@@ -1,0 +1,2023 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>云登后台 · 静态代理</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+            ink: { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+            line: { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+            page: '#F7F8FA',
+            card: '#FFFFFF',
+            hover: '#F3F4F6',
+            bg: { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6', subtle: '#F5F8FF' },
+            success: { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+            warning: { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+            danger: { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+            info: { DEFAULT: '#0091D5', bg: '#E4F4FB' }
+          },
+          fontFamily: { mono: ['JetBrains Mono', 'monospace'] }
+        }
+      }
+    };
+  </script>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      background: #f7f8fa;
+      color: #3a3f4a;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    button, input, select { font: inherit; letter-spacing: 0; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+    .shell { display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 56px;
+      padding: 0 16px;
+      background: #fff;
+      box-shadow: 0 4px 12px -4px rgba(26, 29, 36, .16);
+      position: relative;
+      z-index: 20;
+    }
+    .topbar-left, .topbar-right { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
+    .brand-mark {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 6px;
+      background: #0066ff;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .brand-copy { color: #1a1d24; font-size: 16px; font-weight: 600; white-space: nowrap; }
+    .icon-button {
+      display: inline-grid;
+      width: 32px;
+      height: 32px;
+      place-items: center;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #6e7685;
+      cursor: pointer;
+    }
+    .icon-button:hover { background: #f3f4f6; color: #3a3f4a; }
+    .avatar {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 50%;
+      background: #e6f0ff;
+      color: #0066ff;
+      font-weight: 600;
+    }
+    .topbar-sep { width: 1px; height: 20px; background: #dfe1e5; }
+    .account {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #3a3f4a;
+      cursor: pointer;
+    }
+    .account:hover { background: #f3f4f6; }
+    .layout { display: flex; min-height: 0; flex: 1; }
+    .sidebar {
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid #e8eaed;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-scroll { flex: 1; overflow: auto; padding: 12px; }
+    .nav-item,
+    .sub-item {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 12px;
+      min-height: 38px;
+      margin: 0 0 4px;
+      padding: 0 8px;
+      border-radius: 4px;
+      color: #3a3f4a;
+      text-decoration: none;
+      cursor: pointer;
+      border: 0;
+      background: transparent;
+      font-size: 14px;
+      text-align: left;
+    }
+    .nav-item:hover,
+    .sub-item:hover { background: #f3f4f6; }
+    .nav-item.is-active,
+    .sub-item.is-active { background: #e6f0ff; color: #0066ff; font-weight: 600; }
+    .nav-icon { width: 16px; height: 16px; flex: 0 0 16px; }
+    .nav-label { flex: 1; min-width: 0; }
+    .side-group { margin-bottom: 4px; }
+    .group-btn {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 12px;
+      min-height: 38px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #3a3f4a;
+      cursor: pointer;
+      font-size: 14px;
+      text-align: left;
+    }
+    .group-btn:hover { background: #f3f4f6; }
+    .group-btn.is-active { color: #0066ff; background: #f3f4f6; font-weight: 600; }
+    .group-chevron {
+      margin-left: auto;
+      width: 14px;
+      height: 14px;
+      color: #9da2ac;
+      transition: transform .18s ease;
+      flex: 0 0 14px;
+    }
+    .side-group.is-open .group-chevron { transform: rotate(180deg); }
+    .side-submenu { padding-left: 0; margin: 4px 0 8px; display: grid; gap: 4px; }
+    .side-group:not(.is-open) .side-submenu { display: none; }
+    .sub-item { min-height: 34px; padding-left: 36px; font-size: 14px; }
+    .sidebar-footer { padding: 12px; }
+    .sidebar-divider { height: 1px; margin-bottom: 12px; background: #dfe1e5; }
+    .workspace { min-width: 0; flex: 1; overflow: auto; }
+    .page { padding: 16px; }
+    .section {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px 20px 16px;
+    }
+    .section + .section { margin-top: 16px; }
+    .filter-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px;
+    }
+    .filter-item {
+      flex: 0 0 auto;
+      display: grid;
+      grid-template-columns: max-content 300px;
+      align-items: center;
+      gap: 0;
+      min-width: 0;
+    }
+    .filter-label {
+      width: 86px;
+      justify-self: end;
+      color: #6e7685;
+      text-align: right;
+      white-space: nowrap;
+    }
+    .filter-label::after { content: "："; }
+    .filter-control { width: 300px; min-width: 0; }
+    .control {
+      width: 300px;
+      max-width: 100%;
+      height: 34px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      padding: 0 12px;
+      color: #3a3f4a;
+      background: #fff;
+      outline: none;
+    }
+    .control:focus { border-color: #0066ff; box-shadow: 0 0 0 3px rgba(0, 102, 255, .08); }
+    .select-wrap { position: relative; }
+    .select-wrap select { appearance: none; padding-right: 34px; }
+    .select-wrap::after {
+      content: "";
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-right: 1.5px solid #9da2ac;
+      border-bottom: 1.5px solid #9da2ac;
+      transform: translateY(-70%) rotate(45deg);
+      pointer-events: none;
+    }
+    .filter-actions { height: 32px; display: flex; align-items: center; gap: 8px; justify-content: flex-start; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 4px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-primary { background: #0066ff; color: #fff; }
+    .btn-primary:hover { background: #0052cc; }
+    .btn-ghost { background: #fff; color: #3a3f4a; border-color: #dfe1e5; }
+    .btn-ghost:hover { background: #f3f4f6; }
+    .data-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .title-line { display: flex; align-items: baseline; gap: 8px; }
+    .title-line h2 { margin: 0; color: #1a1d24; font-size: 16px; font-weight: 600; }
+    .title-line .count { color: #9da2ac; font-size: 12px; }
+    .toolbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 1980px; table-layout: fixed; }
+    thead th {
+      padding: 9px 12px;
+      background: #f0f1f3;
+      color: #6e7685;
+      font-size: 12px;
+      font-weight: 600;
+      text-align: left;
+      border-bottom: 1px solid #e8eaed;
+      white-space: nowrap;
+    }
+    tbody td {
+      padding: 9px 12px;
+      border-bottom: 1px solid #f0f1f3;
+      color: #3a3f4a;
+      vertical-align: top;
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.5;
+    }
+    tbody tr:hover { background: #f3f4f6; }
+    .checkbox { width: 16px; height: 16px; accent-color: #0066ff; }
+    .link { color: #0066ff; text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+    .muted { color: #9da2ac; }
+    .mono-cell { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .tag-success { color: #0fc060; background: #e7f9f0; }
+    .tag-warning { color: #e7772d; background: #fdf2e9; }
+    .tag-info { color: #0091d5; background: #e4f4fb; }
+    .tag-muted { color: #6e7685; background: #f0f1f3; }
+    .switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .switch-track {
+      width: 36px;
+      height: 20px;
+      border-radius: 999px;
+      background: #dfe1e5;
+      position: relative;
+      flex: 0 0 36px;
+      transition: background-color .15s ease;
+    }
+    .switch-track::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(26, 29, 36, .16);
+      transition: transform .15s ease;
+    }
+    .switch.is-on .switch-track { background: #0fc060; }
+    .switch.is-on .switch-track::before { transform: translateX(16px); }
+    .pagination {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding-top: 20px;
+      color: #6e7685;
+      font-size: 12px;
+    }
+    .pg-group { display: inline-flex; align-items: center; gap: 8px; }
+    .pg-button {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      background: #fff;
+      color: #3a3f4a;
+      cursor: pointer;
+    }
+    .pg-button:hover { background: #f3f4f6; }
+    .pg-button:disabled { cursor: not-allowed; color: #9da2ac; background: #f7f8fa; }
+    .pg-jump {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pg-input {
+      width: 48px;
+      height: 30px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      padding: 0 8px;
+      text-align: center;
+    }
+    .pg-size {
+      width: 84px;
+      height: 30px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      padding: 0 8px;
+      background: #fff;
+      appearance: none;
+    }
+    .cascade {
+      position: relative;
+    }
+    .cascade-panel {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 40;
+      width: 620px;
+      border: 1px solid #dfe1e5;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 6px 24px rgba(26, 29, 36, .14);
+      overflow: hidden;
+    }
+    .cascade-panel[hidden] { display: none; }
+    .cascade-head {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f0f1f3;
+      color: #9da2ac;
+      font-size: 12px;
+    }
+    .cascade-body {
+      display: grid;
+      grid-template-columns: 180px 180px 1fr;
+      min-height: 256px;
+    }
+    .cascade-col {
+      border-right: 1px solid #f0f1f3;
+      padding: 8px;
+      overflow: auto;
+    }
+    .cascade-col:last-child { border-right: 0; }
+    .cascade-option {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      height: 34px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #3a3f4a;
+      cursor: pointer;
+      text-align: left;
+    }
+    .cascade-option:hover { background: #f3f4f6; }
+    .cascade-option.is-active { background: #e6f0ff; color: #0066ff; font-weight: 600; }
+    .cascade-option small { color: #9da2ac; font-size: 12px; }
+    .city-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      min-height: 34px;
+      width: 100%;
+      padding: 0 12px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      background: #fff;
+      color: #3a3f4a;
+      cursor: pointer;
+      text-align: left;
+    }
+    .city-chip:hover { background: #f3f4f6; }
+    .notice {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1300;
+      pointer-events: none;
+    }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, .3);
+      padding: 24px;
+    }
+    .modal-overlay.is-open { display: flex; }
+    .modal {
+      width: min(760px, 100%);
+      max-height: calc(100vh - 48px);
+      overflow: hidden;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, .12);
+      display: flex;
+      flex-direction: column;
+    }
+    .modal.sm { width: min(600px, 100%); }
+    .modal.dialog { height: 250px; }
+    .modal-header {
+      min-height: 56px;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #e8eaed;
+    }
+    .modal-title {
+      margin: 0;
+      color: #1a1d24;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #9da2ac;
+      cursor: pointer;
+    }
+    .modal-close:hover { background: #f3f4f6; color: #6e7685; }
+    .modal-body {
+      padding: 32px 24px;
+      overflow: auto;
+    }
+    .modal.dialog .modal-body {
+      flex: 1;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-footer {
+      padding: 16px 24px 20px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      border-top: 1px solid #e8eaed;
+      margin-top: auto;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 90px minmax(0, 400px);
+      align-items: start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .form-label {
+      min-height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      color: #6e7685;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    .form-label::after { content: "："; }
+    .modal-form {
+      width: 502px;
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    .modal-form-wide {
+      max-width: none;
+      margin: 0;
+    }
+    .form-control {
+      width: 400px;
+      max-width: 100%;
+      min-height: 32px;
+      padding: 0 12px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      outline: none;
+      background: #fff;
+      color: #3a3f4a;
+    }
+    .form-control:focus { border-color: #0066ff; box-shadow: 0 0 0 2px rgba(0, 102, 255, .12); }
+    .form-control.textarea { min-height: 120px; padding: 10px 12px; resize: vertical; }
+    .inline-field {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: nowrap;
+      white-space: nowrap;
+      color: #3a3f4a;
+    }
+    .inline-field label { display: inline-flex; align-items: center; gap: 6px; }
+    .tag-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      padding-top: 4px;
+    }
+    .tag-grid label { display: inline-flex; align-items: center; gap: 6px; color: #3a3f4a; }
+    .cascade-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .cascade-box {
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      background: #fff;
+      min-height: 210px;
+      overflow: hidden;
+    }
+    .cascade-box.slim { min-height: 170px; }
+    .cascade-box-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e8eaed;
+      color: #6e7685;
+      font-size: 12px;
+      font-weight: 600;
+      background: #f7f8fa;
+    }
+    .cascade-box-body {
+      padding: 8px;
+      display: grid;
+      gap: 4px;
+    }
+    .cascade-choice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 34px;
+      padding: 0 10px;
+      border-radius: 4px;
+      border: 0;
+      background: transparent;
+      color: #3a3f4a;
+      cursor: pointer;
+      text-align: left;
+      width: 100%;
+    }
+    .cascade-choice:hover { background: #f3f4f6; }
+    .cascade-choice.is-active { background: #e6f0ff; color: #0066ff; font-weight: 600; }
+    .number-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    .number-table th,
+    .number-table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #f0f1f3;
+      text-align: left;
+      vertical-align: middle;
+    }
+    .number-table th {
+      color: #6e7685;
+      font-size: 12px;
+      font-weight: 600;
+      background: #f7f8fa;
+      white-space: nowrap;
+    }
+    .number-table td:first-child,
+    .number-table th:first-child { width: 150px; }
+    .number-table td:nth-child(2),
+    .number-table th:nth-child(2) { width: 110px; }
+    .number-table td:last-child,
+    .number-table th:last-child { width: auto; }
+    .number-input {
+      width: 100%;
+      height: 32px;
+      padding: 0 12px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      outline: none;
+      background: #fff;
+      color: #3a3f4a;
+    }
+    .number-input:focus { border-color: #0066ff; box-shadow: 0 0 0 3px rgba(0, 102, 255, .08); }
+    .radio-inline {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-right: 24px;
+      white-space: nowrap;
+    }
+    .sale-pool-box {
+      width: 100%;
+      max-width: 502px;
+      margin: 0 auto;
+    }
+    .sale-pool-select {
+      width: 100%;
+      height: 32px;
+      padding: 0 16px;
+      border: 1px solid #dfe1e5;
+      border-radius: 4px;
+      appearance: none;
+      background: #fff;
+      color: #3a3f4a;
+      font-size: 13px;
+    }
+    .sale-pool-select:focus { border-color: #0066ff; box-shadow: 0 0 0 3px rgba(0, 102, 255, .08); }
+    .sale-pool-wrap { position: relative; }
+    .sale-pool-wrap > select { appearance: none; -webkit-appearance: none; padding-right: 40px; }
+    .sale-pool-wrap::after {
+      content: "";
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-right: 1.5px solid #9da2ac;
+      border-bottom: 1.5px solid #9da2ac;
+      transform: translateY(-70%) rotate(45deg);
+      pointer-events: none;
+    }
+    .cell-action-btn {
+      display: inline-grid;
+      place-items: center;
+      width: 20px;
+      height: 20px;
+      border: 0;
+      padding: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: #9da2ac;
+      cursor: pointer;
+      flex: 0 0 20px;
+    }
+    .cell-action-btn.is-hovered { color: #0066ff; background: #f3f4f6; }
+    .sale-pool-column { text-overflow: clip; }
+    .product-link { border: 0; padding: 0; background: transparent; cursor: pointer; text-align: left; }
+    .segment-table { min-width: 660px; }
+    .segment-table td { overflow-wrap: anywhere; }
+    .segment-table th:nth-child(2), .segment-table td:nth-child(2) { padding-left: 20px; }
+    .segment-table tbody tr:nth-child(even) { background: #f7f8fa; }
+    .pg-button.is-current { background: #0066ff; color: #fff; border-color: #0066ff; }
+    .sale-pool-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .confirm-copy {
+      min-height: 140px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: #6e7685;
+      font-size: 13px;
+      line-height: 1.8;
+      padding: 12px 24px 0;
+    }
+    .toast {
+      margin-bottom: 8px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      background: #1a1d24;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(26, 29, 36, .16);
+      pointer-events: auto;
+    }
+    .overlay {
+      position: fixed;
+      inset: 56px 0 0;
+      background: rgba(26, 29, 36, .12);
+      z-index: 30;
+    }
+    .overlay[hidden] { display: none; }
+    .mobile-toggle { display: none; }
+    @media (max-width: 1024px) {
+      .layout { position: relative; }
+      .sidebar {
+        position: fixed;
+        top: 56px;
+        bottom: 0;
+        left: 0;
+        z-index: 35;
+        transform: translateX(-100%);
+        transition: transform .2s ease;
+        box-shadow: 0 6px 24px rgba(26, 29, 36, .16);
+      }
+      .sidebar.is-open { transform: translateX(0); }
+      .mobile-toggle { display: inline-grid; }
+      .cascade-panel { width: min(620px, calc(100vw - 32px)); }
+    }
+    @media (max-width: 767px) {
+      .page { padding: 12px; }
+      .section { padding: 16px; }
+      .filter-grid { align-items: stretch; }
+      .filter-item { width: 100%; grid-template-columns: 72px minmax(0, 1fr); }
+      .filter-control, .control { width: 100%; }
+      .cascade-body { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button id="mobileMenu" class="icon-button mobile-toggle" type="button" aria-label="展开导航">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+        <a class="brand" href="index.html#home" aria-label="云登后台工作台">
+          <span class="brand-mark">云</span>
+          <span class="brand-copy">云登后台</span>
+        </a>
+      </div>
+      <div class="topbar-right">
+        <button class="icon-button" type="button" aria-label="通知">
+          <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+        </button>
+        <span class="topbar-sep" aria-hidden="true"></span>
+        <button class="account" type="button" aria-label="管理员账号">
+          <span class="avatar">数</span>
+          <span>数据管理员</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-ink-muted"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside id="sidebar" class="sidebar" aria-label="主导航">
+        <div class="sidebar-scroll">
+          <a class="nav-item" href="index.html">
+            <i data-lucide="layout-grid" class="nav-icon"></i>
+            <span class="nav-label">工作台</span>
+          </a>
+
+          <div class="side-group" data-group="section-user">
+            <button class="group-btn" type="button" data-group-toggle="section-user" aria-expanded="false" aria-controls="submenu-user">
+              <i data-lucide="users" class="nav-icon"></i>
+              <span class="nav-label">用户管理</span>
+              <i data-lucide="chevron-down" class="group-chevron"></i>
+            </button>
+            <div id="submenu-user" class="side-submenu" hidden>
+              <a class="sub-item" href="用户列表.html"><span class="nav-label">用户列表</span></a>
+              <a class="sub-item" href="用户统计.html"><span class="nav-label">用户统计</span></a>
+              <a class="sub-item" href="团队列表.html"><span class="nav-label">团队列表</span></a>
+              <a class="sub-item" href="企业列表.html"><span class="nav-label">企业列表</span></a>
+              <a class="sub-item" href="成员列表.html"><span class="nav-label">成员列表</span></a>
+            </div>
+          </div>
+
+          <div class="side-group" data-group="section-order">
+            <button class="group-btn" type="button" data-group-toggle="section-order" aria-expanded="false" aria-controls="submenu-order">
+              <i data-lucide="receipt-text" class="nav-icon"></i>
+              <span class="nav-label">订单管理</span>
+              <i data-lucide="chevron-down" class="group-chevron"></i>
+            </button>
+            <div id="submenu-order" class="side-submenu" hidden>
+              <a class="sub-item" href="订单列表.html"><span class="nav-label">订单列表</span></a>
+            </div>
+          </div>
+
+          <div class="side-group" data-group="section-finance">
+            <button class="group-btn" type="button" data-group-toggle="section-finance" aria-expanded="false" aria-controls="submenu-finance">
+              <i data-lucide="file-check-2" class="nav-icon"></i>
+              <span class="nav-label">财务管理</span>
+              <i data-lucide="chevron-down" class="group-chevron"></i>
+            </button>
+            <div id="submenu-finance" class="side-submenu" hidden>
+              <a class="sub-item" href="发票管理.html"><span class="nav-label">发票管理</span></a>
+            </div>
+          </div>
+
+          <div class="side-group" data-group="section-resource">
+            <button class="group-btn" type="button" data-group-toggle="section-resource" aria-expanded="false" aria-controls="submenu-resource">
+              <i data-lucide="monitor-cog" class="nav-icon"></i>
+              <span class="nav-label">资源管理</span>
+              <i data-lucide="chevron-down" class="group-chevron"></i>
+            </button>
+            <div id="submenu-resource" class="side-submenu" hidden>
+              <a class="sub-item" href="环境管理.html"><span class="nav-label">环境管理</span></a>
+            </div>
+          </div>
+
+          <div class="side-group is-open" data-group="section-proxy-package">
+            <button class="group-btn is-active" type="button" data-group-toggle="section-proxy-package" aria-expanded="true" aria-controls="submenu-proxy-package">
+              <i data-lucide="network" class="nav-icon"></i>
+              <span class="nav-label">代理及套餐管理</span>
+              <i data-lucide="chevron-down" class="group-chevron"></i>
+            </button>
+            <div id="submenu-proxy-package" class="side-submenu">
+              <a class="sub-item is-active" href="静态代理.html"><span class="nav-label">静态代理</span></a>
+              <a class="sub-item" href="套餐订单.html"><span class="nav-label">套餐订单</span></a>
+            </div>
+          </div>
+
+          <div class="side-group" data-group="section-tracking">
+            <button class="group-btn" type="button" data-group-toggle="section-tracking" aria-expanded="false" aria-controls="submenu-tracking">
+              <i data-lucide="layout-dashboard" class="nav-icon"></i>
+              <span class="nav-label">数据埋点</span>
+              <i data-lucide="chevron-down" class="group-chevron"></i>
+            </button>
+            <div id="submenu-tracking" class="side-submenu" hidden>
+              <a class="sub-item" href="数据概览.html"><span class="nav-label">数据概览</span></a>
+              <a class="sub-item" href="事件管理.html"><span class="nav-label">事件管理</span></a>
+              <a class="sub-item" href="指标管理.html"><span class="nav-label">指标管理</span></a>
+              <a class="sub-item" href="联调验证.html"><span class="nav-label">联调验证</span></a>
+              <a class="sub-item" href="质量监控.html"><span class="nav-label">质量监控</span></a>
+              <a class="sub-item" href="明细排查.html"><span class="nav-label">明细排查</span></a>
+              <a class="sub-item" href="数据分析.html"><span class="nav-label">数据分析</span></a>
+              <a class="sub-item" href="资产沉淀.html"><span class="nav-label">资产沉淀</span></a>
+              <a class="sub-item" href="决策复盘.html"><span class="nav-label">决策复盘</span></a>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-footer">
+          <div class="sidebar-divider" aria-hidden="true"></div>
+          <button class="nav-item" type="button"><i data-lucide="settings-2" class="nav-icon"></i><span class="nav-label">系统设置</span></button>
+        </div>
+      </aside>
+
+      <button id="overlay" class="overlay" type="button" aria-label="关闭导航" hidden></button>
+
+      <main class="workspace">
+        <div class="page">
+          <section class="section">
+            <div class="filter-grid">
+              <div class="filter-item">
+                <label class="filter-label" for="sourceFilter">资源来源</label>
+                <div class="filter-control select-wrap">
+                  <select id="sourceFilter" class="control">
+                    <option value="">请选择</option>
+                    <option value="静态云平台">静态云平台</option>
+                    <option value="静态家庭宽带">静态家庭宽带</option>
+                  </select>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label class="filter-label" for="salePoolFilter">售卖池</label>
+                <div class="filter-control select-wrap">
+                  <select id="salePoolFilter" class="control">
+                    <option value="">全部</option>
+                    <option value="静态住宅标准">静态住宅标准</option>
+                    <option value="静态住宅优质">静态住宅优质</option>
+                    <option value="未知">未知</option>
+                  </select>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label class="filter-label" for="channelFilter">渠道</label>
+                <div class="filter-control select-wrap">
+                  <select id="channelFilter" class="control"></select>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label class="filter-label" for="regionFilterBtn">地区</label>
+                <div class="filter-control cascade">
+                  <button id="regionFilterBtn" class="city-chip" type="button" aria-haspopup="dialog" aria-expanded="false">
+                    <span id="regionFilterText" class="text-ink-muted">请选择</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-ink-muted ml-auto"></i>
+                  </button>
+                  <div id="regionPanel" class="cascade-panel" hidden>
+                    <div class="cascade-head">选择地区</div>
+                    <div class="cascade-body">
+                      <div id="continentList" class="cascade-col"></div>
+                      <div id="countryList" class="cascade-col"></div>
+                      <div id="districtList" class="cascade-col"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="filter-item">
+                <label class="filter-label" for="displayFilter">是否显示</label>
+                <div class="filter-control select-wrap">
+                  <select id="displayFilter" class="control">
+                    <option value="">请选择</option>
+                    <option value="显示">显示</option>
+                    <option value="隐藏">隐藏</option>
+                  </select>
+                </div>
+              </div>
+              <div class="filter-actions">
+                <button id="searchBtn" class="btn btn-primary" type="button"><i data-lucide="search" class="w-4 h-4"></i>搜索</button>
+                <button id="resetBtn" class="btn btn-ghost" type="button"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>重置</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="section">
+            <div class="data-toolbar">
+              <div class="title-line">
+                <h2>静态代理列表</h2>
+                <span id="totalCount" class="count">共 0 条</span>
+              </div>
+              <div class="toolbar-actions">
+                <button class="btn btn-ghost" type="button" data-action="set-region-order">设置地区顺序</button>
+                <button class="btn btn-ghost" type="button" data-action="set-product">设置产品信息</button>
+                <button class="btn btn-ghost" type="button" data-action="set-price">设置价格</button>
+                <button class="btn btn-ghost" type="button" data-action="set-duration">设置时长折扣</button>
+                <button class="btn btn-ghost" type="button" data-action="set-display">设置显示</button>
+                <button class="btn btn-ghost" type="button" data-action="set-recommend">设置推荐内容</button>
+                <button class="btn btn-ghost" type="button" data-action="sync-platform">同步三方平台推荐</button>
+                <button class="btn btn-ghost" type="button" data-action="set-sale-pool">设置售卖池</button>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <colgroup>
+                  <col style="width:42px">
+                  <col style="width:110px">
+                  <col style="width:150px">
+                  <col style="width:110px">
+                  <col style="width:180px">
+                  <col style="width:92px">
+                  <col style="width:96px">
+                  <col style="width:90px">
+                  <col style="width:96px">
+                  <col style="width:150px">
+                  <col style="width:82px">
+                  <col style="width:82px">
+                  <col style="width:82px">
+                  <col style="width:90px">
+                  <col style="width:170px">
+                  <col style="width:88px">
+                  <col style="width:110px">
+                  <col style="width:110px">
+                  <col style="width:160px">
+                  <col style="width:96px">
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th><input id="checkAll" class="checkbox" type="checkbox" aria-label="全选"></th>
+                    <th>资源来源</th>
+                    <th>产品名称</th>
+                    <th>渠道</th>
+                    <th>地区</th>
+                    <th>资源类型</th>
+                    <th>带宽类型</th>
+                    <th>ISP 类型</th>
+                    <th>网络类型</th>
+                    <th>售卖池</th>
+                    <th>成本价</th>
+                    <th>售价</th>
+                    <th>底价</th>
+                    <th>时长周期</th>
+                    <th>时长套餐</th>
+                    <th>库存</th>
+                    <th>推荐平台</th>
+                    <th>不适合平台</th>
+                    <th>备注</th>
+                    <th>是否显示</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+              </table>
+            </div>
+
+            <div class="pagination">
+              <div class="pg-group">
+                <button id="prevPage" class="pg-button" type="button" aria-label="上一页"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                <span id="pageInfo">第 1 / 1 页</span>
+                <button id="nextPage" class="pg-button" type="button" aria-label="下一页"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+              </div>
+              <div class="pg-group">
+                <span>每页</span>
+                <select id="pageSize" class="pg-size">
+                  <option value="10">10 条</option>
+                  <option value="20">20 条</option>
+                  <option value="50">50 条</option>
+                </select>
+              </div>
+              <div class="pg-jump">
+                跳至 <input id="jumpPage" class="pg-input" value="1" aria-label="跳转页码"> 页
+                <span id="totalInfo">共 0 条记录</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="notice" class="notice" aria-live="polite"></div>
+  <div id="modalLayer" class="modal-overlay" hidden></div>
+
+  <script>
+    const channels = [
+      '阿里云', '亚马逊云', '腾讯云', '华为云', 'huawei_light', 'uCloud', '靠谱云', '火山边缘云',
+      'do云', 'ak云', 'awslight', 'cmc', '海洋', 'IpV', '天翼', 'ctyun', 'ipidea住宅', 'ipideash2',
+      'crown', '绵竹2', '大翼', 'Ctyun', 'Ipideash2', '绵竹', '90IP', '蜘蛛', '星耀天翼云'
+    ];
+
+    const regionTree = [
+      {
+        name: '亚洲',
+        children: [
+          { name: '中国', districts: ['华北', '华东', '华南', '华中', '西南', '西北'] },
+          { name: '泰国', districts: ['曼谷', '清迈', '普吉'] },
+          { name: '马来西亚', districts: ['吉隆坡', '槟城', '柔佛'] },
+          { name: '印度尼西亚', districts: ['雅加达', '泗水', '巴厘岛'] },
+          { name: '菲律宾', districts: ['马尼拉', '宿务', '达沃'] },
+          { name: '日本', districts: ['东京', '大阪', '名古屋'] }
+        ]
+      },
+      {
+        name: '欧洲',
+        children: [
+          { name: '英国', districts: ['伦敦', '曼彻斯特', '伯明翰'] },
+          { name: '德国', districts: ['柏林', '法兰克福', '慕尼黑'] }
+        ]
+      },
+      {
+        name: '非洲',
+        children: [
+          { name: '南非', districts: ['约翰内斯堡', '开普敦'] },
+          { name: '尼日利亚', districts: ['拉各斯', '阿布贾'] }
+        ]
+      },
+      {
+        name: '大洋洲',
+        children: [
+          { name: '澳大利亚', districts: ['悉尼', '墨尔本', '珀斯'] },
+          { name: '新西兰', districts: ['奥克兰', '惠灵顿'] }
+        ]
+      },
+      {
+        name: '北美洲',
+        children: [
+          { name: '美国', districts: ['西海岸', '中部', '东海岸'] },
+          { name: '加拿大', districts: ['多伦多', '温哥华', '蒙特利尔'] }
+        ]
+      },
+      {
+        name: '南美洲',
+        children: [
+          { name: '巴西', districts: ['圣保罗', '里约热内卢'] },
+          { name: '阿根廷', districts: ['布宜诺斯艾利斯', '科尔多瓦'] }
+        ]
+      }
+    ];
+
+    const rows = [
+      ['静态云平台', '云_阿里静态池-01', '阿里云', '亚洲 / 中国 / 华东', '住宅', '固定带宽', '电信', 'IPv4', 11.23, 39.90, 15.96, '月', '1个月：10折 / 3个月：8折 / 6个月：6折 / 12个月：4折', '有货', '-', '-', '华东稳定资源，适合连续访问', true, '静态住宅标准'],
+      ['静态云平台', '云_腾讯轻量-02', '腾讯云', '亚洲 / 中国 / 华南', '机房', '动态带宽', '联通', 'IPv4', 10.80, 36.90, 14.60, '月', '1个月：10折 / 3个月：8折 / 6个月：7折', '有货', '星耀平台', '海量采集平台', '适合轻量轮换场景', true, '静态住宅优质'],
+      ['静态云平台', '云_华为专线-03', '华为云', '亚洲 / 中国 / 华北', '云主机', '固定带宽', '移动', 'IPv4 / IPv6', 12.40, 41.80, 16.80, '月', '1个月：10折 / 3个月：9折', '有货', '-', '-', '支持固定出口与白名单', true, '未知'],
+      ['静态云平台', '云_火山边缘-04', '火山边缘云', '亚洲 / 日本 / 东京', '边缘节点', '固定带宽', '混合', 'IPv4', 13.10, 44.20, 17.50, '月', '1个月：10折 / 6个月：7折', '12', '星耀平台', '低时延平台', '适合边缘部署与海外验证', false, '静态住宅优质'],
+      ['静态云平台', '云_天翼国际-05', '星耀天翼云', '亚洲 / 中国 / 华中', '住宅', '固定带宽', '电信', 'IPv4', 9.88, 35.60, 13.90, '月', '1个月：10折 / 3个月：8折', '32', '星耀平台', '-', '偏稳定长连接使用', true, '静态住宅标准'],
+      ['静态家庭宽带', '宽带_电信住宅-11', 'uCloud', '亚洲 / 马来西亚 / 吉隆坡', '住宅', '固定带宽', '电信', 'IPv4', 8.60, 31.20, 12.40, '月', '1个月：10折 / 3个月：8折 / 6个月：6折', '有货', '-', '高频平台', '家庭宽带池，适合日常登录', true, '未知'],
+      ['静态家庭宽带', '宽带_联通混合-12', 'ipidea住宅', '亚洲 / 菲律宾 / 马尼拉', '住宅', '动态带宽', '联通', 'IPv4', 8.40, 30.50, 12.00, '月', '1个月：10折 / 3个月：8折', '21', '星耀平台', '-', '覆盖移动端和模拟器场景', true, '静态住宅优质'],
+      ['静态家庭宽带', '宽带_移动节点-13', 'ipideash2', '亚洲 / 泰国 / 曼谷', '家庭宽带', '固定带宽', '移动', 'IPv4', 8.10, 29.90, 11.80, '月', '1个月：10折 / 3个月：8折', '18', '-', '批量爬取平台', '适合轻中度并发', false, '未知'],
+      ['静态家庭宽带', '宽带_CTYUN-14', 'ctyun', '欧洲 / 英国 / 伦敦', '家庭宽带', '动态带宽', '混合', 'IPv4', 12.70, 42.80, 17.40, '月', '1个月：10折 / 6个月：7折', '有货', '海外推荐', '-', '海外静态出口', true, '静态住宅标准'],
+      ['静态家庭宽带', '宽带_海洋-15', '海洋', '亚洲 / 中国 / 华南', '家庭宽带', '固定带宽', '电信', 'IPv4', 7.95, 28.80, 11.20, '月', '1个月：10折 / 3个月：8折 / 12个月：5折', '44', '-', '-', '长周期性价比较高', true, '未知'],
+      ['静态家庭宽带', '宽带_绵竹-16', '绵竹2', '亚洲 / 中国 / 西南', '家庭宽带', '固定带宽', '联通', 'IPv4', 7.65, 27.60, 10.90, '月', '1个月：10折 / 3个月：8折', '有货', '-', '海外平台', '适合地区隔离策略', true, '静态住宅优质'],
+      ['静态家庭宽带', '宽带_蜘蛛-17', '蜘蛛', '北美洲 / 美国 / 西海岸', '住宅', '固定带宽', '混合', 'IPv4 / IPv6', 14.20, 48.90, 19.60, '月', '1个月：10折 / 3个月：9折', '8', '海外推荐', '-', '适合跨区调试', false, '未知']
+    ].map((item, index) => ({
+      id: index + 1,
+      source: item[0],
+      productName: item[1],
+      channel: item[2],
+      region: item[3],
+      type: item[4],
+      bandwidth: item[5],
+      isp: item[6],
+      network: item[7],
+      cost: item[8],
+      sale: item[9],
+      floor: item[10],
+      cycle: item[11],
+      packageText: item[12],
+      stock: item[13],
+      recommend: item[14],
+      unsuitable: item[15],
+      note: item[16],
+      visible: item[17],
+      salePool: item[18]
+    }));
+
+    // 推断补全：每个产品独立保存号段推荐 Mock 数据，首个产品使用截图号段。
+    const productSegments = new Map(rows.map((row, index) => [row.id,
+      [104, 129, 215].map((part, i) => ({ id: i + 1,
+        cidr: `108.${165 + index}.${part}.0/24`, recommend: '', unsuitable: '', note: '' }))
+    ]));
+    const segmentState = { productId: null, selected: new Set(), page: 1, pageSize: 50 };
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[char]));
+    let modalTrigger = null;
+    let restoreModalFocus = true;
+    let previousOverflow = '';
+
+    const state = {
+      source: '',
+      salePool: '',
+      channel: '',
+      display: '',
+      region: ['', '', ''],
+      regionOpen: false,
+      continent: regionTree[0].name,
+      country: regionTree[0].children[0].name,
+      district: regionTree[0].children[0].districts[0],
+      page: 1,
+      pageSize: 10
+    };
+
+    const els = {
+      sourceFilter: document.getElementById('sourceFilter'),
+      salePoolFilter: document.getElementById('salePoolFilter'),
+      channelFilter: document.getElementById('channelFilter'),
+      displayFilter: document.getElementById('displayFilter'),
+      regionBtn: document.getElementById('regionFilterBtn'),
+      regionText: document.getElementById('regionFilterText'),
+      regionPanel: document.getElementById('regionPanel'),
+      continentList: document.getElementById('continentList'),
+      countryList: document.getElementById('countryList'),
+      districtList: document.getElementById('districtList'),
+      tableBody: document.getElementById('tableBody'),
+      totalCount: document.getElementById('totalCount'),
+      totalInfo: document.getElementById('totalInfo'),
+      pageInfo: document.getElementById('pageInfo'),
+      pageSize: document.getElementById('pageSize'),
+      jumpPage: document.getElementById('jumpPage'),
+      prevPage: document.getElementById('prevPage'),
+      nextPage: document.getElementById('nextPage'),
+      searchBtn: document.getElementById('searchBtn'),
+      resetBtn: document.getElementById('resetBtn'),
+      sidebar: document.getElementById('sidebar'),
+      overlay: document.getElementById('overlay'),
+      notice: document.getElementById('notice'),
+      modalLayer: document.getElementById('modalLayer'),
+      checkAll: document.getElementById('checkAll')
+    };
+
+    const productName = '资源_Id-IDC';
+    const modalState = {
+      active: null,
+      salePoolTargets: [],
+      regionRows: [
+        { name: '亚洲', order: 8, tag: '上新' },
+        { name: '欧洲', order: 7, tag: '推荐' },
+        { name: '非洲', order: 3, tag: '热门' },
+        { name: '大洋洲', order: 4, tag: '上新' },
+        { name: '北美洲', order: 10, tag: '推荐' },
+        { name: '南美洲', order: 5, tag: '热门' }
+      ],
+      recommend: {
+        customPeople: '电商',
+        customCategory: '亚马逊前台',
+        customRegion: '美国',
+        platformPeople: '亚马逊前台',
+        platformCategory: '亚马逊后台',
+        platformRegion: '英国'
+      },
+      salePool: '未知'
+    };
+
+    const recommendOptions = {
+      custom: {
+        left: ['电商', '社交', '支付', '邮箱', '问卷', '广告'],
+        middle: ['亚马逊后台', '亚马逊前台', 'tiktok小店', '抖音小店后台', 'shopee后台', '拼多多后台'],
+        right: ['美国', '英国', '日本', '德国', '法国', '加拿大']
+      },
+      platform: {
+        left: ['亚马逊后台', '亚马逊前台', 'tiktok小店', '抖音小店后台', 'shopee后台', '拼多多后台'],
+        middle: ['美国', '英国', '日本', '德国', '法国', '加拿大'],
+        right: ['静态住宅标准', '静态住宅优质', '云平台']
+      }
+    };
+
+    function toast(message) {
+      const node = document.createElement('div');
+      node.className = 'toast';
+      node.textContent = message;
+      els.notice.appendChild(node);
+      setTimeout(() => node.remove(), 2200);
+    }
+
+    function openModal(kind, options = {}) {
+      if (!modalState.active) {
+        modalTrigger = document.activeElement;
+        restoreModalFocus = options.restoreFocus !== false;
+        previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+      }
+      modalState.active = kind;
+      if (kind === 'set-sale-pool') {
+        modalState.salePoolTargets = Array.isArray(options.targetIds) ? options.targetIds.slice() : [];
+        if (typeof options.salePool === 'string') {
+          modalState.salePool = options.salePool;
+        }
+      }
+      els.modalLayer.hidden = false;
+      els.modalLayer.classList.add('is-open');
+      els.modalLayer.innerHTML = renderModal(kind);
+      lucide.createIcons();
+      els.modalLayer.querySelector('button, input, select')?.focus();
+    }
+
+    function closeModal() {
+      if (modalState.active === 'segment-edit') { openModal('segments'); return; }
+      document.body.style.overflow = previousOverflow;
+      // 鼠标点击编辑后不恢复焦点高亮；键盘操作仍恢复焦点，便于继续导航。
+      if (restoreModalFocus) modalTrigger?.focus();
+      modalState.active = null;
+      modalState.salePoolTargets = [];
+      els.modalLayer.classList.remove('is-open');
+      els.modalLayer.hidden = true;
+      els.modalLayer.innerHTML = '';
+    }
+
+    function renderModal(kind) {
+      if (kind === 'segments') {
+        const all = productSegments.get(segmentState.productId) || [];
+        const pages = Math.max(1, Math.ceil(all.length / segmentState.pageSize));
+        segmentState.page = Math.max(1, Math.min(segmentState.page, pages));
+        const items = all.slice((segmentState.page - 1) * segmentState.pageSize, segmentState.page * segmentState.pageSize);
+        return `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <header class="modal-header"><h2 id="modalTitle" class="modal-title">号段推荐设置</h2>
+            <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button></header>
+          <div class="modal-body">
+            <div class="toolbar-actions mb-4"><button class="btn btn-primary" type="button" data-segment-edit>设置推荐</button></div>
+            <div class="table-wrap"><table class="data-table segment-table">
+              <colgroup><col style="width:42px"><col style="width:190px"><col><col><col></colgroup>
+              <thead><tr><th><input class="checkbox" type="checkbox" data-segment-all aria-label="全选号段" ${items.length && items.every(item => segmentState.selected.has(item.id)) ? 'checked' : ''}></th>
+                <th>号段</th><th>推荐平台</th><th>不适合平台</th><th>备注</th></tr></thead>
+              <tbody>${items.map(item => `<tr><td><input class="checkbox" type="checkbox" data-segment-id="${item.id}" aria-label="选择 ${item.cidr}" ${segmentState.selected.has(item.id) ? 'checked' : ''}></td>
+                <td class="font-mono">${item.cidr}</td><td>${escapeHtml(item.recommend || '--')}</td><td>${escapeHtml(item.unsuitable || '--')}</td><td>${escapeHtml(item.note || '--')}</td></tr>`).join('') || '<tr><td colspan="5">暂无数据</td></tr>'}</tbody>
+            </table></div>
+            <div class="pagination">
+              <span class="font-mono">共 ${all.length} 条</span>
+              <select class="pg-size" data-segment-size aria-label="号段每页条数">${[10,20,50].map(size => `<option value="${size}" ${size === segmentState.pageSize ? 'selected' : ''}>${size}条/页</option>`).join('')}</select>
+              <div class="pg-group"><button class="pg-button" data-segment-page="${segmentState.page - 1}" aria-label="号段上一页" ${segmentState.page === 1 ? 'disabled' : ''}>‹</button>
+                ${Array.from({length:pages}, (_,i) => `<button class="pg-button font-mono ${i + 1 === segmentState.page ? 'is-current' : ''}" data-segment-page="${i+1}" ${i+1 === segmentState.page ? 'aria-current="page"' : ''}>${i+1}</button>`).join('')}
+                <button class="pg-button" data-segment-page="${segmentState.page + 1}" aria-label="号段下一页" ${segmentState.page === pages ? 'disabled' : ''}>›</button></div>
+              <label class="pg-jump">前往 <input class="pg-input font-mono" data-segment-jump type="number" min="1" max="${pages}" value="1" aria-label="号段跳转页码"> 页</label>
+            </div>
+          </div></section>`;
+      }
+      // 推断补全：设置推荐批量更新已选号段，取消返回列表，刷新页面后恢复 Mock。
+      if (kind === 'segment-edit') {
+        const item = productSegments.get(segmentState.productId).find(row => segmentState.selected.has(row.id));
+        return `<section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <header class="modal-header"><h2 id="modalTitle" class="modal-title">设置推荐</h2><button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button></header>
+          <form class="modal-body modal-form" id="segmentForm">
+            ${[['recommend','推荐平台'],['unsuitable','不适合平台']].map(([key,label]) => `<div class="form-row"><label class="form-label" for="segment-${key}">${label}</label><div class="relative"><input class="form-control" style="padding-right:48px" id="segment-${key}" name="${key}" maxlength="100" value="${escapeHtml(item[key])}"><span class="absolute right-2 top-2 text-xs text-ink-muted font-mono" data-count-for="segment-${key}">${item[key].length}/100</span></div></div>`).join('')}
+            <div class="form-row"><label class="form-label" for="segment-note">备注</label><div><textarea class="form-control textarea" id="segment-note" name="note" maxlength="200">${escapeHtml(item.note)}</textarea><div class="text-right text-xs text-ink-muted font-mono" data-count-for="segment-note">${item.note.length}/200</div></div></div>
+          </form>
+          <footer class="modal-footer"><button class="btn btn-ghost" data-modal-close>取消</button><button class="btn btn-primary" type="submit" form="segmentForm">提交</button></footer></section>`;
+      }
+
+      if (kind === 'set-region-order') {
+        return `
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">地区排序设置</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <form class="modal-body modal-form-wide" data-modal-form>
+              <table class="number-table">
+                <thead>
+                  <tr>
+                    <th>地区</th>
+                    <th>排序</th>
+                    <th>标签</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${modalState.regionRows.map((row, index) => `
+                    <tr>
+                      <td><span class="text-ink-body">${row.name}</span></td>
+                      <td><input class="number-input" type="number" min="1" value="${row.order}" data-region-order="${index}"></td>
+                      <td>
+                        <div class="inline-field">
+                          ${['上新', '推荐', '热门'].map((label) => `
+                            <label><input type="radio" name="regionTag-${index}" ${row.tag === label ? 'checked' : ''} value="${label}">${label}</label>
+                          `).join('')}
+                        </div>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </form>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>确认</button>
+            </footer>
+          </section>`;
+      }
+      if (kind === 'set-product') {
+        return `
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">产品信息设置(${productName})</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <form class="modal-body modal-form" data-modal-form>
+              <div class="form-row">
+                <label class="form-label" for="productNameInput">产品名称</label>
+                <input id="productNameInput" class="form-control" value="${productName}">
+              </div>
+              <div class="form-row">
+                <label class="form-label">产品标签</label>
+                <div class="tag-grid">
+                  ${['推荐', '折扣', '热门', '上新'].map((label, index) => `<label><input type="checkbox" ${index === 0 ? 'checked' : ''}>${label}</label>`).join('')}
+                </div>
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="productDesc">产品描述</label>
+                <textarea id="productDesc" class="form-control textarea" placeholder="请输入产品描述"></textarea>
+              </div>
+            </form>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>提交</button>
+            </footer>
+          </section>`;
+      }
+      if (kind === 'set-price') {
+        return `
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">价格设置(${productName})</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <form class="modal-body modal-form" data-modal-form>
+              <div class="form-row">
+                <label class="form-label">成本价</label>
+                <div class="form-control" style="display:flex;align-items:center;background:#f7f8fa;color:#9da2ac;">¥ 11.23</div>
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="salePrice">售价</label>
+                <input id="salePrice" class="form-control" value="39.9">
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="floorPrice">底价</label>
+                <input id="floorPrice" class="form-control" value="15.96">
+              </div>
+            </form>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>提交</button>
+            </footer>
+          </section>`;
+      }
+      if (kind === 'set-duration') {
+        return `
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">时长设置(${productName})</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <form class="modal-body modal-form" data-modal-form>
+              ${[
+                ['1个月打', '100'],
+                ['3个月打', '80'],
+                ['6个月打', '60'],
+                ['12个月打', '40']
+              ].map(([label, value]) => `
+                <div class="form-row">
+                  <label class="form-label" for="${label}">${label}</label>
+                  <div class="inline-field">
+                    <input id="${label}" class="form-control" style="width:400px" value="${value}">
+                    <span class="text-ink-body">折</span>
+                  </div>
+                </div>
+              `).join('')}
+            </form>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>提交</button>
+            </footer>
+          </section>`;
+      }
+      if (kind === 'set-display') {
+        return `
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">显示设置(${productName})</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <form class="modal-body modal-form" data-modal-form>
+              <div class="form-row">
+                <label class="form-label" for="displaySelect">显示</label>
+                <div class="sale-pool-wrap">
+                  <select id="displaySelect" class="form-control">
+                    <option>是</option>
+                    <option>否</option>
+                  </select>
+                </div>
+              </div>
+            </form>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>提交</button>
+            </footer>
+          </section>`;
+      }
+      if (kind === 'set-recommend') {
+        return `
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">设置推荐内容</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <form class="modal-body modal-form-wide" data-modal-form>
+              <div class="cascade-grid">
+                <div>
+                  <div class="text-center text-ink-muted mb-3">自定义</div>
+                  <div class="form-row" style="grid-template-columns: 90px minmax(0, 1fr); margin-bottom: 12px;">
+                    <label class="form-label">大家都在用</label>
+                    <select class="form-control">
+                      ${recommendOptions.custom.left.map((label) => `<option ${modalState.recommend.customPeople === label ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-row" style="grid-template-columns: 90px minmax(0, 1fr); margin-bottom: 12px;">
+                    <label class="form-label">不适用平台</label>
+                    <select class="form-control">
+                      ${recommendOptions.custom.middle.map((label) => `<option>${label}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-row" style="grid-template-columns: 90px minmax(0, 1fr); margin-bottom: 0;">
+                    <label class="form-label">适用地区</label>
+                    <select class="form-control">
+                      ${recommendOptions.custom.right.map((label) => `<option ${label === modalState.recommend.customRegion ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <div class="text-center text-ink-muted mb-3">三方平台</div>
+                  <div class="form-row" style="grid-template-columns: 90px minmax(0, 1fr); margin-bottom: 12px;">
+                    <label class="form-label">大家都在用</label>
+                    <select class="form-control">
+                      ${recommendOptions.platform.left.map((label) => `<option ${modalState.recommend.platformPeople === label ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-row" style="grid-template-columns: 90px minmax(0, 1fr); margin-bottom: 12px;">
+                    <label class="form-label">不适用平台</label>
+                    <select class="form-control">
+                      ${recommendOptions.platform.middle.map((label) => `<option ${modalState.recommend.platformCategory === label ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-row" style="grid-template-columns: 90px minmax(0, 1fr); margin-bottom: 0;">
+                    <label class="form-label">适用地区</label>
+                    <select class="form-control">
+                      ${recommendOptions.platform.right.map((label) => `<option ${label === modalState.recommend.platformRegion ? 'selected' : ''}>${label}</option>`).join('')}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="form-row" style="margin-top: 18px;">
+                <label class="form-label" for="recommendDesc">描述</label>
+                <textarea id="recommendDesc" class="form-control textarea" maxlength="50" placeholder="请输入备注描述"></textarea>
+              </div>
+            </form>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>提交</button>
+            </footer>
+          </section>`;
+      }
+      if (kind === 'sync-platform') {
+        return `
+          <section class="modal sm dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">开启三方平台推荐</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <div class="modal-body">
+              <div class="confirm-copy">将覆盖已选中产品的“推荐平台”、“不适合平台”中三方平台内容<br>是否进行同步？</div>
+            </div>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>同步</button>
+            </footer>
+          </section>`;
+      }
+      if (kind === 'set-sale-pool') {
+        return `
+          <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+              <h2 id="modalTitle" class="modal-title">设置售卖池</h2>
+              <button class="modal-close" type="button" data-modal-close aria-label="关闭"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </header>
+            <form class="modal-body modal-form" data-modal-form>
+              <div class="sale-pool-box">
+                <div class="form-row">
+                  <label class="form-label">售卖池</label>
+                  <div class="sale-pool-wrap">
+                    <select id="salePoolSelect" class="sale-pool-select">
+                      <option ${modalState.salePool === '未知' ? 'selected' : ''}>未知</option>
+                      <option ${modalState.salePool === '静态住宅标准' ? 'selected' : ''}>静态住宅标准</option>
+                      <option ${modalState.salePool === '静态住宅优质' ? 'selected' : ''}>静态住宅优质</option>
+                      <option ${modalState.salePool === '云平台' ? 'selected' : ''}>云平台</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </form>
+            <footer class="modal-footer">
+              <button class="btn btn-ghost" type="button" data-modal-close>取消</button>
+              <button class="btn btn-primary" type="button" data-modal-submit>提交</button>
+            </footer>
+          </section>`;
+      }
+      return '';
+    }
+
+    function fillChannels() {
+      els.channelFilter.innerHTML = ['<option value="">请选择</option>']
+        .concat(channels.map((value) => `<option value="${value}">${value}</option>`))
+        .join('');
+    }
+
+    function getSelectedRegionLabel() {
+      return state.region.filter(Boolean).join(' / ') || '请选择';
+    }
+
+    function renderRegionColumns() {
+      els.regionText.textContent = state.region.filter(Boolean).length ? getSelectedRegionLabel() : '请选择';
+      els.regionText.classList.toggle('text-ink-muted', !state.region.filter(Boolean).length);
+
+      const continents = regionTree.map((item) => `
+        <button class="cascade-option ${item.name === state.continent ? 'is-active' : ''}" type="button" data-continent="${item.name}">
+          <span>${item.name}</span><small>›</small>
+        </button>
+      `).join('');
+      els.continentList.innerHTML = continents;
+
+      const continent = regionTree.find((item) => item.name === state.continent) || regionTree[0];
+      const countries = continent.children.map((item) => `
+        <button class="cascade-option ${item.name === state.country ? 'is-active' : ''}" type="button" data-country="${item.name}">
+          <span>${item.name}</span><small>›</small>
+        </button>
+      `).join('');
+      els.countryList.innerHTML = countries;
+
+      const country = continent.children.find((item) => item.name === state.country) || continent.children[0];
+      const districts = country.districts.map((name) => `
+        <button class="cascade-option ${name === state.district ? 'is-active' : ''}" type="button" data-district="${name}">
+          <span>${name}</span><small>可选</small>
+        </button>
+      `).join('');
+      els.districtList.innerHTML = districts;
+    }
+
+    function openRegion() {
+      state.regionOpen = true;
+      els.regionPanel.hidden = false;
+      els.regionBtn.setAttribute('aria-expanded', 'true');
+      renderRegionColumns();
+    }
+
+    function closeRegion() {
+      state.regionOpen = false;
+      els.regionPanel.hidden = true;
+      els.regionBtn.setAttribute('aria-expanded', 'false');
+    }
+
+    function applyRegionSelection() {
+      state.region = [state.continent, state.country, state.district].filter(Boolean);
+      renderRegionColumns();
+      renderTable();
+    }
+
+    function setDefaultRegion() {
+      const firstContinent = regionTree[0];
+      const firstCountry = firstContinent.children[0];
+      state.continent = firstContinent.name;
+      state.country = firstCountry.name;
+      state.district = firstCountry.districts[0];
+      state.region = [];
+      renderRegionColumns();
+    }
+
+    function filtersMatch(row) {
+      const regionOk = !state.region.length || row.region.includes(state.region.join(' / ')) || row.region.includes(state.country) || row.region.includes(state.continent);
+      return (
+        (!state.source || row.source === state.source) &&
+        (!state.salePool || row.salePool === state.salePool) &&
+        (!state.channel || row.channel === state.channel) &&
+        (!state.display || (state.display === '显示' ? row.visible : !row.visible)) &&
+        regionOk
+      );
+    }
+
+    function getFilteredRows() {
+      return rows.filter(filtersMatch);
+    }
+
+    function renderTable() {
+      const filtered = getFilteredRows();
+      const total = filtered.length;
+      const pages = Math.max(1, Math.ceil(total / state.pageSize));
+      state.page = Math.min(state.page, pages);
+      const start = (state.page - 1) * state.pageSize;
+      const items = filtered.slice(start, start + state.pageSize);
+
+      els.totalCount.textContent = `共 ${total} 条`;
+      els.totalInfo.textContent = `共 ${total} 条记录`;
+      els.pageInfo.textContent = `第 ${total ? state.page : 1} / ${pages} 页`;
+      els.jumpPage.value = String(total ? state.page : 1);
+      els.prevPage.disabled = state.page <= 1;
+      els.nextPage.disabled = state.page >= pages;
+      els.checkAll.checked = false;
+
+      els.tableBody.innerHTML = items.map((row) => `
+        <tr data-row-id="${row.id}">
+          <td><input class="checkbox row-check" type="checkbox" aria-label="选择 ${row.productName}"></td>
+          <td>${row.source}</td>
+          <td><button class="link product-link" type="button" data-product-segments="${row.id}">${row.productName}</button></td>
+          <td>${row.channel}</td>
+          <td title="${row.region}">${row.region}</td>
+          <td>${row.type}</td>
+          <td>${row.bandwidth}</td>
+          <td>${row.isp}</td>
+          <td>${row.network}</td>
+          <td class="sale-pool-column">
+            <div class="sale-pool-cell">
+              <span>${row.salePool}</span>
+              <button class="cell-action-btn" type="button" data-sale-pool-edit="${row.id}" aria-label="编辑售卖池" title="编辑售卖池">
+                <i data-lucide="pencil" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </td>
+          <td class="mono-cell">${row.cost.toFixed(2)}</td>
+          <td class="mono-cell">${row.sale.toFixed(2)}</td>
+          <td class="mono-cell">${row.floor.toFixed(2)}</td>
+          <td>${row.cycle}</td>
+          <td title="${row.packageText}">${row.packageText}</td>
+          <td>${typeof row.stock === 'number' ? `<span class="mono-cell">${row.stock}</span>` : `<span class="tag tag-success">${row.stock}</span>`}</td>
+          <td>${row.recommend === '-' ? '<span class="muted">-</span>' : `<span class="tag tag-info">${row.recommend}</span>`}</td>
+          <td>${row.unsuitable === '-' ? '<span class="muted">-</span>' : `<span class="tag tag-warning">${row.unsuitable}</span>`}</td>
+          <td title="${row.note}">${row.note}</td>
+          <td>
+            <button class="switch ${row.visible ? 'is-on' : ''}" type="button" data-toggle-visible="${row.id}" aria-label="${row.visible ? '隐藏' : '显示'}">
+              <span class="switch-track" aria-hidden="true"></span>
+              <span>${row.visible ? '显示' : '隐藏'}</span>
+            </button>
+          </td>
+        </tr>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function syncFiltersFromUI() {
+      state.source = els.sourceFilter.value;
+      state.salePool = els.salePoolFilter.value;
+      state.channel = els.channelFilter.value;
+      state.display = els.displayFilter.value;
+    }
+
+    function applySearch() {
+      syncFiltersFromUI();
+      state.page = 1;
+      closeRegion();
+      renderTable();
+      toast('筛选结果已更新');
+    }
+
+    function resetAll() {
+      els.sourceFilter.value = '';
+      els.salePoolFilter.value = '';
+      els.channelFilter.value = '';
+      els.displayFilter.value = '';
+      state.source = '';
+      state.salePool = '';
+      state.channel = '';
+      state.display = '';
+      state.page = 1;
+      state.pageSize = Number(els.pageSize.value);
+      setDefaultRegion();
+      renderTable();
+      toast('筛选条件已重置');
+    }
+
+    function updateRegionByClick(target) {
+      const continentName = target.dataset.continent;
+      const countryName = target.dataset.country;
+      const districtName = target.dataset.district;
+      if (continentName) {
+        state.continent = continentName;
+        const continent = regionTree.find((item) => item.name === continentName);
+        const firstCountry = continent.children[0];
+        state.country = firstCountry.name;
+        state.district = firstCountry.districts[0];
+      }
+      if (countryName) {
+        const continent = regionTree.find((item) => item.name === state.continent);
+        const country = continent.children.find((item) => item.name === countryName);
+        state.country = country.name;
+        state.district = country.districts[0];
+      }
+      if (districtName) {
+        state.district = districtName;
+        applyRegionSelection();
+        closeRegion();
+        return;
+      }
+      applyRegionSelection();
+    }
+
+    function getSelectedRowIds() {
+      return Array.from(document.querySelectorAll('.row-check:checked')).map((checkbox) => Number(checkbox.closest('tr')?.dataset.rowId)).filter(Boolean);
+    }
+
+    function handleAction(name) {
+      const modalActions = new Set(['set-product', 'set-price', 'set-duration', 'set-display', 'set-recommend', 'sync-platform', 'set-sale-pool']);
+      const selectionRequiredActions = new Set([
+        'batch-show',
+        'batch-hide',
+        'sync-reference',
+        ...modalActions
+      ]);
+      if (selectionRequiredActions.has(name)) {
+        const selectedIds = getSelectedRowIds();
+        if (!selectedIds.length) {
+          toast('请选择需要设置的数据');
+          return;
+        }
+        if (modalActions.has(name)) {
+          const initialSalePool = rows.find((row) => row.id === selectedIds[0])?.salePool || modalState.salePool;
+          openModal(name, name === 'set-sale-pool' ? { targetIds: selectedIds, salePool: initialSalePool } : {});
+          return;
+        }
+        const messages = {
+          'batch-show': '已批量设置为显示',
+          'batch-hide': '已批量设置为隐藏',
+          'sync-reference': '参考数据已同步'
+        };
+        toast(messages[name] || '已执行操作');
+        return;
+      }
+      if (name === 'set-region-order') {
+        openModal(name);
+        return;
+      }
+      toast('已执行操作');
+    }
+
+    document.getElementById('regionFilterBtn').addEventListener('click', () => {
+      state.regionOpen ? closeRegion() : openRegion();
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!event.target.closest('.cascade')) closeRegion();
+    });
+
+    els.modalLayer.addEventListener('submit', (event) => {
+      if (event.target.id !== 'segmentForm') return;
+      event.preventDefault();
+      const values = new FormData(event.target);
+      productSegments.get(segmentState.productId).forEach(item => {
+        if (segmentState.selected.has(item.id)) {
+          ['recommend', 'unsuitable', 'note'].forEach(key => { item[key] = values.get(key).trim(); });
+        }
+      });
+      openModal('segments');
+      toast('号段推荐已更新');
+    });
+    els.modalLayer.addEventListener('input', (event) => {
+      const counter = els.modalLayer.querySelector(`[data-count-for="${event.target.id}"]`);
+      if (counter) counter.textContent = `${event.target.value.length}/${event.target.maxLength}`;
+    });
+    els.modalLayer.addEventListener('change', (event) => {
+      const target = event.target;
+      if (target.matches('[data-segment-id]')) {
+        const id = Number(target.dataset.segmentId);
+        target.checked ? segmentState.selected.add(id) : segmentState.selected.delete(id);
+        const checks = [...els.modalLayer.querySelectorAll('[data-segment-id]')];
+        const all = els.modalLayer.querySelector('[data-segment-all]');
+        all.checked = checks.every(input => input.checked);
+        all.indeterminate = checks.some(input => input.checked) && !all.checked;
+      }
+      if (target.matches('[data-segment-all]')) {
+        els.modalLayer.querySelectorAll('[data-segment-id]').forEach(input => {
+          input.checked = target.checked;
+          target.checked ? segmentState.selected.add(Number(input.dataset.segmentId)) : segmentState.selected.delete(Number(input.dataset.segmentId));
+        });
+      }
+      if (target.matches('[data-segment-size]')) { segmentState.pageSize = Number(target.value); segmentState.page = 1; openModal('segments'); }
+      if (target.matches('[data-segment-jump]')) { segmentState.page = Math.floor(Number(target.value)) || 1; openModal('segments'); }
+    });
+    els.modalLayer.addEventListener('click', (event) => {
+      if (event.target.closest('[data-segment-edit]')) {
+        if (!segmentState.selected.size) { toast('请选择需要设置的号段'); return; }
+        openModal('segment-edit'); return;
+      }
+      const pageButton = event.target.closest('[data-segment-page]');
+      if (pageButton) { segmentState.page = Number(pageButton.dataset.segmentPage); openModal('segments'); return; }
+
+      if (event.target === els.modalLayer) closeModal();
+      if (event.target.closest('[data-modal-close]')) closeModal();
+      const submit = event.target.closest('[data-modal-submit]');
+      if (submit) {
+        const active = modalState.active;
+        if (active === 'sync-platform') {
+          toast('三方平台推荐已同步');
+        } else if (active === 'set-sale-pool') {
+          modalState.salePool = document.getElementById('salePoolSelect')?.value || modalState.salePool;
+          const nextSalePool = modalState.salePool;
+          const targetIds = modalState.salePoolTargets.length ? modalState.salePoolTargets : getSelectedRowIds();
+          targetIds.forEach((id) => {
+            const row = rows.find((item) => item.id === id);
+            if (row) row.salePool = nextSalePool;
+          });
+          renderTable();
+          toast(`售卖池已更新为 ${modalState.salePool}`);
+        } else if (active === 'set-region-order') {
+          toast('地区排序已保存');
+        } else if (active === 'set-product') {
+          toast('产品信息已提交');
+        } else if (active === 'set-price') {
+          toast('价格设置已提交');
+        } else if (active === 'set-duration') {
+          toast('时长折扣已提交');
+        } else if (active === 'set-display') {
+          toast('显示设置已提交');
+        } else if (active === 'set-recommend') {
+          toast('推荐内容已提交');
+        }
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && modalState.active) closeModal();
+      if (event.key === 'Tab' && modalState.active) {
+        const controls = [...els.modalLayer.querySelectorAll('button:not(:disabled), input, select, textarea')];
+        const first = controls[0], last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }
+    });
+
+    const sideGroups = Array.from(document.querySelectorAll('.side-group'));
+    function setOpenGroup(groupId) {
+      sideGroups.forEach((group) => {
+        const isOpen = group.dataset.group === groupId;
+        group.classList.toggle('is-open', isOpen);
+        const toggle = group.querySelector('[data-group-toggle]');
+        const submenu = group.querySelector('.side-submenu');
+        if (toggle) toggle.setAttribute('aria-expanded', String(isOpen));
+        if (submenu) submenu.hidden = !isOpen;
+      });
+    }
+
+    document.getElementById('sidebar').addEventListener('click', (event) => {
+      const toggle = event.target.closest('[data-group-toggle]');
+      if (!toggle) return;
+      const group = toggle.closest('.side-group');
+      if (!group) return;
+      const groupId = group.dataset.group;
+      const shouldOpen = !group.classList.contains('is-open');
+      setOpenGroup(shouldOpen ? groupId : '');
+    });
+
+    setOpenGroup('section-proxy-package');
+
+    els.continentList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-continent]');
+      if (!button) return;
+      updateRegionByClick(button);
+      renderRegionColumns();
+    });
+
+    els.countryList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-country]');
+      if (!button) return;
+      updateRegionByClick(button);
+      renderRegionColumns();
+    });
+
+    els.districtList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-district]');
+      if (!button) return;
+      updateRegionByClick(button);
+    });
+
+    els.searchBtn.addEventListener('click', applySearch);
+    els.resetBtn.addEventListener('click', resetAll);
+    els.pageSize.addEventListener('change', () => {
+      state.pageSize = Number(els.pageSize.value);
+      state.page = 1;
+      renderTable();
+    });
+    els.jumpPage.addEventListener('change', () => {
+      const total = getFilteredRows().length;
+      const pages = Math.max(1, Math.ceil(total / state.pageSize));
+      const next = Math.min(pages, Math.max(1, Number(els.jumpPage.value) || 1));
+      state.page = next;
+      renderTable();
+    });
+    els.prevPage.addEventListener('click', () => {
+      if (state.page > 1) state.page -= 1;
+      renderTable();
+    });
+    els.nextPage.addEventListener('click', () => {
+      const pages = Math.max(1, Math.ceil(getFilteredRows().length / state.pageSize));
+      if (state.page < pages) state.page += 1;
+      renderTable();
+    });
+    document.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-action]');
+      if (!action) return;
+      handleAction(action.dataset.action);
+    });
+    // 显式清除浮层打开前的 hover，避免关闭浮层后浏览器保留旧悬停状态。
+    els.tableBody.addEventListener('pointerover', (event) => {
+      const button = event.target.closest('[data-sale-pool-edit]');
+      if (button && !modalState.active) button.classList.add('is-hovered');
+    });
+    els.tableBody.addEventListener('pointerout', (event) => {
+      const button = event.target.closest('[data-sale-pool-edit]');
+      if (button && !button.contains(event.relatedTarget)) button.classList.remove('is-hovered');
+    });
+    els.tableBody.addEventListener('click', (event) => {
+      const product = event.target.closest('[data-product-segments]');
+      if (product) {
+        segmentState.productId = Number(product.dataset.productSegments);
+        segmentState.selected.clear(); segmentState.page = 1; segmentState.pageSize = 50;
+        openModal('segments'); return;
+      }
+      const salePoolEdit = event.target.closest('[data-sale-pool-edit]');
+      if (salePoolEdit) {
+        salePoolEdit.classList.remove('is-hovered');
+        const id = Number(salePoolEdit.dataset.salePoolEdit);
+        const row = rows.find((item) => item.id === id);
+        if (!row) return;
+        openModal('set-sale-pool', { targetIds: [id], salePool: row.salePool, restoreFocus: event.detail === 0 });
+        return;
+      }
+      const toggle = event.target.closest('[data-toggle-visible]');
+      if (!toggle) return;
+      const id = Number(toggle.dataset.toggleVisible);
+      const row = rows.find((item) => item.id === id);
+      if (!row) return;
+      row.visible = !row.visible;
+      renderTable();
+    });
+    els.checkAll.addEventListener('change', () => {
+      document.querySelectorAll('.row-check').forEach((checkbox) => {
+        checkbox.checked = els.checkAll.checked;
+      });
+      toast(els.checkAll.checked ? '当前页已全选' : '当前页已取消全选');
+    });
+
+    document.getElementById('mobileMenu').addEventListener('click', () => {
+      els.sidebar.classList.add('is-open');
+      els.overlay.hidden = false;
+    });
+    els.overlay.addEventListener('click', () => {
+      els.sidebar.classList.remove('is-open');
+      els.overlay.hidden = true;
+    });
+
+    fillChannels();
+    setDefaultRegion();
+    renderRegionColumns();
+    renderTable();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

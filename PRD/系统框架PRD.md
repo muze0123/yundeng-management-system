@@ -7,18 +7,18 @@
 | 文档用途 | 定义唯一 App Shell、内容模块契约与统一路由；后续可迁移至 React + TypeScript 管理后台 |
 | 视觉最高优先级 | 附件《codex-clipboard-513de328-bc17-4fd2-97c4-f96d4e7c9d22.png》 |
 | 设计与工程约束 | `design.md` 为视觉 token 单一事实来源；`claude.md` 为 HTML 原型工程与标注规范 |
-| 本期交付物 | `系统框架.html`、`系统框架.css`、`系统框架.js`、`Prototype/modules/*.js` 内容模块，以及旧业务 HTML 兼容入口 |
+| 本期交付物 | 根 `index.html`、`Prototype/系统框架.css`、`Prototype/app-shell.js`、`Prototype/modules/*.js` 内容模块，以及旧业务 HTML 兼容入口 |
 
 ## 0. 给 AI 编码工具的执行指令
 
-先完整阅读本 PRD、`design.md` 与 `claude.md`，再生成 `系统框架.html`。附件图片是**页面整体布局、组件层级、可见菜单与视觉结构的最高优先级依据**；当它与文字规范冲突时，按以下顺序决策：
+先完整阅读本 PRD、`design.md` 与 `claude.md`，再更新根 `index.html`。附件图片是**页面整体布局、组件层级、可见菜单与视觉结构的最高优先级依据**；当它与文字规范冲突时，按以下顺序决策：
 
 1. 用户最新确认的菜单结构决定分组名称、顺序、层级与可点击性；图片仅决定未被最新确认内容覆盖的页面骨架、组件相对位置与信息密度；
 2. 本 PRD 决定交互、状态、数据流、权限与边界；
 3. `design.md` 决定颜色、字体、圆角、间距、阴影、通用组件外观；
 4. `claude.md` 决定 HTML 原型技术栈、导航、Mock 数据和 
 
-首版必须使用语义化 HTML5、Tailwind CSS CDN、Lucide CDN 和原生 JavaScript（ES6+），不引入 React、Vue、jQuery 或其他未授权库。`系统框架.html` 是唯一页面骨架，公共样式与路由生命周期分别由 `系统框架.css`、`系统框架.js` 维护；已完成业务页面提取为内容模块，禁止使用 iframe，也禁止在模块中重复渲染 TopBar 或 Sidebar。页面双击或通过静态服务均可预览；数据为内联 Mock 数据；页面必须可交互且控制台无错误。后续 React + TypeScript 重构时，保留本 PRD 的状态模型、事件契约与组件边界，不依赖原生 JS 的全局变量。
+首版必须使用语义化 HTML5、Tailwind CSS CDN、Lucide CDN 和原生 JavaScript（ES6+），不引入 React、Vue、jQuery 或其他未授权库。根 `index.html` 是唯一页面骨架，公共样式与路由生命周期分别由 `Prototype/系统框架.css`、`Prototype/app-shell.js` 维护；已完成业务页面提取为内容模块，禁止使用 iframe，也禁止在模块中重复渲染 TopBar 或 Sidebar。页面双击或通过静态服务均可预览；数据为内联 Mock 数据；页面必须可交互且控制台无错误。后续 React + TypeScript 重构时，保留本 PRD 的状态模型、事件契约与组件边界，不依赖原生 JS 的全局变量。
 
 > **明确覆盖规则（2026-08-19）：** “用户管理、订单管理、财务管理、资源管理、数据埋点”均为灰色静态分组标题，不是一级菜单，不可点击、不可折叠、无路由、无选中态。各组下面直接放置可点击一级菜单；“数据埋点”按产品链路放置八个阶段型一级菜单，其中仅“口径治理”因包含事件管理和指标管理两个独立工作台而展开二级菜单。该规则覆盖此前所有数据埋点扁平菜单或整体可折叠分组方案。
 
@@ -96,9 +96,9 @@
 | 类型/分组 | 路由 ID | 菜单名 | 原型文件（当前交付） | 说明 |
 |---|---|---|---|---|
 | sectionLabel | — | 工作台 | — | 灰色、不可点击 |
-| 工作台 / menuItem | home | 工作台 | `Prototype/modules/home.js` | 无 hash 时的默认内容 |
+| 工作台 / menuItem | home | 工作台 | `Prototype/modules/home.js` | 无 page 参数时的默认内容 |
 | sectionLabel | — | 用户管理 | — | 灰色、不可点击 |
-| 用户管理 / menuItem | user-list | 用户列表 | 规划态 | 暂无业务模块 |
+| 用户管理 / menuItem | user-list | 用户列表 | `Prototype/modules/user-list.js` | 已完成 |
 | 用户管理 / menuItem | user-statistics | 用户统计 | `Prototype/modules/user-statistics.js` | — |
 | 用户管理 / menuItem | team-list | 团队列表 | `Prototype/modules/team-list.js` | — |
 | 用户管理 / menuItem | enterprise-list | 企业列表 | `Prototype/modules/enterprise-list.js` | — |
@@ -107,10 +107,10 @@
 | 订单管理 / menuItem | order-list | 订单列表 | `Prototype/modules/order-list.js` | — |
 | 订单管理 / menuItem | package-order | 套餐订单 | `Prototype/modules/package-order.js` | — |
 | sectionLabel | — | 财务管理 | — | 灰色、不可点击 |
-| 财务管理 / menuItem | invoice-management | 发票管理 | `Prototype/modules/invoice-management.js` | 申请审核、票据、红冲与配置工作台 |
+| 财务管理 / menuItem | billing-invoice | 发票管理 | `Prototype/modules/billing-invoice.js` | 申请审核、票据、红冲与配置工作台 |
 | sectionLabel | — | 资源管理 | — | 灰色、不可点击 |
 | 资源管理 / menuItem | environment-management | 环境管理 | `Prototype/modules/environment-management.js` | — |
-| 资源管理 / menuItem | proxy-list | 代理列表 | 规划态 | 暂无业务模块 |
+| 代理及套餐管理 / menuItem | proxy-static | 静态代理 | `Prototype/modules/proxy-static.js` | 已完成 |
 | sectionLabel | — | 数据埋点 | — | 灰色、不可点击；位于资源管理之后 |
 | 数据埋点 / menuItem | tracking-overview | 数据概览 | `Prototype/modules/tracking-overview.js` | 对应“概览”，直接进入数据概览 |
 | 数据埋点 / menuGroup | tracking-governance | 口径治理 | — | 可展开一级菜单，无独立业务页 |
@@ -129,8 +129,8 @@
 
 ### 2.1.2 内容模块与路由生命周期
 
-- 唯一路由格式为 `系统框架.html#route-id`；直接打开旧业务 HTML 时，兼容入口必须透传原查询参数并使用 `location.replace` 转入对应 hash，避免浏览器后退再次经过跳转页。
-- 无 hash、空 hash 或未知 hash 默认进入 `#home` 工作台；口径治理组路由规范化为首个有权二级页面。
+- 唯一路由格式为 `index.html?page=<英文模块名>`，发票示例 `index.html?page=billing-invoice&invoiceTab=orders`；旧业务 HTML 透传查询参数，并将旧 hash 转换为对应英文 page，使用 `location.replace` 跳转。
+- 无 page 或未知 page 默认进入 `page=home` 工作台。英文映射以 `Prototype/app-shell.js` 菜单配置为准。
 - 业务模块只注册内容区 DOM、内容区业务操作、业务浮层、局部样式和业务脚本。框架按当前路由只挂载一个模块；不使用 iframe，不同时挂载多个业务模块，不允许模块维护自己的公共菜单。
 - 切换路由前保存当前模块筛选控件、当前 Tab、分页与滚动位置；浏览器前进或后退返回模块时恢复到仍然有效的位置。模块状态使用 `sessionStorage`，侧栏折叠与菜单组展开态使用 `localStorage`。
 - App Shell 不自动创建“页面工具”区块，也不得把开关移入工具栏；历史内容模块根级 `.app-module-toolbar` 统一不展示。开关恢复为页面右侧悬浮胶囊按钮，支持拖拽调整位置、视口安全区限制与位置持久化；拖拽完成不得触发
@@ -138,7 +138,7 @@
 
 TopBar 高 56px（h-14），固定于系统顶部并横跨全宽，不使用底部描边；阴影只允许向下显示，顶部及左右侧阴影必须裁掉。响应式内边距统一为 `px-4 md:px-6`，并声明 `shrink-0` 与稳定层级以保证滚动与布局不位移。业务页面若提供固定底部操作栏，应使用方向相反的向上阴影，并为正文预留操作栏高度。
 
-Sidebar 位于 TopBar 下方。侧栏静态分组标题、一级菜单、二级菜单、折叠态二级 Flyout 与底部系统菜单文字统一为 14px。一级菜单左侧保留 16×16px Lucide 功能图标；二级菜单不显示功能图标且不额外缩进，文字起点与一级菜单文字左对齐（当前 App Shell 为 36px），一级菜单的展开 Chevron 不受影响。桌面端收起/展开按钮固定在侧栏右边缘垂直居中，尺寸为 12×50px，默认隐藏；鼠标移入侧栏或键盘焦点进入侧栏时显示。按钮背景默认使用 `#E5E6ED`，hover 使用 `#ACB0BA`，按钮内箭头为白色实心箭头。完整态点击后侧栏收为 68px 并只显示功能图标；图标态点击后恢复 220px。折叠状态继续使用 `localStorage` 持久化；移动端使用抽屉菜单，不显示该桌面折叠按钮。
+Sidebar 位于 TopBar 下方。侧栏静态分组标题、一级菜单、二级菜单、折叠态二级 Flyout 与底部系统菜单文字统一为 14px。一级菜单左侧保留 16×16px Lucide 功能图标；二级菜单不显示功能图标且不额外缩进，文字起点与一级菜单文字左对齐（当前 App Shell 为 36px），一级菜单的展开 Chevron 不受影响。长分组按实际内容高度展开，超出侧栏可视区时导航容器自动滚动，避免被底部系统菜单裁切；收起态二级 Flyout 必须限制在视口安全区内，超出可用高度时仅在 Flyout 内滚动。桌面端收起/展开按钮固定在侧栏右边缘垂直居中，尺寸为 12×50px，默认隐藏；鼠标移入侧栏或键盘焦点进入侧栏时显示。按钮背景默认使用 `#E5E6ED`，hover 使用 `#ACB0BA`，按钮内箭头为白色实心箭头。完整态点击后侧栏收为 68px 并只显示功能图标；图标态点击后恢复 220px。折叠状态继续使用 `localStorage` 持久化；移动端使用抽屉菜单，不显示该桌面折叠按钮。
 
 ### 2.2 组件树
 
@@ -155,3 +155,14 @@ AppShell
 │ │ └─ SecondaryMenuItem（可点击、绑定路由）
 │ ├─ SidebarCollapseToggle
 ```
+
+
+## 2026-09-08 路由与模块迁移验收
+
+- 用户明确批准覆盖独立 HTML、自包含以及禁止共享本地 JS/CSS 的旧约束。
+- 根入口仅维护一份公共框架；模块动态加载业务内容，不使用 iframe。
+- 为隔离历史业务全局脚本和监听器，各模块间以同一根入口进行文档导航；Tab 切换不重新加载文档，使用 History API 更新参数。刷新、前进和后退重新加载对应模块，沿用会话状态恢复。
+- 发票 `invoiceTab`：`orders`=申请管理、`documents`=票据管理、`red`=红冲管理、`config`=开票配置；显式 URL Tab 优先于会话保存值。现有对象定位参数继续透传。
+- 所有菜单、工作台卡片、模块互链、兼容入口均须验证，无重复顶栏/侧栏、无脚本异常。
+
+- 本次保留当前已确认导航分组：工作台、用户管理、订单管理、财务管理、资源管理、代理及套餐管理、数据埋点；有子项的分组可折叠，当前组展开。较早的静态分组/口径治理层级仅为历史方案，当前实现以 `app-shell.js` navigation 为准。

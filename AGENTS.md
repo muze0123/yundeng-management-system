@@ -1,3 +1,13 @@
+# 2026-09-08 用户确认的架构覆盖（优先于下文旧流水线）
+
+用户已明确同意统一入口与共享系统框架。本文件旧有“每页独立单文件、自包含、禁止本地 JS/CSS、每页复制侧栏”约束不再适用。
+
+- 入口统一为根 `index.html?page=<英文模块名>`；发票示例 `index.html?page=billing-invoice&invoiceTab=orders`。
+- 顶栏、侧栏和全局能力只在根框架维护一次，公共控制器为 `Prototype/app-shell.js`，公共样式为 `Prototype/系统框架.css`。
+- 业务实现放在 `Prototype/modules/*.js`，只构建内容区域，不另封装 HTML 系统壳，不使用 iframe。
+- 旧中文 HTML 只保留兼容重定向。新增业务更新统一导航、路由映射、模块与 PRD。
+- 其余视觉 Token、原生 JS、Mock 交互、自检、文档同步和提交约束继续执行。
+
 # agent.md — Vibecoding 元指令与自动化流水线（AI Coding Agent 专用）
 
 > **本文件用途**：作为 AI Coding Agent（Claude Code / Cursor / Codex 等）执行"云登 / YunLogin PC 端"原型页面 Vibecoding 任务时的**底层行动指南与元指令中心**。
@@ -252,21 +262,16 @@ Agent 在交付代码前，必须在内部运行以下死校验；发现问题�
 <claude-mem-context>
 # Memory Context
 
-# [云登后台管理系统] recent context, 2026-08-27 7:04pm GMT+8
+# [云登后台管理系统] recent context, 2026-09-07 4:57pm GMT+8
 
 Legend: 🎯session 🔴bugfix 🟣feature 🔄refactor ✅change 🔵discovery ⚖️decision
 Format: ID TIME TYPE TITLE
 Fetch details: get_observations([IDs]) | Search: mem-search skill
 
-Stats: 50 obs (25,524t read) | 0t work
+Stats: 50 obs (24,495t read) | 267,491t work | 91% savings
 
 ### Aug 22, 2026
-2132 4:16p 🔵 云登后台管理系统 uses single-page index.html + module bundle registry with split-modules2 refactor
-2138 " ⚖️ Primary session proposes migration: revert backend-management bundle pattern back to standalone HTML pages
-2176 4:53p 🔵 开票管理 PRD 设计任务启动
-2177 4:54p 🔵 云登项目文件结构与规范文档定位确认
-2178 " 🔵 费用管理.html 发票相关 UI 模式与全局 Drawer 协议映射
-2179 " 🔵 design.md 5.6/5.7 组件规范与发票 Drawer 实现细节确认
+2179 4:54p 🔵 design.md 5.6/5.7 组件规范与发票 Drawer 实现细节确认
 2180 4:55p 🔵 费用管理.html 发票管理核心逻辑完整映射
 2181 " 🔵 主会话 send_message 调用未能产生明确结果
 2183 " 🔵 主会话第二次 send_message 调用仍未产生可见结果
@@ -313,4 +318,12 @@ Stats: 50 obs (25,524t read) | 0t work
 2406 " 🔵 Invoice dialog architecture mapped: 6 dialog types with retry-red and correction variants
 2407 12:21p 🔵 Invoice dialog uses title-text-driven syncDialogType pattern with self-cleanup script
 2408 12:23p 🔵 design.md §5.7 explicitly specifies all3 requested drawer changes - implementation target fully defined
+### Aug 28, 2026
+3093 2:29p ⚖️ 后台用户列表页面开发任务启动，要求先澄清疑问再执行
+3095 " 🔵 工作目录是空的 codex worktree，仅含 AGENTS.md，缺失 Prototype/PRD/design.md
+3096 " 🔵 AGENTS.md 存在但 sed 读取返回空输出
+3097 " 🔵 归档.zip 完整但条目名 UTF-8 编码损坏，无法按中文路径解压
+3098 " 🔵 frontend-design 技能规范作为设计参考被载入
+
+Access 267k tokens of past work via get_observations([IDs]) or mem-search skill.
 </claude-mem-context>

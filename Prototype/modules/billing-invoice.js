@@ -162,6 +162,122 @@ window.YundengModules["invoice-management"] = {
 }
   `);
   module.styles.push(`
+/* 新增开票申请：Operate 型工作流重排，保持现有字段与业务规则。 */
+.invoice-module .invoice-proxy-overlay { background: rgba(26,29,36,.32); }
+.invoice-module .invoice-proxy-panel {
+  width: 760px;
+  max-width: 92vw;
+  height: 786px;
+  max-height: calc(100vh - 32px);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(26,29,36,.16);
+}
+.invoice-module .invoice-proxy-panel header {
+  min-height: 64px;
+  padding: 16px 24px;
+  background: #fff;
+}
+.invoice-module .invoice-proxy-panel header h2 { font-size: 17px; line-height: 24px; }
+.invoice-module .invoice-proxy-body {
+  padding: 20px 24px;
+  background: #fff;
+}
+.invoice-module .invoice-proxy-steps {
+  flex: 0 0 auto;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 4px 0 12px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.invoice-module .invoice-proxy-steps li { gap: 8px; font-size: 13px; }
+.invoice-module .invoice-proxy-steps b { width: 24px; height: 24px; }
+.invoice-module .invoice-proxy-form {
+  width: 100%;
+  max-width: 490px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.invoice-module .invoice-proxy-search {
+  width: 100%;
+  max-width: 490px;
+  margin: 20px auto 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.invoice-module .invoice-proxy-orders {
+  flex: 1 1 auto;
+  min-height: 220px;
+  height: auto;
+  max-height: none;
+  border: 1px solid #E8EAED;
+  border-radius: 6px;
+  background: #fff;
+}
+.invoice-module .invoice-proxy-orders table { min-width: 680px; }
+.invoice-module .invoice-proxy-orders tbody tr:focus-within { outline: 2px solid #0066FF; outline-offset: -2px; }
+.invoice-module .invoice-proxy-result {
+  flex: 0 0 auto;
+  margin: 12px 0 0;
+  border: 1px solid #C8E7F3;
+  border-radius: 4px;
+  background: #E4F4FB;
+  color: #006B9E;
+}
+.invoice-module .invoice-proxy-result.is-error { border-color: #F0B7BE; background: #FFE8EB; color: #AF0017; }
+.invoice-module .invoice-proxy-panel footer {
+  min-height: 64px;
+  padding: 16px 24px;
+  background: #fff;
+}
+.invoice-module .invoice-proxy-panel footer .invoice-btn { min-width: 76px; }
+.invoice-module .invoice-proxy-panel footer { margin-top: auto; flex: 0 0 auto; }
+.invoice-module .invoice-proxy-panel[data-proxy-step="3"] {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.invoice-module .invoice-proxy-panel[data-proxy-step="3"] .invoice-proxy-body {
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.invoice-module .invoice-proxy-form + .invoice-proxy-search { margin-top: 20px; }
+@media (max-width: 767px) {
+  .invoice-module .invoice-proxy-panel { max-width: calc(100vw - 32px); }
+  .invoice-module .invoice-proxy-body { padding: 16px; }
+  .invoice-module .invoice-proxy-steps { padding: 10px 12px; gap: 8px; }
+  .invoice-module .invoice-proxy-steps li { font-size: 12px; }
+  .invoice-module .invoice-proxy-form, .invoice-module .invoice-proxy-search { max-width: 100%; }
+  .invoice-module .invoice-proxy-panel footer { padding: 12px 16px; }
+}
+`);
+  module.after.push(`
+(function () {
+  var root = document.querySelector('[data-module-root="invoice-management"]');
+  if (!root) return;
+  function syncProxy() {
+    var panel = root.querySelector('.invoice-proxy-panel');
+    if (!panel) return;
+    var current = panel.querySelector('.invoice-proxy-steps [aria-current="step"]');
+    var step = current ? Array.from(panel.querySelectorAll('.invoice-proxy-steps li')).indexOf(current) + 1 : 1;
+    var next = panel.querySelector('footer [data-proxy="next"]');
+    if (next) next.textContent = step === 1 ? '继续填写' : '核对信息';
+    panel.dataset.proxyStep = String(step);
+    panel.querySelectorAll('.invoice-proxy-steps li').forEach(function (item, index) {
+      item.setAttribute('aria-label', (index < step ? '已完成：' : index === step - 1 ? '当前：' : '待进行：') + item.textContent.replace(/^✓/, '').trim());
+    });
+  }
+  new MutationObserver(function () { requestAnimationFrame(syncProxy); }).observe(document.body, { childList: true, subtree: true });
+  root.addEventListener('click', function () { setTimeout(syncProxy, 0); }, true);
+  syncProxy();
+})();
+  `);
+  module.styles.push(`
 .invoice-module .invoice-correction-filter-flow { display:grid; grid-template-columns:repeat(auto-fill,minmax(388px,1fr)); gap:12px 16px; margin-bottom:16px; }
 .invoice-module .invoice-correction-filter-flow .invoice-filter-item { display:flex; align-items:center; gap:0; min-width:0; }
 .invoice-module .invoice-correction-filter-flow label { width:88px; flex:0 0 88px; text-align:right; }
@@ -1541,7 +1657,7 @@ window.YundengModules["invoice-management"] = {
       var taxRate = mutedText(cells[6]).replace('税率', '').trim() || '—';
       return {
         id: id,
-        invoiceType: meta[0] === '个人' ? '数电普票' : '数电专票',
+        invoiceType: (root.__invoiceUi.applications.find(function(a){return a.id===id && a.creationSource==='ADMIN_PROXY';}) || {}).invoiceType || (meta[0] === '个人' ? '数电普票' : '数电专票'),
         subjectType: meta[0] || '企业',
         payment: meta[1] || '—',
         title: subject,
@@ -1551,7 +1667,7 @@ window.YundengModules["invoice-management"] = {
         taxRate: taxRate,
         created: primaryText(cells[2]),
         order: primaryText(cells[4]),
-        email: emailMap[subject] || 'service@mail.com',
+        email: (root.__invoiceUi.applications.find(function(a){return a.id===id && a.creationSource==='ADMIN_PROXY';}) || {}).email || emailMap[subject] || 'service@mail.com',
         applicationStatus: applicationStatus,
         reviewer: reviewer,
         issuanceStatus: primaryText(cells[8]).replace('部分成功', '开具失败'),
@@ -1822,6 +1938,8 @@ window.YundengModules["invoice-management"] = {
   }
 
   function identity(data) {
+    var submitted = root.__invoiceUi.applications.find(function(a){return a.id===data.id && a.creationSource==='ADMIN_PROXY';});
+    if(submitted)return {taxId:submitted.taxId || '—',email:submitted.email};
     var registry = window.YundengInvoiceIdentity && window.YundengInvoiceIdentity.subjects;
     var current = registry && registry[data.subject] ? registry[data.subject] : {};
     return {
@@ -1900,14 +2018,15 @@ window.YundengModules["invoice-management"] = {
     var data = rowData(activeApplicationId);
     if (!data) return;
     var contact = identity(data);
+    var submitted = root.__invoiceUi.applications.find(function(a){return a.id===data.id && a.creationSource==='ADMIN_PROXY';});
     var identityFields = [
       field('申请单号', data.id, true), field('申请时间', data.created, true),
       field('发票抬头', data.subject), field('税号', contact.taxId, true),
-      field('抬头类型', data.subjectType), field('发票类型', data.subjectType === '个人' ? '数电普票' : '数电专票'),
+      field('抬头类型', data.subjectType), field('发票类型', submitted ? submitted.invoiceType : (data.subjectType === '个人' ? '数电普票' : '数电专票')),
       field('申请人', data.applicant), field('发票内容', data.content), field('税率', data.taxRate)
     ];
     if (data.subjectType !== '个人') {
-      identityFields.push(field('开户银行', '中国工商银行上海浦东分行'), field('银行账号', '6222 **** **** 4812', true), field('企业地址', '上海市浦东新区金科路 2889 号'), field('企业电话', '021-6888 2200', true));
+      identityFields.push(field('开户银行', submitted ? submitted.bank : '中国工商银行上海浦东分行'), field('银行账号', submitted ? submitted.bankAccount : '6222 **** **** 4812', true), field('企业地址', submitted ? submitted.address : '上海市浦东新区金科路 2889 号'), field('企业电话', submitted ? submitted.companyPhone : '021-6888 2200', true));
     }
     identityFields.push(field('联系邮箱', contact.email));
     var stateFields = [field('申请状态', data.applicationStatus), field('审批人', data.reviewer), field('开具状态', data.issuanceStatus), field('票据状态', (documents[data.id] || ['', '未生成'])[1]), field('交付状态', data.deliveryStatus)];
@@ -1984,7 +2103,13 @@ window.YundengModules["invoice-management"] = {
 .invoice-module .invoice-filter-flow > * { order:0; }
 .invoice-module .invoice-block:has(table[aria-label="开票申请列表"]) .invoice-list-heading { flex:none; justify-content:flex-start; }
 .invoice-module .invoice-block:has(table[aria-label="开票申请列表"]) .invoice-list-total { margin-left:0; }
-.invoice-module table[aria-label="开票申请列表"] td:nth-child(3) .primary-cell { font-weight:400; }
+/* 申请管理/票据管理/红冲任务列表：申请单号、发票抬头与开票金额文本取消加粗，保持常规字重。 */
+.invoice-module table[aria-label="开票申请列表"] .primary-cell,
+.invoice-module table[aria-label="票据列表"] .primary-cell,
+.invoice-module table[aria-label="红冲任务列表"] .primary-cell { font-weight:400; }
+.invoice-module table[aria-label="开票申请列表"] td.amount,
+.invoice-module table[aria-label="票据列表"] td.amount,
+.invoice-module table[aria-label="红冲任务列表"] td.amount { font-weight:400; }
 .invoice-module table[aria-label="更正申请列表"] td:first-child button { color:var(--invoice-body); font-family:'JetBrains Mono',monospace; font-weight:400; }
 .invoice-module table[aria-label="更正申请列表"] td:first-child button:hover,
 .invoice-module table[aria-label="更正申请列表"] td:first-child button:focus-visible { color:var(--invoice-blue); text-decoration:underline; }
@@ -2340,6 +2465,224 @@ window.YundengModules["invoice-management"].after = window.YundengModules["invoi
   observer.observe(document.body, {childList:true,subtree:true});
 })();
   `);
+})(window.YundengModules["invoice-management"]);
+
+/* 管理员代客申请：局部扩展，沿用 design.md 的 760px Modal，不改变列表/详情字段。
+ * THESIS: 选单即校验，核对后创建待审核申请。OWN-WORLD: 现有蓝色后台、原生控件。
+ * STORY: 选择客户订单 → 填写信息 → 核对提交。FIRST VIEWPORT: 步骤条、申请人、订单检索。
+ * FORM: 用户指定三步 Modal，无新视觉方向。FINISH: 资格、提交、响应式和既有字段回归。
+ */
+(function (module) {
+  module.styles.push(`
+.invoice-proxy-overlay{position:fixed;inset:0;z-index:1200;background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center}
+.invoice-proxy-overlay[hidden]{display:none}
+.invoice-proxy-panel{width:760px;max-width:92vw;height:786px;max-height:92vh;background:#fff;border-radius:8px;box-shadow:0 6px 24px rgba(0,0,0,.12);display:flex;flex-direction:column;color:#3A3F4A;font-size:13px}
+.invoice-proxy-panel.is-order-step .invoice-proxy-body{display:flex;flex-direction:column;overflow:hidden}
+.invoice-proxy-panel.is-order-step .invoice-proxy-orders{flex:1 1 auto;min-height:220px;height:auto;max-height:none;overflow-y:auto;overflow-x:auto}
+.invoice-proxy-panel.is-order-step .invoice-proxy-result{flex:0 0 auto;margin:16px 0 0}
+/* 核对提交步骤：弹窗高度随内容自适应，正常视口下内容区完整展示、不出现滚动条；仅极矮视口才兜底滚动。 */
+.invoice-proxy-panel.is-review-step{height:auto;max-height:92vh}
+.invoice-proxy-panel.is-review-step .invoice-proxy-body{min-height:0}
+.invoice-proxy-panel header{display:flex;justify-content:space-between;align-items:center;padding:16px 24px;border-bottom:1px solid #E8EAED}
+.invoice-proxy-panel h2{font-size:16px;font-weight:600;color:#1A1D24;margin:0}
+.invoice-proxy-close{width:32px;height:32px;border:0;background:transparent;color:#6E7685;cursor:pointer;display:grid;place-items:center;border-radius:4px}
+.invoice-proxy-close:hover{background:#F3F4F6}.invoice-proxy-close svg{width:20px;height:20px}
+.invoice-proxy-body{padding:32px 24px;overflow:auto;overscroll-behavior:contain;min-height:0}
+.invoice-proxy-panel footer{padding:16px 24px;border-top:1px solid #E8EAED;display:flex;gap:12px;justify-content:flex-end}
+.invoice-proxy-steps{display:flex;list-style:none;padding:0;margin:0 0 32px;gap:16px}
+.invoice-proxy-steps li{flex:1;color:#6E7685;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.invoice-proxy-steps li:not(:last-child):after{content:'';height:1px;background:#DFE1E5;flex:1}
+.invoice-proxy-steps b{width:24px;height:24px;border-radius:50%;background:#F0F1F3;display:grid;place-items:center;font-size:12px}
+.invoice-proxy-steps [aria-current=step]{color:#0066FF;font-weight:600}.invoice-proxy-steps [aria-current=step] b{background:#0066FF;color:white}
+.invoice-proxy-form{display:grid;gap:16px;max-width:490px;margin:auto}
+.invoice-proxy-field{display:grid;grid-template-columns:90px minmax(0,400px);align-items:start;gap:0}
+.invoice-proxy-field>label{padding-top:6px;text-align:right;color:#6E7685}.invoice-proxy-field label em{font-style:normal;color:#D9001B;margin-right:4px}
+.invoice-proxy-field input:not([type=checkbox]),.invoice-proxy-field select{width:100%;height:30px;border:1px solid #DFE1E5;border-radius:4px;padding:0 10px;background:#fff;color:#3A3F4A;font:inherit;caret-color:#0066FF}
+.invoice-proxy-panel input::placeholder{color:#6E7685}.invoice-proxy-panel input:focus,.invoice-proxy-panel select:focus{outline:2px solid #E6F0FF;border-color:#0066FF}
+.invoice-proxy-panel button:focus-visible{outline:2px solid #0066FF;outline-offset:2px}.invoice-proxy-panel input[aria-invalid=true]{border-color:#D9001B}
+.invoice-proxy-panel input[readonly]{background:#F7F8FA}.invoice-proxy-panel input[type=checkbox],.invoice-proxy-panel input[type=radio]{accent-color:#0066FF}
+.invoice-proxy-hint{font-size:12px;color:#6E7685;line-height:1.6;margin:6px 0 0}.invoice-proxy-error{color:#D9001B;font-size:12px;line-height:1.6;margin:6px 0 0}
+.invoice-proxy-search{display:grid;grid-template-columns:90px minmax(0,400px);align-items:center;gap:0;width:100%;max-width:490px;margin:20px auto 12px}.invoice-proxy-search label{text-align:right;color:#6E7685;font-size:13px}.invoice-proxy-search label em{font-style:normal;color:#D9001B;margin-right:4px}.invoice-proxy-search input{width:100%;min-width:0;height:30px;border:1px solid #DFE1E5;border-radius:4px;padding:0 10px;font:inherit}
+.invoice-proxy-orders{height:420px;max-height:420px;overflow:auto}.invoice-proxy-orders table{min-width:680px}.invoice-proxy-orders th:first-child,.invoice-proxy-orders td:first-child{padding-right:20px}
+.invoice-proxy-orders th{height:auto;padding:9px 12px;background:#F0F1F3;color:#6E7685;font-size:12px;font-weight:600;text-align:left;border-bottom:1px solid #DFE1E5;white-space:nowrap}
+.invoice-proxy-orders td{height:48px;padding:9px 12px;border-bottom:1px solid #E8EAED;color:#3A3F4A;text-align:left;vertical-align:middle;white-space:nowrap}
+.invoice-proxy-radio-group{display:flex;align-items:center;gap:20px;height:30px}.invoice-proxy-radio-group label{color:#3A3F4A!important;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.invoice-proxy-radio-group input[type=radio] { appearance: radio; -webkit-appearance: radio; width: 13px; height: 13px; margin: 0; padding: 0; border: 0; outline: 0; box-shadow: none; }
+.invoice-proxy-radio-group label:focus-within { outline: 0; }
+.invoice-proxy-radio-group input[type=radio]:focus-visible { outline: 2px solid #E6F0FF; outline-offset: 2px; border-radius: 50%; }
+.invoice-proxy-radio-group input[type=radio]:disabled + span, .invoice-proxy-radio-group label:has(input[type=radio]:disabled) { color: #9DA2AC!important; cursor: not-allowed; }
+.invoice-proxy-steps li.is-complete { color: #0066FF; font-weight: 600; }
+.invoice-proxy-steps li.is-complete b { background: #0066FF; color: #fff; }
+.invoice-proxy-steps li.is-complete:not(:last-child):after { background: #0066FF; }
+.invoice-proxy-pagination{padding:16px 0 4px;justify-content:flex-end;gap:12px;background:#fff}.invoice-proxy-pagination .invoice-page-stats{color:#9DA2AC;font-size:12px}
+.invoice-proxy-orders tbody tr{cursor:pointer}.invoice-proxy-orders tbody tr:hover{background:#F3F4F6}.invoice-proxy-orders tr.is-selected{background:#E6F0FF}.invoice-proxy-orders small{display:block;color:#6E7685;font-size:12px;margin-top:4px}
+.invoice-proxy-result{padding:12px 16px;background:#F7F8FA;border-radius:4px;margin-top:16px;line-height:1.7}.invoice-proxy-selected-order{display:block;margin-bottom:4px;color:#3A3F4A;font-weight:600}.invoice-proxy-result.is-error .invoice-proxy-selected-order{color:#D9001B}
+.invoice-proxy-result.is-error{background:#FFE8EB;color:#D9001B}.invoice-proxy-review-hint{margin:0 0 16px;padding:11px 12px;border:1px solid #C8E7F3;border-radius:4px;background:#E4F4FB;color:#006B9E;font-size:12px;line-height:18px}.invoice-proxy-review{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;margin:20px 0}
+.invoice-proxy-review dt{text-align:right;color:#6E7685}.invoice-proxy-review dd{margin:0;overflow-wrap:anywhere}.invoice-proxy-confirm{display:flex;gap:8px;align-items:center;line-height:20px}.invoice-proxy-confirm input{flex:0 0 auto;margin:0}
+.invoice-proxy-panel button:disabled{background:#F0F1F3;color:#9DA2AC;border-color:#DFE1E5;cursor:not-allowed}
+@media(max-width:767px){.invoice-proxy-body{padding:20px 16px}.invoice-proxy-steps{gap:8px;margin-bottom:20px}.invoice-proxy-steps li{font-size:12px;gap:4px}.invoice-proxy-field{grid-template-columns:90px minmax(0,1fr)}.invoice-proxy-panel header,.invoice-proxy-panel footer{padding:16px}.invoice-proxy-review{grid-template-columns:90px minmax(0,1fr)}}
+  `);
+  module.after.push('(' + function invoiceProxyApplication() {
+    const root = document.querySelector('[data-module-root="invoice-management"]');
+    const api = root.__invoiceUi, compliance = root.__invoiceCompliance;
+    const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const money = cents => '¥' + (cents / 100).toLocaleString('zh-CN',{minimumFractionDigits:2,maximumFractionDigits:2});
+    // 独立演示订单池；正式实现替换为授权订单查询/资格服务，不从当前申请列表推算可开票余额。
+    const teamEntries = Object.entries(compliance.teams);
+    const samples = [
+      ['ORD-20260911-1001',0,268000,'2026-09-10','支付宝',''],
+      ['ORD-20240315-1002',1,129900,'2024-03-15','微信支付',''],
+      ['ORD-20260909-1003',2,88000,'2026-09-09','支付宝',''],
+      ['ORD-20240201-1004',3,59900,'2024-02-01','微信支付',''],
+      ['ORD-20260908-1005',4,35000,'2026-09-08','云币','该订单使用云币支付，不支持开票。'],
+      ['ORD-20260907-1006',5,0,'2026-09-07','支付宝','订单已全额退款，没有可开票余额。'],
+      ['ORD-20260906-1007',6,19900,'2026-09-06','微信支付','订单正在退款处理中，请在退款完成后重试。'],
+      ['ORD-20260905-1008',7,76000,'2026-09-05','支付宝','订单尚未支付成功，请在支付完成后重试。'],
+      ['ORD-20260904-1009',8,80000,'2026-09-04','支付宝','商品开票配置缺失，请联系财务完善配置。'],
+      ['ORD-20260903-1010',9,66000,'2026-09-03','微信支付','服务尚未完成，完成后可申请。']
+    ];
+    const orders = samples.map(([id,index,amount,paid,payment,reason]) => {
+      const [customer,team] = teamEntries[index % teamEntries.length];
+      return {id,customer,teamId:team.teamId,account:team.account,amount,paid,payment,reason,version:1,type:'充值订单',product:'云币充值',content:'信息技术服务*平台服务费',taxRate:'6%'};
+    });
+    api.applications.slice(0,3).forEach(a => orders.push({id:a.order,customer:a.subject,teamId:a.teamId,account:a.applicant,amount:a.amount,paid:a.created.slice(0,10),payment:a.source,reason:'',version:1,type:'充值订单',product:'云币充值',content:a.content,taxRate:a.taxRate}));
+    function eligibility(order) {
+      if(!order)return '请选择一个客户订单。';
+      if(order.reason)return order.reason;
+      if(!Number.isSafeInteger(order.amount) || order.amount<=0)return '该订单暂无可开票余额。';
+      if(api.applications.some(a => a.order===order.id && !['REJECTED','WITHDRAWN','CANCELLED'].includes(a.status)))return '该订单已有开票申请或有效发票，请勿重复申请；请在申请管理中查看处理进度。';
+      if(api.documents.some(d => d.order===order.id && d.document!=='FULLY_RED'))return '该订单已有有效票据，不可重复申请。';
+      return ''; // 后台不限制订单年限，也不使用客户端上线日期门槛。
+    }
+    let layer, step=1, selected=null, values={}, query='', lastFocus, submitting=false, submitted=false, expectedVersion=0, expectedAmount=0;
+    const value = id => layer.querySelector('#proxy-'+id);
+    const emailValid = s => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+    const phoneValid = s => /^1[3-9]\d{9}$/.test(s);
+    const accountValid = s => s.length<=254 && (emailValid(s)||phoneValid(s));
+    function field(id,label,control,required=false,hint='') {
+      return '<div class="invoice-proxy-field"><label for="proxy-'+id+'">'+(required?'<em>*</em>':'')+label+'：</label><div>'+control+'<p id="proxy-'+id+'-error" class="invoice-proxy-error" hidden></p>'+(hint?'<p class="invoice-proxy-hint">'+hint+'</p>':'')+'</div></div>';
+    }
+    function input(id,placeholder='',readonly=false) {
+      return '<input id="proxy-'+id+'" value="'+esc(values[id]||'')+'" placeholder="'+placeholder+'" '+(readonly?'readonly ':'')+'aria-describedby="proxy-'+id+'-error" autocomplete="off">';
+    }
+    const select = (id,items) => '<select id="proxy-'+id+'">'+items.map(([v,t])=>'<option value="'+esc(v)+'"'+(values[id]===v?' selected':'')+'>'+esc(t)+'</option>').join('')+'</select>';
+    function capture() { layer.querySelectorAll('input[id^="proxy-"],select[id^="proxy-"]').forEach(el=>{if(el.type!=='checkbox' && el.id!=='proxy-search')values[el.id.slice(6)]=el.value.trim();}); }
+    function error(id,message) { const el=value(id),node=value(id+'-error'); if(el)el.setAttribute('aria-invalid','true');if(node){node.textContent=message;node.hidden=false;}el?.focus();return false; }
+    function validStepOne() {
+      if(!accountValid(values.applicant||''))return error('applicant','请输入有效的手机号或邮箱，由操作人与客户确认。');
+      return !eligibility(selected);
+    }
+    function validForm() {
+      if(!values.title || values.title.length>100)return error('title','请输入发票抬头（不超过 100 字）。');
+      if(values.subjectType==='企业' && !/^(?:[A-Z0-9]{15}|[A-Z0-9]{18}|[A-Z0-9]{20})$/.test(values.taxId||''))return error('taxId','请输入 15、18 或 20 位大写字母或数字税号。');
+      if(!emailValid(values.email||'') || values.email.length>254)return error('email','请输入有效的收票邮箱。');
+      if(values.phone && !phoneValid(values.phone))return error('phone','请输入有效的 11 位手机号，或留空。');
+      if(values.bankAccount && !/^\d{8,30}$/.test(values.bankAccount))return error('bankAccount','银行账号需为 8–30 位数字。');
+      return true;
+    }
+    function renderOrders() {
+      const pageSize=5, totalPages=Math.max(1,Math.ceil(orders.filter(o=>[o.id,o.customer,o.teamId,o.account].join(' ').toLowerCase().includes(query.toLowerCase())).length/pageSize));
+      const currentPage=Math.min(Number(values.orderPage||1),totalPages);
+      const list=orders.filter(o=>[o.id,o.customer,o.teamId,o.account].join(' ').toLowerCase().includes(query.toLowerCase())).slice((currentPage-1)*pageSize,currentPage*pageSize);
+      value('orders').innerHTML='<table class="data-table" aria-label="选择客户订单"><thead><tr><th>选择</th><th>订单号 / 客户账号</th><th>团队ID</th><th>可开票金额</th><th>支付时间</th></tr></thead><tbody>'+list.map(o=>'<tr data-order-id="'+esc(o.id)+'" class="'+(selected===o?'is-selected':'')+'"><td><input type="radio" name="proxy-order" value="'+esc(o.id)+'" aria-label="选择 '+esc(o.id)+'" '+(selected===o?'checked':'')+'></td><td><span class="mono">'+esc(o.id)+'</span><small>'+esc(o.account)+'</small></td><td class="mono">'+esc(o.teamId)+'</td><td class="mono">'+money(o.amount)+'</td><td class="mono">'+esc(o.paid)+'</td></tr>').join('')+(list.length?'':'<tr><td colspan="5">未找到符合条件的订单，请调整查询条件。</td></tr>')+'</tbody></table><div class="invoice-pagination invoice-proxy-pagination"><button type="button" class="invoice-page-btn" data-proxy-page="prev" '+(currentPage<=1?'disabled':'')+'>‹</button><span class="invoice-page-stats">第 '+currentPage+' / '+totalPages+' 页</span><button type="button" class="invoice-page-btn" data-proxy-page="next" '+(currentPage>=totalPages?'disabled':'')+'>›</button></div>';
+      value('orders').querySelectorAll('[data-proxy-page]').forEach(btn=>btn.addEventListener('click',()=>{values.orderPage=Math.max(1,Math.min(totalPages,currentPage+(btn.dataset.proxyPage==='next'?1:-1)));renderOrders();}));
+      updateEligibility();
+    }
+    function updateEligibility() {
+      const reason=eligibility(selected),node=value('eligibility');
+      node.className='invoice-proxy-result'+(selected&&reason?' is-error':'');
+      node.innerHTML=selected?'<span class="invoice-proxy-selected-order">已选择订单：'+esc(selected.id)+'</span>'+(reason || '资格校验通过，可申请开票。')+' 所属团队：'+esc(selected.teamId)+'；客户：'+esc(selected.customer)+'。':esc(reason);
+      value('next').disabled=!!reason;
+    }
+    function review() {
+      const pairs=[['订单号',selected.id],['团队ID',selected.teamId],['申请人',values.applicant],['操作人',values.operator],['抬头类型',values.subjectType],['发票类型',values.invoiceType],['发票抬头',values.title]];
+      if(values.subjectType==='企业')pairs.push(['税号',values.taxId],['开户银行',values.bank||'—'],['银行账号',values.bankAccount||'—'],['企业地址',values.address||'—'],['企业电话',values.companyPhone||'—']);
+      pairs.push(['发票内容',selected.content],['开票金额',money(selected.amount)],['联系邮箱',values.email],['联系电话',values.phone||'—']);
+      const summary=compliance.summary({id:'ADMIN-PREVIEW',teamId:selected.teamId,amount:selected.amount});
+      return '<p class="invoice-proxy-review-hint">提交后进入财务审核；请再次核对抬头、税号、金额和收票方式。</p><dl class="invoice-proxy-review">'+pairs.map(([k,v])=>'<dt>'+k+'：</dt><dd>'+esc(v)+'</dd>').join('')+'</dl>'+(summary.total>=200000?'<section class="invoice-contract-notice"><h3>达到自助开票限额，请核实合同</h3><p>该团队累计开票金额（含本次申请）为 '+money(summary.total)+'，已达到平台自助开票限额 ¥2,000.00。请联系商务确认客户已签署合同，并核对合同企业名称与开票抬头一致后，再审批通过。</p><p>当前系统暂不支持自动校验合同信息；本提醒不阻止提交或审批。</p></section>':'')+'<label class="invoice-proxy-confirm"><input id="proxy-confirm" type="checkbox">我已与客户确认，发票抬头和收票信息真实有效</label><p id="proxy-submit-error" class="invoice-proxy-error" role="alert"></p>';
+    }
+    function render() {
+      const enterprise=values.subjectType==='企业';
+      let body='';
+      if(step===1)body='<div class="invoice-proxy-form">'+field('applicant','申请人',input('applicant','请输入客户手机号或邮箱'),true,'由操作人与客户确认填写，不要求属于订单团队。')+'</div><div class="invoice-proxy-search"><label for="proxy-search"><em aria-hidden="true">*</em>选择订单：</label><input id="proxy-search" aria-label="查询客户订单" placeholder="订单号 / 团队ID / 客户手机号或邮箱" value="'+esc(query)+'"></div><div id="proxy-orders" class="invoice-proxy-orders"></div><div id="proxy-eligibility" role="status"></div>';
+      if(step===2) {
+        body='<div class="invoice-proxy-form">'+field('subjectType','抬头类型','<div class="invoice-proxy-radio-group"><label><input type="radio" name="proxy-subjectType" value="企业" '+(values.subjectType==='企业'?'checked':'')+'> 企业</label><label><input type="radio" name="proxy-subjectType" value="个人" '+(values.subjectType==='个人'?'checked':'')+'> 个人</label></div>',true)+field('invoiceType','发票类型','<div class="invoice-proxy-radio-group"><label><input type="radio" name="proxy-invoiceType" value="数电普票" '+(values.invoiceType==='数电普票'?'checked':'')+'> 数电普票</label>'+(enterprise?'<label><input type="radio" name="proxy-invoiceType" value="数电专票" '+(values.invoiceType==='数电专票'?'checked':'')+'> 数电专票</label>':'<label class="is-disabled"><input type="radio" name="proxy-invoiceType" value="数电专票" disabled> 数电专票</label>')+'</div>',true)+field('title','发票抬头',input('title','请输入发票抬头'),true)+(enterprise?field('taxId','税号',input('taxId','请输入纳税人识别号'),true)+field('bank','开户银行',input('bank','请输入开户银行'))+field('bankAccount','银行账号',input('bankAccount','请输入银行账号'))+field('address','企业地址',input('address','请输入企业地址'))+field('companyPhone','企业电话',input('companyPhone','请输入企业电话')):'')+field('content','发票内容',input('content','请输入发票内容',true))+field('amount','开票金额',input('amount','请输入开票金额',true))+field('email','联系邮箱',input('email','请输入联系邮箱'),true)+field('phone','联系电话',input('phone','请输入联系电话'))+'</div>';
+      }
+      if(step===3)body=review();
+      layer.querySelector('.invoice-proxy-body').innerHTML='<ol class="invoice-proxy-steps" aria-label="开票申请步骤">'+['选择客户订单','填写信息','核对提交'].map((label,i)=>'<li class="'+(i+1<step?'is-complete ':'')+'" '+(step===i+1?'aria-current="step"':'')+'><b>'+(i+1)+'</b>'+label+'</li>').join('')+'</ol>'+body;
+      const panel=layer.querySelector('.invoice-proxy-panel');
+      panel.classList.toggle('is-order-step', step===1);
+      panel.classList.toggle('is-review-step', step===3);
+      layer.querySelector('footer').innerHTML='<button type="button" class="invoice-btn invoice-btn-default" data-proxy="close">取消</button>'+(step>1?'<button type="button" class="invoice-btn invoice-btn-default" data-proxy="prev">上一步</button>':'')+'<button type="button" id="proxy-next" class="invoice-btn invoice-btn-primary" data-proxy="'+(step===3?'submit':'next')+'">'+(step===3?'提交申请':'下一步')+'</button>';
+      if(step===1)renderOrders();
+      layer.querySelector('.invoice-proxy-body').scrollTop=0;
+    }
+    function close() { if(submitting)return;layer.remove();layer=null;document.body.style.overflow=previousOverflow;lastFocus?.focus(); }
+    let previousOverflow='';
+    function open(trigger) {
+      if(layer)return;
+      lastFocus=trigger;step=1;selected=null;query='';submitted=false;submitting=false;
+      values={applicant:'',subjectType:'企业',invoiceType:'数电普票',operator:document.querySelector('.app-account-name')?.textContent.trim()||'平台管理员',orderPage:1};
+      layer=document.createElement('div');layer.className='invoice-module invoice-proxy-overlay';
+      layer.innerHTML='<section class="invoice-proxy-panel is-order-step" role="dialog" aria-modal="true" aria-labelledby="proxy-modal-title"><header><h2 id="proxy-modal-title">新增开票申请</h2><button type="button" class="invoice-proxy-close" aria-label="关闭新增开票申请" data-proxy="close"><i data-lucide="x"></i></button></header><div class="invoice-proxy-body"></div><footer></footer></section>';
+      document.body.append(layer);previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';
+      render();window.lucide?.createIcons();value('applicant').focus();
+      layer.addEventListener('input',e=>{const node=e.target;if(node.id.startsWith('proxy-')){node.removeAttribute('aria-invalid');const msg=value(node.id.slice(6)+'-error');if(msg)msg.hidden=true;}});
+      layer.addEventListener('change',e=>{
+        capture();
+        if(e.target.name==='proxy-order') { const next=orders.find(o=>o.id===e.target.value);if(selected!==next){selected=next;values={applicant:values.applicant,operator:values.operator,subjectType:'企业',invoiceType:'数电普票',content:selected.content,amount:money(selected.amount)};}renderOrders(); }
+        if(e.target.name==='proxy-subjectType'){values.subjectType=e.target.value;if(values.subjectType==='个人')values.invoiceType='数电普票';render();layer.querySelector('input[name="proxy-subjectType"]')?.focus();}
+        if(e.target.name==='proxy-invoiceType'){values.invoiceType=e.target.value;}
+        if(e.target.id==='proxy-savedTitle') {values.title=values.savedTitle;values.taxId=values.savedTitle?'91310000MA1K5R8X48':'';render();value('title').focus();}
+      });
+      layer.addEventListener('click',e=>{
+        if(e.target===layer){close();return;}
+        const orderRow=e.target.closest('.invoice-proxy-orders tbody tr[data-order-id]');
+        if(orderRow && !e.target.closest('input,button,a')) { const radio=orderRow.querySelector('input[name="proxy-order"]'); if(radio){radio.checked=true;radio.dispatchEvent(new Event('change',{bubbles:true}));} return; }
+        const action=e.target.closest('[data-proxy]')?.dataset.proxy;if(!action || submitting)return;
+        capture();
+        if(action==='close')return close();
+        if(action==='search'||action==='reset'){query=action==='search'?value('search').value.trim():'';value('search').value=query;renderOrders();return;}
+        if(action==='prev'){step--;render();return;}
+        if(action==='next'){
+          if(step===1){if(!validStepOne())return;expectedVersion=selected.version;expectedAmount=selected.amount;}
+          else if(!validForm())return;
+          step++;render();layer.querySelector('.invoice-proxy-body input,.invoice-proxy-body select')?.focus();return;
+        }
+        if(action==='submit')submit();
+      });
+      layer.addEventListener('input',e=>{if(e.target.id==='proxy-search'){query=e.target.value.trim();renderOrders();}});
+    }
+    function submit() {
+      if(submitting||submitted)return;
+      const reason=eligibility(selected);
+      if(reason || selected.version!==expectedVersion || selected.amount!==expectedAmount){value('submit-error').textContent=reason||'订单信息已变化，请返回第一步重新核对。';return;}
+      if(!value('confirm').checked){value('submit-error').textContent='请先确认发票抬头和收票信息真实有效。';value('confirm').focus();return;}
+      submitting=true;value('next').disabled=true;value('next').textContent='提交中…';
+      // Mock 原子提交；不持久化客户账号、税号。正式端需使用幂等键及版本校验事务。
+      const now=new Date(),created=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Shanghai',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}).format(now);
+      const id='IA-'+created.slice(0,10).replace(/-/g,'')+'-'+String(now.getTime()).slice(-6);
+      const record={id,subject:values.title,subjectType:values.subjectType,invoiceType:values.invoiceType,amount:selected.amount,status:'PENDING_REVIEW',issuance:'NOT_SUBMITTED',document:'NONE',delivery:'NOT_SENT',created,applicant:values.applicant,teamId:selected.teamId,order:selected.id,content:selected.content,taxRate:selected.taxRate,source:selected.payment,assignee:'—',reviewer:'—',note:'平台代客创建开票申请',version:1,creationSource:'ADMIN_PROXY',operator:values.operator,email:values.email,phone:values.phone||'',taxId:values.subjectType==='企业'?values.taxId:'',bank:values.subjectType==='企业'?values.bank||'':'',bankAccount:values.subjectType==='企业'?values.bankAccount||'':'',address:values.subjectType==='企业'?values.address||'':'',companyPhone:values.subjectType==='企业'?values.companyPhone||'':'',orderSnapshot:{...selected}};
+      api.applications.unshift(record);submitted=true;submitting=false;close();api.renderView();
+      // 等列表的既有装饰器完成，再清除旧筛选，确保新记录可见；不新增列或修改字段定义。
+      requestAnimationFrame(()=>requestAnimationFrame(()=>root.querySelector('[data-invoice-list-action="reset"]')?.click()));
+      const toast=document.createElement('div');toast.className='invoice-proxy-result';toast.setAttribute('role','status');toast.textContent='开票申请 '+id+' 已提交，等待审核。';root.prepend(toast);setTimeout(()=>toast.remove(),5000);
+    }
+    window.addEventListener('keydown',e=>{
+      if(!layer)return;
+      if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();close();return;}
+      if(e.key==='Enter' && e.target===value('search')){e.preventDefault();query=value('search').value.trim();renderOrders();}
+      if(e.key==='Tab'){const nodes=[...layer.querySelectorAll('button:not(:disabled),input,select')].filter(n=>n.getClientRects().length);const first=nodes[0],last=nodes[nodes.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
+    },true);
+    function attach() {
+      const table=root.querySelector('table[aria-label="开票申请列表"]');
+      const exportButton=table?.closest('.invoice-block')?.querySelector('[data-action="bulk-export"]');
+      if(exportButton&&!root.querySelector('[data-proxy-open]')){const button=document.createElement('button');button.type='button';button.className='invoice-btn invoice-btn-primary';button.dataset.proxyOpen='';button.textContent='新增开票申请';button.addEventListener('click',()=>open(button));exportButton.after(button);}
+      if(!root.isConnected){observer.disconnect();if(layer)close();}
+    }
+    const observer=new MutationObserver(attach);observer.observe(document.body,{childList:true,subtree:true});attach();
+    root.__invoiceProxy={orders,eligibility};
+  }.toString() + ')();');
 })(window.YundengModules["invoice-management"]);
 
 /* 团队开票审核：金额以分计算；演示账号为虚构数据，按用户确认不脱敏。 */

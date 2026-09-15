@@ -228,5 +228,8 @@ document.addEventListener('DOMContentLoaded', async function() {
   "note": "取消/次级操作在左，确认/核心操作在右；标题栏关闭图标与内容区语义 ICO 不受影响。"
 }
 </script>
+<script type="application/json" data-yundeng-spec="filter-toggle">
+{"component":"filter-toggle","reference":"design.md §5.4","pages":["代理订单","用户列表"],"appearance":{"background":"transparent","border":0,"shadow":"none","paddingInline":0,"height":32,"fontSize":13,"fontWeight":500,"color":"ink-sub","iconSize":16,"gap":6},"hover":{"textAndIcon":"primary","background":"transparent"},"focusVisible":{"textAndIcon":"primary","outline":"2px solid primary"},"collapsed":{"text":"展开","icon":"chevron-down"},"expanded":{"text":"收起","icon":"chevron-up"},"interaction":"位于重置右侧；原生 button 支持点击、Enter、空格，更新 aria-expanded 并使用 aria-controls；切换不查询、不丢失输入或改变列表结果。"}
+</script>
 </body>
 </html>

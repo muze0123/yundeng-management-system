@@ -4,8 +4,8 @@
   const MODULE_VERSION = '20260822-inline-html';
   const APP_ENTRY = 'index.html';
   const RESOURCE_ROOT = 'Prototype/';
-  const MODULE_FILES = {"home": "Prototype/modules/home.js", "user-list": "Prototype/modules/user-list.js", "user-statistics": "Prototype/modules/user-statistics.js", "team-list": "Prototype/modules/team-list.js", "enterprise-list": "Prototype/modules/enterprise-list.js", "member-list": "Prototype/modules/member-list.js", "order-list": "Prototype/modules/order-list.js", "package-order": "Prototype/modules/package-order.js", "invoice-management": "Prototype/modules/billing-invoice.js", "environment-management": "Prototype/modules/environment-management.js", "proxy-list": "Prototype/modules/proxy-static.js", "tracking-overview": "Prototype/modules/tracking-overview.js", "tracking-events": "Prototype/modules/tracking-events.js", "tracking-metrics": "Prototype/modules/tracking-metrics.js", "tracking-debug": "Prototype/modules/tracking-debug.js", "tracking-quality": "Prototype/modules/tracking-quality.js", "tracking-detail": "Prototype/modules/tracking-detail.js", "tracking-analysis": "Prototype/modules/tracking-analysis.js", "tracking-dashboards": "Prototype/modules/tracking-dashboards.js", "tracking-insights": "Prototype/modules/tracking-insights.js"};
-  const PAGE_NAMES = {"home": "home", "user-list": "user-list", "user-statistics": "user-statistics", "team-list": "team-list", "enterprise-list": "enterprise-list", "member-list": "member-list", "order-list": "order-list", "package-order": "package-order", "invoice-management": "billing-invoice", "environment-management": "environment-management", "proxy-list": "proxy-static", "tracking-overview": "tracking-overview", "tracking-events": "tracking-events", "tracking-metrics": "tracking-metrics", "tracking-debug": "tracking-debug", "tracking-quality": "tracking-quality", "tracking-detail": "tracking-detail", "tracking-analysis": "tracking-analysis", "tracking-dashboards": "tracking-dashboards", "tracking-insights": "tracking-insights"};
+  const MODULE_FILES = {"home": "Prototype/modules/home.js", "user-list": "Prototype/modules/user-list.js", "ops-user-list": "Prototype/modules/ops-user-list.js", "user-statistics": "Prototype/modules/user-statistics.js", "team-list": "Prototype/modules/team-list.js", "enterprise-list": "Prototype/modules/enterprise-list.js", "member-list": "Prototype/modules/member-list.js", "order-list": "Prototype/modules/order-list.js", "package-order": "Prototype/modules/package-order.js", "invoice-management": "Prototype/modules/billing-invoice.js", "environment-management": "Prototype/modules/environment-management.js", "proxy-list": "Prototype/modules/proxy-static.js", "tracking-overview": "Prototype/modules/tracking-overview.js", "tracking-events": "Prototype/modules/tracking-events.js", "tracking-metrics": "Prototype/modules/tracking-metrics.js", "tracking-debug": "Prototype/modules/tracking-debug.js", "tracking-quality": "Prototype/modules/tracking-quality.js", "tracking-detail": "Prototype/modules/tracking-detail.js", "tracking-analysis": "Prototype/modules/tracking-analysis.js", "tracking-dashboards": "Prototype/modules/tracking-dashboards.js", "tracking-insights": "Prototype/modules/tracking-insights.js"};
+  const PAGE_NAMES = {"home": "home", "user-list": "user-list", "ops-user-list": "ops-user-list", "user-statistics": "user-statistics", "team-list": "team-list", "enterprise-list": "enterprise-list", "member-list": "member-list", "order-list": "order-list", "package-order": "package-order", "invoice-management": "billing-invoice", "environment-management": "environment-management", "proxy-list": "proxy-static", "tracking-overview": "tracking-overview", "tracking-events": "tracking-events", "tracking-metrics": "tracking-metrics", "tracking-debug": "tracking-debug", "tracking-quality": "tracking-quality", "tracking-detail": "tracking-detail", "tracking-analysis": "tracking-analysis", "tracking-dashboards": "tracking-dashboards", "tracking-insights": "tracking-insights"};
   const PAGE_IDS = Object.fromEntries(Object.entries(PAGE_NAMES).map(([id,name]) => [name,id]));
   const SIDEBAR_STATE_KEY = 'yundeng-app-shell-sidebar-compact';
   const MENU_STATE_KEY = 'yundeng-app-shell-menu-state';
@@ -36,7 +36,8 @@
       label: '订单管理',
       icon: 'receipt-text',
       children: [
-        { id: 'order-list', label: '订单列表', icon: 'receipt-text', module: 'order-list', description: '查看全部业务订单与支付状态' }
+        { id: 'order-list', label: '代理订单', icon: 'receipt-text', module: 'order-list', description: '查看全部业务订单与支付状态' },
+        { id: 'package-order', label: '套餐订单', icon: 'package-check', module: 'package-order', description: '查看套餐购买、续费与支付明细' }
       ]
     },
     {
@@ -56,12 +57,19 @@
       ]
     },
     {
+      id: 'section-operations',
+      label: '运营中心',
+      icon: 'gauge',
+      children: [
+        { id: 'ops-user-list', label: '运营用户列表', icon: 'users-round', module: 'ops-user-list', description: '面向运营的全字段用户运营视图与字段解释' }
+      ]
+    },
+    {
       id: 'section-proxy-package',
       label: '代理及套餐管理',
       icon: 'package-check',
       children: [
-        { id: 'proxy-list', label: '静态代理', icon: 'network', module: 'proxy-list', description: '查看静态云平台和静态家庭宽带资源' },
-        { id: 'package-order', label: '套餐订单', icon: 'package-check', module: 'package-order', description: '查看套餐购买、续费与退款订单' }
+        { id: 'proxy-list', label: '静态代理', icon: 'network', module: 'proxy-list', description: '查看静态云平台和静态家庭宽带资源' }
       ]
     },
     {
@@ -85,6 +93,7 @@
   const legacyRoutes = {
     'index.html': 'home',
     '用户列表.html': 'user-list',
+    '运营用户列表.html': 'ops-user-list',
     '静态代理.html': 'proxy-list',
     '代理列表.html': 'proxy-list',
     '系统框架.html': 'home',

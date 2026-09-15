@@ -264,3 +264,27 @@ a { -webkit-tap-highlight-color: transparent; }
   .app-spinner,
   .app-toast { transition: none; animation: none; }
 }
+
+/* design.md §5.4：筛选展开/收起统一文字入口。 */
+.app-business-module .filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #6E7685;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .15s ease;
+}
+.app-business-module .filter-toggle:hover,
+.app-business-module .filter-toggle:focus-visible { color: #0066FF; }
+.app-business-module .filter-toggle:focus-visible { outline: 2px solid #0066FF; outline-offset: 2px; }
+.app-business-module .filter-toggle svg { width: 16px; height: 16px; flex: none; color: inherit; }

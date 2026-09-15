@@ -1,0 +1,6 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>正在进入云登后台</title></head><body><script>
+(function(){const target=new URL('../index.html',location.href);target.search=location.search;
+const aliases={"home": "home", "user-list": "user-list", "ops-user-list": "ops-user-list", "user-statistics": "user-statistics", "team-list": "team-list", "enterprise-list": "enterprise-list", "member-list": "member-list", "order-list": "order-list", "package-order": "package-order", "invoice-management": "billing-invoice", "environment-management": "environment-management", "proxy-list": "proxy-static", "tracking-overview": "tracking-overview", "tracking-events": "tracking-events", "tracking-metrics": "tracking-metrics", "tracking-debug": "tracking-debug", "tracking-quality": "tracking-quality", "tracking-detail": "tracking-detail", "tracking-analysis": "tracking-analysis", "tracking-dashboards": "tracking-dashboards", "tracking-insights": "tracking-insights"};const old=decodeURIComponent(location.hash.slice(1));
+target.searchParams.set('page',target.searchParams.get('page') || aliases[old] || "ops-user-list");
+location.replace(target.href);})();
+</script><noscript><a href="../index.html?page=ops-user-list">进入云登后台</a></noscript></body></html>

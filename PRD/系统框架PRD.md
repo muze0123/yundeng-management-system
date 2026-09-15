@@ -28,7 +28,7 @@
 
 ### 1.1 页面定位
 
-系统框架是云登后台管理系统所有登录后页面的唯一应用壳，负责提供工作台、用户、订单、资源和数据埋点能力的全局入口、当前路由上下文、账户与通知入口、内容承载区域及跨页面反馈。用户列表、订单列表、环境管理、代理列表或数据埋点页面内部的表格、表单、分析和详情逻辑由内容模块自行负责，并按路由加载到主内容区；公共框架不复制到任何业务模块。
+系统框架是云登后台管理系统所有登录后页面的唯一应用壳，负责提供工作台、用户、订单、资源和数据埋点能力的全局入口、当前路由上下文、账户与通知入口、内容承载区域及跨页面反馈。用户列表、代理订单、环境管理、代理列表或数据埋点页面内部的表格、表单、分析和详情逻辑由内容模块自行负责，并按路由加载到主内容区；公共框架不复制到任何业务模块。
 
 本框架必须让后台管理员无论身处哪个业务页面，都能稳定完成：识别当前菜单分组与功能、切换一级菜单、查看通知和账户信息，以及在加载、无权限、会话过期或路由失败时获得明确反馈。
 
@@ -65,7 +65,7 @@
 │ 企业列表 │ │
 │ 成员列表 │ │
 │ 订单管理〔灰色标题〕│ │
-│ 订单列表 │ │
+│ 代理订单 │ │
 │ 套餐订单 │ │
 │ 财务管理〔灰色标题〕│ │
 │ 发票管理 │ │
@@ -104,12 +104,14 @@
 | 用户管理 / menuItem | enterprise-list | 企业列表 | `Prototype/modules/enterprise-list.js` | — |
 | 用户管理 / menuItem | member-list | 成员列表 | `Prototype/modules/member-list.js` | — |
 | sectionLabel | — | 订单管理 | — | 灰色、不可点击 |
-| 订单管理 / menuItem | order-list | 订单列表 | `Prototype/modules/order-list.js` | — |
+| 订单管理 / menuItem | order-list | 代理订单 | `Prototype/modules/order-list.js` | — |
 | 订单管理 / menuItem | package-order | 套餐订单 | `Prototype/modules/package-order.js` | — |
 | sectionLabel | — | 财务管理 | — | 灰色、不可点击 |
 | 财务管理 / menuItem | billing-invoice | 发票管理 | `Prototype/modules/billing-invoice.js` | 申请审核、票据、红冲与配置工作台 |
 | sectionLabel | — | 资源管理 | — | 灰色、不可点击 |
 | 资源管理 / menuItem | environment-management | 环境管理 | `Prototype/modules/environment-management.js` | — |
+| 运营中心 / menuGroup | — | 运营中心 | — | 可展开一级菜单，位于代理及套餐管理上方 |
+| 运营中心 / subMenuItem | ops-user-list | 运营用户列表 | `Prototype/modules/ops-user-list.js` | 面向运营的全字段用户运营视图与字段解释 |
 | 代理及套餐管理 / menuItem | proxy-static | 静态代理 | `Prototype/modules/proxy-static.js` | 已完成 |
 | sectionLabel | — | 数据埋点 | — | 灰色、不可点击；位于资源管理之后 |
 | 数据埋点 / menuItem | tracking-overview | 数据概览 | `Prototype/modules/tracking-overview.js` | 对应“概览”，直接进入数据概览 |
@@ -165,4 +167,4 @@ AppShell
 - 发票 `invoiceTab`：`orders`=申请管理、`documents`=票据管理、`red`=红冲管理、`config`=开票配置；显式 URL Tab 优先于会话保存值。现有对象定位参数继续透传。
 - 所有菜单、工作台卡片、模块互链、兼容入口均须验证，无重复顶栏/侧栏、无脚本异常。
 
-- 本次保留当前已确认导航分组：工作台、用户管理、订单管理、财务管理、资源管理、代理及套餐管理、数据埋点；有子项的分组可折叠，当前组展开。较早的静态分组/口径治理层级仅为历史方案，当前实现以 `app-shell.js` navigation 为准。
+- 本次保留当前已确认导航分组：工作台、用户管理、订单管理、财务管理、资源管理、运营中心、代理及套餐管理、数据埋点；有子项的分组可折叠，当前组展开。较早的静态分组/口径治理层级仅为历史方案，当前实现以 `app-shell.js` navigation 为准。

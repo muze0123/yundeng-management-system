@@ -167,11 +167,10 @@ select.control:has(option[value=""]:checked){color:#9DA2AC}
 .filter-tab:hover{color:#0066FF;position:relative;z-index:1}
 .filter-tab.active{color:#0066FF;background:#E6F0FF;border-color:#0066FF;font-weight:600;position:relative;z-index:2}
 /* KPI 指标卡（design.md §5.0，列表汇总型 is-borderless） */
-.kpi-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px}
-@media(min-width:1024px){.kpi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.kpi-card{padding:12px;border-radius:6px;background:#F7F8FA}
+.kpi-grid{display:flex;flex-wrap:nowrap;gap:12px;margin-bottom:16px;max-width:100%;overflow-x:auto}
+.kpi-card{display:flex;flex:1 0 auto;align-items:baseline;flex-wrap:nowrap;white-space:nowrap;padding:12px;border-radius:6px;background:#F7F8FA}
 .kpi-label{font-size:12px;color:#6E7685}
-.kpi-value{margin-top:4px;font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600;color:#1A1D24}
+.kpi-value{margin-top:0;font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:600;color:#1A1D24}
 /* 表格（design.md §5.2） */
 .table-scroll{overflow-x:auto}
 .data-table{width:100%;border-collapse:collapse;font-size:13px;color:#3A3F4A}
@@ -182,13 +181,7 @@ select.control:has(option[value=""]:checked){color:#9DA2AC}
 .data-table th:first-child{z-index:3;background:#F0F1F3}
 .data-table tbody tr:hover td:first-child{background:#F3F4F6}
 .mono{font-family:'JetBrains Mono',monospace;font-size:12px}
-/* 状态 Badge（design.md §5.3） */
-.badge{display:inline-block;padding:1px 8px;border-radius:4px;font-size:12px;line-height:20px;font-weight:500}
-.badge.is-success{background:#E7F9F0;color:#0FC060}
-.badge.is-danger{background:#FFE8EB;color:#D9001B}
-.badge.is-warning{background:#FDF2E9;color:#E7772D}
-.badge.is-info{background:#E6F0FF;color:#0066FF}
-.badge.is-muted{background:#F0F1F3;color:#6E7685}
+/* 列表参数统一继承单元格正文色，无状态标签底色。 */
 /* 表头【?】/ 单元格【!】及 hover 气泡（与用户列表页 col-help/col-detail 样式一致） */
 .col-help,.col-detail{display:inline-grid;place-items:center;width:18px;height:18px;padding:0;margin-left:4px;border:0;border-radius:4px;background:transparent;color:#9DA2AC;cursor:pointer;vertical-align:middle;font-family:inherit}
 .col-help svg,.col-detail svg{width:14px;height:14px}
@@ -447,15 +440,7 @@ function cellValue(u,k){
   return u[k];
 }
 function badge(k,v){
-  if(k==='lifecycle'||k==='blocker'||k==='channelCat'||k==='sourceChannel')return '<span class="badge is-info">'+esc(v)+'</span>';
-  if(k==='paid')return v==='已付费'?'<span class="badge is-success">已付费</span>':'<span class="badge is-warning">未付费</span>';
-  if(k==='exp7'||k==='exp30')return '<span class="badge '+(v>0?'is-warning':'is-success')+'">'+(v>0?'是':'否')+'</span>';
-  if(k==='accountStatus')return '<span class="badge is-success">'+esc(v)+'</span>';
-  if(k==='isTest'||k==='disabled'||k==='payDisabled'||k==='multiTeam'||k==='invited'){
-    return v==='是'?'<span class="badge is-danger">是</span>':'<span class="badge is-muted">否</span>';
-  }
-  if(k==='pulledPay')return v==='是'?'<span class="badge is-info">是</span>':'<span class="badge is-muted">否</span>';
-  if(k==='churnRisk')return v==='高'?'<span class="badge is-danger">高</span>':(v==='中'?'<span class="badge is-warning">中</span>':'<span class="badge is-success">低</span>');
+  if(k==='exp7'||k==='exp30')return esc(v>0?'是':'否');
   return null;
 }
 function isMonoKey(k){
@@ -506,7 +491,7 @@ function renderKpis(list){
     package:[['有效套餐用户',count(function(u){return u.pkgPeriod!=='-'})],['7天内到期',count(function(u){return u.exp7>0})],['30天内到期',count(function(u){return u.exp30>0})],['购买过代理用户',count(function(u){return u.proxyPurchased})],['购买过套餐用户',count(function(u){return u.pkgBuyCount>0})]]
   };
   var cards=[['当前结果',total]].concat(metrics[state.tab]||metrics.identify);
-  $('opsStatCards').innerHTML=cards.map(function(m){return '<div class="kpi-card is-borderless"><div class="kpi-label">'+m[0]+'</div><div class="kpi-value">'+esc(m[1])+'</div></div>'}).join('');
+  $('opsStatCards').innerHTML=cards.map(function(m){return '<div class="kpi-card is-borderless"><div class="kpi-label">'+m[0]+'：</div><div class="kpi-value">'+esc(m[1])+'</div></div>'}).join('');
   $('opsFootCount').textContent='共 '+total+' 条';
   $('opsDataDate').hidden=['lifecycle','pay'].indexOf(state.tab)<0;
 }

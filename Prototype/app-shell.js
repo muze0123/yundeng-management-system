@@ -1,11 +1,11 @@
 (function () {
   'use strict';
 
-  const MODULE_VERSION = '20260822-inline-html';
+  const MODULE_VERSION = '20260916-id-hover-fix';
   const APP_ENTRY = 'index.html';
   const RESOURCE_ROOT = 'Prototype/';
-  const MODULE_FILES = {"home": "Prototype/modules/home.js", "user-list": "Prototype/modules/user-list.js", "ops-user-list": "Prototype/modules/ops-user-list.js", "user-statistics": "Prototype/modules/user-statistics.js", "team-list": "Prototype/modules/team-list.js", "enterprise-list": "Prototype/modules/enterprise-list.js", "member-list": "Prototype/modules/member-list.js", "order-list": "Prototype/modules/order-list.js", "package-order": "Prototype/modules/package-order.js", "invoice-management": "Prototype/modules/billing-invoice.js", "environment-management": "Prototype/modules/environment-management.js", "proxy-list": "Prototype/modules/proxy-static.js", "tracking-overview": "Prototype/modules/tracking-overview.js", "tracking-events": "Prototype/modules/tracking-events.js", "tracking-metrics": "Prototype/modules/tracking-metrics.js", "tracking-debug": "Prototype/modules/tracking-debug.js", "tracking-quality": "Prototype/modules/tracking-quality.js", "tracking-detail": "Prototype/modules/tracking-detail.js", "tracking-analysis": "Prototype/modules/tracking-analysis.js", "tracking-dashboards": "Prototype/modules/tracking-dashboards.js", "tracking-insights": "Prototype/modules/tracking-insights.js"};
-  const PAGE_NAMES = {"home": "home", "user-list": "user-list", "ops-user-list": "ops-user-list", "user-statistics": "user-statistics", "team-list": "team-list", "enterprise-list": "enterprise-list", "member-list": "member-list", "order-list": "order-list", "package-order": "package-order", "invoice-management": "billing-invoice", "environment-management": "environment-management", "proxy-list": "proxy-static", "tracking-overview": "tracking-overview", "tracking-events": "tracking-events", "tracking-metrics": "tracking-metrics", "tracking-debug": "tracking-debug", "tracking-quality": "tracking-quality", "tracking-detail": "tracking-detail", "tracking-analysis": "tracking-analysis", "tracking-dashboards": "tracking-dashboards", "tracking-insights": "tracking-insights"};
+  const MODULE_FILES = {"home": "Prototype/modules/home.js", "user-list": "Prototype/modules/user-list.js", "ops-user-list": "Prototype/modules/ops-user-list.js", "user-statistics": "Prototype/modules/user-statistics.js", "team-list": "Prototype/modules/team-list.js", "enterprise-list": "Prototype/modules/enterprise-list.js", "member-list": "Prototype/modules/member-list.js", "order-list": "Prototype/modules/order-list.js", "package-order": "Prototype/modules/package-order.js", "user-withdrawal": "Prototype/modules/user-withdrawal.js", "invoice-management": "Prototype/modules/billing-invoice.js", "environment-management": "Prototype/modules/environment-management.js", "proxy-list": "Prototype/modules/proxy-static.js", "tracking-overview": "Prototype/modules/tracking-overview.js", "tracking-events": "Prototype/modules/tracking-events.js", "tracking-metrics": "Prototype/modules/tracking-metrics.js", "tracking-debug": "Prototype/modules/tracking-debug.js", "tracking-quality": "Prototype/modules/tracking-quality.js", "tracking-detail": "Prototype/modules/tracking-detail.js", "tracking-analysis": "Prototype/modules/tracking-analysis.js", "tracking-dashboards": "Prototype/modules/tracking-dashboards.js", "tracking-insights": "Prototype/modules/tracking-insights.js"};
+  const PAGE_NAMES = {"home": "home", "user-list": "user-list", "ops-user-list": "ops-user-list", "user-statistics": "user-statistics", "team-list": "team-list", "enterprise-list": "enterprise-list", "member-list": "member-list", "order-list": "order-list", "package-order": "package-order", "user-withdrawal": "user-withdrawal", "invoice-management": "billing-invoice", "environment-management": "environment-management", "proxy-list": "proxy-static", "tracking-overview": "tracking-overview", "tracking-events": "tracking-events", "tracking-metrics": "tracking-metrics", "tracking-debug": "tracking-debug", "tracking-quality": "tracking-quality", "tracking-detail": "tracking-detail", "tracking-analysis": "tracking-analysis", "tracking-dashboards": "tracking-dashboards", "tracking-insights": "tracking-insights"};
   const PAGE_IDS = Object.fromEntries(Object.entries(PAGE_NAMES).map(([id,name]) => [name,id]));
   const SIDEBAR_STATE_KEY = 'yundeng-app-shell-sidebar-compact';
   const MENU_STATE_KEY = 'yundeng-app-shell-menu-state';
@@ -37,7 +37,8 @@
       icon: 'receipt-text',
       children: [
         { id: 'order-list', label: '代理订单', icon: 'receipt-text', module: 'order-list', description: '查看全部业务订单与支付状态' },
-        { id: 'package-order', label: '套餐订单', icon: 'package-check', module: 'package-order', description: '查看套餐购买、续费与支付明细' }
+        { id: 'package-order', label: '套餐订单', icon: 'package-check', module: 'package-order', description: '查看套餐购买、续费与支付明细' },
+        { id: 'user-withdrawal', label: '用户提现', icon: 'wallet', module: 'user-withdrawal', description: '查看用户提现申请' }
       ]
     },
     {
@@ -103,6 +104,7 @@
     '成员列表.html': 'member-list',
     '订单列表.html': 'order-list',
     '套餐订单.html': 'package-order',
+    '用户提现.html': 'user-withdrawal',
     '发票管理.html': 'invoice-management',
     '环境管理.html': 'environment-management',
     '数据概览.html': 'tracking-overview',
@@ -372,8 +374,14 @@
     });
   }
 
+  function withVersion(src) {
+    if (/^(?:[a-z]+:|\/|data:)/i.test(src)) return src;
+    return `${src}${src.includes('?') ? '&' : '?'}v=${MODULE_VERSION}`;
+  }
+
   function loadScript(src, marker = 'resource') {
-    const absolute = new URL(src, document.baseURI).href;
+    const versioned = withVersion(src);
+    const absolute = new URL(versioned, document.baseURI).href;
     const existing = [...document.scripts].find((script) => script.src === absolute);
     if (existing) {
       if (existing.dataset.loaded === 'true' || !existing.dataset.appDynamic) return Promise.resolve();
@@ -384,7 +392,7 @@
     }
     return new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = src;
+      script.src = versioned;
       script.dataset.appDynamic = marker;
       script.addEventListener('load', () => { script.dataset.loaded = 'true'; resolve(); }, { once: true });
       script.addEventListener('error', () => reject(new Error(`无法加载脚本：${src}`)), { once: true });
@@ -393,11 +401,11 @@
   }
 
   function moduleResource(src) {
-    return /^(?:[a-z]+:|\/|data:)/i.test(src) ? src : `${RESOURCE_ROOT}${src}`;
+    return /^(?:[a-z]+:|\/|data:)/i.test(src) ? src : withVersion(`${RESOURCE_ROOT}${src}`);
   }
 
   function loadStyle(href) {
-    const resourceHref = /^(?:[a-z]+:|\/|data:)/i.test(href) ? href : `${RESOURCE_ROOT}${href}`;
+    const resourceHref = /^(?:[a-z]+:|\/|data:)/i.test(href) ? href : withVersion(`${RESOURCE_ROOT}${href}`);
     const absolute = new URL(resourceHref, document.baseURI).href;
     if ([...document.styleSheets].some((sheet) => sheet.href === absolute)) return;
     const link = document.createElement('link');
@@ -495,6 +503,7 @@
 
     window.lucide?.createIcons();
     bundle.scripts.forEach(runInlineScript);
+    if (typeof bundle.init === 'function') bundle.init(outlet.querySelector('.app-business-module'));
     (bundle.after || []).forEach(runInlineScript);
     window.lucide?.createIcons();
     disableInvoiceAnnotations(route);

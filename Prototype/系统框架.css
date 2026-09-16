@@ -144,6 +144,7 @@ a { -webkit-tap-highlight-color: transparent; }
 .app-group-chevron { width: 16px; height: 16px; transition: transform .2s ease; }
 .app-group-toggle[aria-expanded="false"] .app-group-chevron { transform: rotate(-90deg); }
 .app-submenu { overflow: hidden; max-height: 0; opacity: 1; transition: max-height .2s ease, opacity .15s ease; }
+.app-shell.is-navigation-initializing .app-submenu { transition: none !important; }
 .app-submenu.is-collapsed { max-height: 0; opacity: 0; pointer-events: none; }
 .app-submenu .app-menu-link { min-height: 34px; padding-left: 36px; font-size: 14px; }
 .app-sidebar-footer { padding: 12px; }

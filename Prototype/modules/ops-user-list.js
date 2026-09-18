@@ -305,7 +305,7 @@ var FIELDS=[
  {k:'pkgPeriod',l:'套餐周期',g:'package',d:'当前套餐生效开始时间 至 到期时间。'},
  {k:'giftEnv',l:'赠送环境数',g:'package',d:'当前用户总赠送环境数。'},
  {k:'giftMember',l:'赠送成员数',g:'package',d:'当前用户总赠送成员数。'},
- {k:'giftPeriod',l:'赠送周期',g:'package',d:'赠送环境和赠送成员生效开始时间-赠送到期结束时间。'},
+ {k:'giftPeriod',l:'赠送到期时间',g:'package',d:'赠送环境和赠送成员的到期时间，仅显示结束时间。'},
  {help:'proxyPlatform',k:'proxyPlatform',l:'平台代理数',g:'package',d:'平台代理总数/运行数/7 天到期数。'},
  {help:'proxyOwn',k:'proxyOwn',l:'自有代理数',g:'package',d:'自有代理总数/绑定数。'},
  {help:'proxyThird',k:'proxyThird',l:'三方代理数',g:'package',d:'三方代理总数/绑定数。'},
@@ -387,7 +387,7 @@ for(var i=0;i<10;i+=1){
     pkgPeriod:hasPkg[i]?'2026-09-15 15:07:19 至 2026-10-15 15:07:21':'-',
     giftEnv:[10,8,6,0,0,0,5,10,2,4][i],
     giftMember:[2,2,0,0,0,0,1,3,0,1][i],
-    giftPeriod:hasPkg[i]?'2026-09-15 13:22:07 至 2026-10-15 13:22:11':'-',
+    giftPeriod:hasPkg[i]?'2026-10-15 13:22:11':'-',
     proxyPlatform:hasPkg[i]?[20,10,6,0,0,0,8,30,4,10][i]:0,
     proxyOwn:hasPkg[i]?[2,0,0,0,0,0,0,5,0,1][i]:0,
     proxyThird:hasPkg[i]?[0,2,0,0,0,0,1,0,0,0][i]:0,
@@ -514,7 +514,7 @@ function renderBody(list,keys){
       var content=b!=null?b:esc(v);
       if(['firstOrderAmount','linkedTeamConsume','totalPaid','consumed','balance','giftBalance'].indexOf(k)>=0)v='¥'+Number(v==='-'?0:v).toFixed(2);
       if((isMonoKey(k)||typeof v==='number')&&b==null)content='<span class="mono">'+esc(v)+'</span>';
-      if((k==='pkgPeriod'||k==='giftPeriod')&&String(v).indexOf(' 至 ')>0)content='<span class="mono">'+esc(v).replace(' 至 ',' 至<br>')+'</span>';
+      if(k==='pkgPeriod'&&String(v).indexOf(' 至 ')>0)content='<span class="mono">'+esc(v).replace(' 至 ',' 至<br>')+'</span>';
       if((k==='env'||k==='members')&&b==null){
         content='<span class="mono">'+esc(v)+'</span><button type="button" class="col-detail" data-detail="'+(k==='env'?'env':'members')+'" data-id="'+u.id+'" aria-label="查看明细"><i data-lucide="circle-alert" aria-hidden="true"></i></button>';
       }
@@ -1271,8 +1271,8 @@ var FIELD_HELP_SECTIONS=[
         "definition": "当前用户总赠送成员数。"
       },
       {
-        "name": "赠送周期",
-        "definition": "赠送环境和赠送成员生效开始时间-赠送到期结束时间。"
+        "name": "赠送到期时间",
+        "definition": "赠送环境和赠送成员的到期时间，仅显示结束时间。"
       }
     ]
   }

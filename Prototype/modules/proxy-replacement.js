@@ -176,7 +176,9 @@
 .pr-module .pr-owner-list .pr-help{margin:0;padding:8px 8px 0}
 .pr-module .pr-owner-option{display:block;width:100%;text-align:left;border:0;background:#FFFFFF;padding:8px;font-size:12px;color:#3A3F4A;cursor:pointer;border-bottom:1px solid #E8EAED;font-family:inherit}
 .pr-module .pr-owner-option:last-child{border-bottom:0}
-.pr-module .pr-owner-option:hover,.pr-module .pr-owner-option[aria-selected=true]{background:#E6F0FF;color:#0066FF}
+.pr-module .pr-choice-detail{display:block;margin-top:4px;color:#6E7685;overflow-wrap:anywhere}
+.pr-module .pr-choice-empty{padding:12px;font-size:12px;color:#6E7685}
+.pr-module .pr-owner-option:hover,.pr-module .pr-owner-option.is-active,.pr-module .pr-owner-option[aria-selected=true]{background:#E6F0FF;color:#0066FF}
 .pr-module .pr-clamp{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;cursor:help}
 .pr-module .pr-clamp:focus-visible{outline:2px solid #0066FF;outline-offset:2px;border-radius:2px}
 .pr-module .pr-section:last-child{margin-bottom:0}
@@ -193,7 +195,7 @@
       ${textFilter('oldIp', '原代理IP', '请输入原代理IP')}
       ${textFilter('newIp', '新代理IP', '请输入更换后的代理IP')}
       <div class="filter-item"><label class="filter-label" id="pr-reason-filter-label">更换原因</label><div class="filter-control"><button id="pr-reason-filter-trigger" class="control date-trigger" type="button" aria-labelledby="pr-reason-filter-label pr-reason-filter-text" aria-expanded="false" aria-controls="pr-reason-filter-pop" aria-haspopup="listbox"><span id="pr-reason-filter-text">全部更换原因</span>${icon('chevron-down')}</button><input id="pr-reason-filter" name="reason-filter" type="hidden"></div></div><div class="filter-item"><label class="filter-label" for="pr-result">更换结果</label><div class="filter-control"><select id="pr-result" class="control" name="result"><option value="">全部结果</option><option value="success">更换成功</option><option value="failed">更换失败</option></select></div></div>
-      <div class="filter-item"><label class="filter-label" for="pr-sync-status">同步状态</label><div class="filter-control"><select id="pr-sync-status" class="control" name="syncStatus"><option value="">全部同步状态</option><option value="syncing">同步中</option><option value="success">同步成功</option><option value="failed">同步失败</option><option value="na">不适用</option></select></div></div>
+      <div class="filter-item"><label class="filter-label" for="pr-sync-status">同步状态</label><div class="filter-control"><select id="pr-sync-status" class="control" name="syncStatus"><option value="">全部同步状态</option><option value="syncing">同步中</option><option value="success">同步成功</option><option value="failed">同步失败</option></select></div></div>
       <div class="filter-item"><label class="filter-label" id="pr-operator-label">操作人</label><div class="filter-control"><button id="pr-operator-trigger" class="control date-trigger" type="button" aria-labelledby="pr-operator-label pr-operator-text" aria-expanded="false" aria-controls="pr-operator-pop"><span id="pr-operator-text">全部操作人</span>${icon('chevron-down')}</button><input id="pr-operator" name="operator" type="hidden"></div></div>
       <div class="filter-item"><label class="filter-label" for="pr-from">操作时间</label><div class="filter-control"><div id="pr-date-trigger" class="pr-date-range" aria-expanded="false" aria-controls="pr-calendar"><input id="pr-from" name="from" readonly placeholder="开始时间" aria-label="操作开始时间"><span class="pr-date-sep">—</span><input id="pr-to" name="to" readonly placeholder="结束时间" aria-label="操作结束时间">${icon('calendar-days')}</div></div></div>
       <div class="filter-actions"><button class="btn btn-primary" type="submit">查询</button><button class="btn btn-default" id="pr-reset" type="button">重置</button></div>
@@ -301,6 +303,9 @@
     });
     const persist = () => write(dbKey,db);
     const saved = read(viewKey) || {};
+    // 兼容旧会话：已移除的筛选值不能继续隐藏列表记录。
+    for (const filters of [saved.applied, saved.draft]) if (filters?.syncStatus === 'na') filters.syncStatus = '';
+    if (saved.draft?.['sync-status'] === 'na') saved.draft['sync-status'] = '';
     let applied = saved.applied || {}, page = saved.page || 1, size = saved.size || 20, direction = saved.direction || 'desc';
     const getDraft = () => Object.fromEntries(new FormData($('filters')));
     const saveView = () => write(viewKey,{applied,page,size,direction,draft:getDraft()});
@@ -404,110 +409,118 @@
     $('calendar').addEventListener('input',e=>{if(e.target.id==='pr-start-time')startTime=e.target.value;if(e.target.id==='pr-end-time')endTime=e.target.value;});
 
     // Modal 的焦点、背景滚动与关闭行为统一处理。
-    let modalKind='',returnFocus=null,busy=false,lookupTimer,lookupVersion=0,selectedUser=null,selectedAsset=null,ipOwners=[],linkMismatchKey='';
+    let modalKind='',returnFocus=null,busy=false,lookupTimer,lookupVersion=0,selectedUser=null,selectedAsset=null,ipOwners=[],userAssets=[],linkMismatchKey='';
     function openModal(title,body,footer) {closePopovers();returnFocus=document.activeElement;modalKind='replace';$('overlay').innerHTML=`<section class="pr-modal" role="dialog" aria-modal="true" aria-labelledby="pr-modal-title"><header class="pr-modal-header"><h2 id="pr-modal-title">${title}</h2><button class="pr-close" data-close aria-label="关闭弹窗">${icon('x','w-5 h-5')}</button></header><div class="pr-modal-body">${body}</div><footer class="pr-modal-footer">${footer}</footer></section>`;$('overlay').hidden=false;document.getElementById('appContent').style.overflow='hidden';refreshIcons();$('overlay').querySelector('input,button')?.focus();}
     function closeModal() {if(busy)return;lookupVersion++;clearTimeout(lookupTimer);$('overlay').hidden=true;$('overlay').innerHTML='';modalKind='';document.getElementById('appContent').style.overflow='';returnFocus?.focus();}
     function openReplacement() {
-      selectedUser=null;selectedAsset=null;ipOwners=[];linkMismatchKey='';busy=false;
-      const field=(id,label,hint)=>`<div class="pr-field"><label for="pr-${id}"><span class="pr-required">*</span>${label}：</label><div class="pr-field-content"><div class="pr-counted"><input class="control" id="pr-${id}" maxlength="50" required placeholder="${hint}" autocomplete="off" aria-describedby="pr-${id}-error pr-${id}-help"><span class="pr-counter font-mono" id="pr-${id}-count">0/50</span></div><div id="pr-${id}-error" class="pr-error" role="alert"></div><div id="pr-${id}-help" class="pr-help" aria-live="polite"></div>${id==='account'?'<div id="pr-ip-owners" class="pr-owner-list" hidden></div>':'<div id="pr-asset-card" hidden></div>'}</div></div>`;
+      selectedUser=null;selectedAsset=null;ipOwners=[];userAssets=[];linkMismatchKey='';busy=false;
+      const field=(id,label,hint)=>`<div class="pr-field"><label for="pr-${id}"><span class="pr-required">*</span>${label}：</label><div class="pr-field-content"><div class="pr-counted"><input class="control" id="pr-${id}" maxlength="50" required placeholder="${hint}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="pr-${id==='account'?'ip-owners':'user-assets'}" aria-describedby="pr-${id}-error pr-${id}-help"><span class="pr-counter font-mono" id="pr-${id}-count">0/50</span></div><div id="pr-${id}-error" class="pr-error" role="alert"></div><div id="pr-${id}-help" class="pr-help" aria-live="polite"></div>${id==='account'?'<div id="pr-ip-owners" class="pr-owner-list" role="listbox" aria-label="代理关联用户" hidden></div>':'<div id="pr-user-assets" class="pr-owner-list" role="listbox" aria-label="用户可更换代理" hidden></div><div id="pr-asset-card" hidden></div>'}</div></div>`;
       const selectField=(id,label,hint,options)=>`<div class="pr-field"><label for="pr-${id}"><span class="pr-required">*</span>${label}：</label><div class="pr-field-content"><select class="control" id="pr-${id}" required aria-describedby="pr-${id}-error"><option value="">${hint}</option>${options}</select><div id="pr-${id}-error" class="pr-error" role="alert"></div></div></div>`;
       openModal('更换代理',`<form id="pr-replace-form" novalidate>${field('account','用户账号','请输入用户ID/用户手机号/邮箱')}${field('source-ip','原代理IP','请输入用户原代理IP')}${selectField('channel','渠道商','请选择渠道商',channels.map(c=>`<option value="${escape(c.name)}">${escape(channelLabel(c))}</option>`).join(''))}${selectField('change-reason','更换原因','请选择更换原因',changeReasons.map(reason=>`<option value="${escape(reason)}">${escape(reason)}</option>`).join(''))}<div class="pr-field"><label for="pr-remark">备注：</label><div class="pr-field-content"><textarea class="control" id="pr-remark" maxlength="500" rows="4" placeholder="选填，最多 500 字" aria-describedby="pr-remark-count"></textarea><div class="pr-counter pr-counter-block font-mono" id="pr-remark-count">0/500</div></div></div><div class="pr-note"><strong>说明</strong><ol><li>按原代理所属地区和代理类型，自动分配其他可用 IP；无匹配资源时保留原代理。</li><li>新代理继承原到期时间，更换后原代理立即解绑并释放。</li><li>同步更新绑定环境的代理与指纹信息。同步失败时保留新 IP，可在更换记录中重试同步。</li></ol></div><div id="pr-submit-error" class="pr-error" role="alert"></div></form>`,`<button class="btn btn-default" data-close>取消</button><button class="btn btn-primary" type="submit" form="pr-replace-form" id="pr-submit" disabled>提交更换</button>`);
       $('account').focus();
-      $('account').oninput=()=>{
-        $('account').value=$('account').value.slice(0,50);
-        lookupVersion++;clearTimeout(lookupTimer);
-        selectedUser=null;selectedAsset=null;
-        $('account-count').textContent=$('account').value.length+'/50';
-        $('account-error').textContent='';$('account').removeAttribute('aria-invalid');
-        $('source-ip-error').textContent='';$('source-ip').removeAttribute('aria-invalid');
-        $('asset-card').hidden=true;$('submit').disabled=true;$('submit-error').textContent='';
-        const account=$('account').value.trim(),token=lookupVersion;
-        $('account-help').textContent=account?($('source-ip').value.trim()?'正在匹配用户与原代理IP…':'正在识别用户…'):'';
-        if(!account){evaluateLink();return;}
-        lookupTimer=setTimeout(()=>{if(token!==lookupVersion)return;evaluateLink();},280);
-      };
-      $('source-ip').oninput=()=>{
-        $('source-ip').value=$('source-ip').value.slice(0,50);
-        lookupVersion++;clearTimeout(lookupTimer);
-        selectedAsset=null;ipOwners=[];
-        $('source-ip-count').textContent=$('source-ip').value.length+'/50';
-        $('source-ip-error').textContent='';$('source-ip').removeAttribute('aria-invalid');
-        $('asset-card').hidden=true;$('ip-owners').hidden=true;$('submit').disabled=true;$('submit-error').textContent='';
-        const ip=$('source-ip').value.trim(),token=lookupVersion;
-        $('source-ip-help').textContent=ip?'正在查询代理…':'';
-        if(!ip){evaluateLink();return;}
-        lookupTimer=setTimeout(()=>{if(token!==lookupVersion)return;$('source-ip-help').textContent='';evaluateLink();},320);
-      };
+      for (const id of ['account','source-ip']) {
+        const input=$(id),box=$(id==='account'?'ip-owners':'user-assets');
+        input.oninput=()=>{
+          input.value=input.value.slice(0,50);
+          invalidateLink();
+          $(id+'-count').textContent=input.value.length+'/50';
+          const token=lookupVersion;
+          $(id+'-help').textContent=input.value.trim()?(id==='account'?'正在识别用户…':'正在查询代理…'):'';
+          lookupTimer=setTimeout(()=>{if(token===lookupVersion)evaluateLink();},id==='account'?280:320);
+        };
+        input.onfocus=()=>renderLinkChoices();
+        input.onclick=()=>renderLinkChoices();
+        input.onkeydown=e=>{
+          if(e.key==='Escape'&&!box.hidden){e.preventDefault();e.stopPropagation();hideLinkChoices();return;}
+          if(e.key==='ArrowDown'||e.key==='ArrowUp') {
+            e.preventDefault();if(box.hidden)renderLinkChoices();
+            const options=[...box.querySelectorAll('[role="option"]')];if(!options.length)return;
+            const current=options.findIndex(o=>o.id===input.getAttribute('aria-activedescendant'));
+            const next=current<0?(e.key==='ArrowDown'?0:options.length-1):(current+(e.key==='ArrowDown'?1:-1)+options.length)%options.length;
+            options.forEach((o,i)=>o.classList.toggle('is-active',i===next));
+            input.setAttribute('aria-activedescendant',options[next].id);options[next].scrollIntoView({block:'nearest'});
+          } else if(e.key==='Enter'&&!box.hidden) {
+            e.preventDefault();const active=box.querySelector('.is-active');if(active)chooseLinkOption(active);
+          }
+        };
+        input.closest('.pr-field-content').addEventListener('focusout',e=>{
+          if(!e.currentTarget.contains(e.relatedTarget))hideLinkChoices();
+        });
+        box.onclick=e=>{const option=e.target.closest('[role="option"]');if(option)chooseLinkOption(option);};
+      }
       $('remark').oninput=()=>{$('remark').value=$('remark').value.slice(0,500);$('remark-count').textContent=$('remark').value.length+'/500';};
       $('channel').onchange=()=>{$('channel-error').textContent='';};
       $('change-reason').onchange=()=>{$('change-reason-error').textContent='';};
-      $('ip-owners').onclick=e=>{const b=e.target.closest('[data-owner]');if(!b)return;$('account').value=b.dataset.owner;$('account-count').textContent=$('account').value.length+'/50';$('account').removeAttribute('aria-invalid');$('account-error').textContent='';$('account-help').textContent='';evaluateLink();$('account').focus();};
       $('replace-form').onsubmit=e=>{e.preventDefault();submitReplacement();};
     }
     function eligibility(asset) {if(!asset.purchased)return '仅支持更换用户已购买的代理';const status=statusFor(asset);if(!['running','abnormal'].includes(status))return `该代理${statusText[status]||'当前不可用'}，暂不支持更换`;return '';}
     function matchUser(account) {const key=String(account||'').trim(),lower=key.toLowerCase();if(!key)return null;return db.users.find(u=>u.id===key||u.phone===key||u.email.toLowerCase()===lower)||null;}
     // 原代理 IP 的全部持有者：同一 IP 可被多个用户持有，用于「先输 IP 再输账号」时的单选。
-    function ownersFor(ip) {const list=[];db.assets.forEach(a=>{if(a.ip!==ip||!a.owner)return;if(!list.includes(a.owner))list.push(a.owner);});return list;}
+    function ownersFor(ip) {const list=[];db.assets.forEach(a=>{if(a.ip!==ip||!a.owner||!a.purchased)return;if(!list.includes(a.owner))list.push(a.owner);});return list;}
     function renderCard(asset) {
       const card=$('asset-card');
       if(!asset){card.hidden=true;card.innerHTML='';return;}
       card.hidden=false;card.className='pr-info-card';
       card.innerHTML=`<dl><dt>代理IP：</dt><dd class="font-mono">${escape(asset.ip)}</dd><dt>所属地区：</dt><dd>${escape(areaName(asset.area))}</dd><dt>代理类型：</dt><dd>${escape(asset.type)}</dd><dt>渠道商：</dt><dd>${escape(asset.channel||'- -')}</dd><dt>单价：</dt><dd class="font-mono">${priceText(asset.price)}</dd><dt>最近登录时间：</dt><dd class="font-mono">${asset.lastLogin?format(asset.lastLogin):'- -'}</dd><dt>到期时间：</dt><dd class="font-mono">${asset.expiresAt?format(asset.expiresAt):'- -'}</dd></dl>`;
     }
-    function renderOwners(list) {
-      const box=$('ip-owners');
-      if(!list.length){box.hidden=true;box.innerHTML='';return;}
-      const me=matchUser($('account').value);
-      box.hidden=false;
-      box.innerHTML=`<p class="pr-help">该原代理 IP 关联以下用户，请单选</p>`+list.map(userId=>{const u=db.users.find(user=>user.id===userId);return `<button type="button" class="pr-owner-option" data-owner="${escape(userId)}" role="option" aria-selected="${me?.id===userId}">${escape(userId)} · ${escape(u?u.phone:'')}</button>`;}).join('');
+    // 输入文本保留；两侧匹配结果同步失效，旧响应不能恢复提交资格。
+    function hideLinkChoices() {
+      for(const [id,list] of [['account','ip-owners'],['source-ip','user-assets']]) {
+        if(!$(id))continue;$(list).hidden=true;$(id).setAttribute('aria-expanded','false');$(id).removeAttribute('aria-activedescendant');
+      }
     }
-    // 依据当前账号与原代理 IP 计算关联状态：信息卡片、关联用户下拉、错误文案与提交可用性。
+    function invalidateLink() {
+      lookupVersion++;clearTimeout(lookupTimer);selectedUser=null;selectedAsset=null;ipOwners=[];userAssets=[];linkMismatchKey='';
+      hideLinkChoices();renderCard(null);
+      for(const id of ['account','source-ip']) {$(id+'-error').textContent='';$(id+'-help').textContent='';$(id).removeAttribute('aria-invalid');}
+      $('ip-owners').innerHTML='';$('user-assets').innerHTML='';$('submit').disabled=true;$('submit-error').textContent='';
+    }
+    function renderLinkChoices() {
+      hideLinkChoices();
+      const id=document.activeElement?.id;
+      if(id==='pr-account'&&ipOwners.length) {
+        const box=$('ip-owners');
+        box.innerHTML=ipOwners.map((userId,i)=>{const u=db.users.find(user=>user.id===userId);return `<button type="button" tabindex="-1" id="pr-owner-choice-${i}" class="pr-owner-option" data-owner="${escape(userId)}" role="option" aria-selected="${selectedUser?.id===userId}"><span class="font-mono">${escape(userId)} · ${escape(u?.phone||'')}</span><span class="pr-choice-detail font-mono">${escape(u?.email||'')}</span></button>`;}).join('');
+        box.hidden=false;$('account').setAttribute('aria-expanded','true');
+      } else if(id==='pr-source-ip'&&selectedUser) {
+        const box=$('user-assets');
+        box.innerHTML=userAssets.length?userAssets.map((a,i)=>`<button type="button" tabindex="-1" id="pr-asset-choice-${i}" class="pr-owner-option" data-asset="${escape(a.id)}" role="option" aria-selected="${selectedAsset?.id===a.id}"><span class="font-mono">${escape(a.ip)}</span><span class="pr-choice-detail">${escape(areaName(a.area))} · ${escape(a.type)}</span></button>`).join(''):'<div class="pr-choice-empty" role="status">该用户暂无可更换的代理</div>';
+        box.hidden=false;$('source-ip').setAttribute('aria-expanded','true');
+      }
+    }
+    function chooseLinkOption(option) {
+      const asset=option.dataset.asset?db.assets.find(a=>a.id===option.dataset.asset):null;
+      const id=asset?'source-ip':'account',value=asset?asset.ip:option.dataset.owner;
+      if(!value)return;
+      invalidateLink();$(id).value=value;$(id+'-count').textContent=value.length+'/50';
+      evaluateLink();$(id).focus();hideLinkChoices();
+    }
+    // 两种输入顺序共用一次当前文本校验，只有归属和更换资格均通过才启用提交。
     function evaluateLink() {
       const account=$('account').value.trim(),ip=$('source-ip').value.trim();
-      selectedUser=null;selectedAsset=null;ipOwners=[];$('asset-card').hidden=true;$('ip-owners').hidden=true;$('submit').disabled=true;
-      if(!ip){
-        $('source-ip-error').textContent='';$('source-ip').removeAttribute('aria-invalid');$('source-ip-help').textContent='';
-        if(!account)return;
-        const u=matchUser(account);
-        if(!u){$('account-error').textContent='未找到该用户，请输入完整用户ID、手机号或邮箱';$('account').setAttribute('aria-invalid','true');$('account-help').textContent='';return;}
-        selectedUser=u;$('account-error').textContent='';$('account').removeAttribute('aria-invalid');
-        $('account-help').textContent=`已识别用户 ${u.id} · ${u.phone}`;$('source-ip-help').textContent='输入后自动查询该用户名下的代理';
-        return;
-      }
-      const owners=ownersFor(ip);
-      if(!owners.length){
-        $('source-ip-error').textContent='未找到该代理，请检查 IP 后重试';$('source-ip').setAttribute('aria-invalid','true');$('source-ip-help').textContent='';
-        return;
-      }
-      ipOwners=owners;
-      const u=account?matchUser(account):null,asset=u?db.assets.find(a=>a.ip===ip&&a.owner===u.id):null;
-      if(u&&asset){
-        selectedUser=u;selectedAsset=asset;linkMismatchKey='';
-        $('account-error').textContent='';$('account').removeAttribute('aria-invalid');$('account-help').textContent=`已识别用户 ${u.id} · ${u.phone}`;
-        $('source-ip-help').textContent='';$('ip-owners').hidden=true;renderCard(asset);
-        const error=eligibility(asset);$('source-ip-error').textContent=error;if(error)$('source-ip').setAttribute('aria-invalid','true');else $('source-ip').removeAttribute('aria-invalid');
-        $('submit').disabled=!!error;
-        return;
-      }
-      $('submit').disabled=true;renderCard(null);renderOwners(owners);
-      if(u){
-        // 账号可识别但不持有该 IP：无关联，禁止提交，字段文案 + 立即 toast。
-        $('source-ip-error').textContent='该代理不属于当前用户，请核对后重试';$('source-ip').setAttribute('aria-invalid','true');
-        $('account-error').textContent='用户账号与原代理IP不匹配';$('account').setAttribute('aria-invalid','true');
-        const key=u.id+'|'+ip;if(key!==linkMismatchKey){linkMismatchKey=key;toast('用户账号与原代理IP不匹配，无法提交更换');}
-      } else {
-        $('source-ip-error').textContent='';$('source-ip').removeAttribute('aria-invalid');
-        $('account-error').textContent='';$('account-help').textContent='也可直接从下方单选该代理的归属用户';
-      }
-    }
-    function lookupAsset(ip) {
-      if(!selectedUser)return;
-      const matches=db.assets.filter(a=>a.ip===ip),a=matches.find(a=>a.owner===selectedUser.id);
-      $('source-ip-help').textContent='';
-      if(!a){$('source-ip-error').textContent=matches.length?'该代理不属于当前用户，请核对后重试':'未找到该代理，请检查 IP 后重试';$('source-ip').setAttribute('aria-invalid','true');return;}
-      selectedAsset=a;$('asset-card').hidden=false;$('asset-card').className='pr-info-card';
-      $('asset-card').innerHTML=`<dl><dt>代理IP：</dt><dd class="font-mono">${escape(a.ip)}</dd><dt>所属地区：</dt><dd>${escape(a.area.join('-'))}</dd><dt>代理类型：</dt><dd>${escape(a.type)}</dd><dt>最近登录时间：</dt><dd class="font-mono">${a.lastLogin?format(a.lastLogin):'- -'}</dd><dt>到期时间：</dt><dd class="font-mono">${format(a.expiresAt)}</dd></dl>`;
-      const error=eligibility(a);$('source-ip-error').textContent=error;$('submit').disabled=!!error;
+      selectedUser=matchUser(account);selectedAsset=null;ipOwners=ip?ownersFor(ip):[];
+      userAssets=selectedUser?db.assets.filter(a=>a.owner===selectedUser.id&&!eligibility(a)):[];
+      renderCard(null);$('submit').disabled=true;
+      for(const id of ['account','source-ip']) {$(id+'-error').textContent='';$(id+'-help').textContent='';$(id).removeAttribute('aria-invalid');}
+      if(selectedUser) $('account-help').textContent=`已识别用户 ${selectedUser.id} · ${selectedUser.phone}`;
+      else if(account) {$('account-error').textContent='未找到该用户，请输入完整用户ID、手机号或邮箱';$('account').setAttribute('aria-invalid','true');}
+      if(ip) {
+        const matches=db.assets.filter(a=>a.ip===ip);
+        if(!matches.length) {$('source-ip-error').textContent='未找到该代理，请检查 IP 后重试';$('source-ip').setAttribute('aria-invalid','true');}
+        else if(selectedUser) {
+          const asset=matches.find(a=>a.owner===selectedUser.id);
+          if(!asset) {
+            $('source-ip-error').textContent='该代理不属于当前用户，请核对后重试';$('source-ip').setAttribute('aria-invalid','true');
+            $('account-error').textContent='用户账号与原代理IP不匹配';$('account').setAttribute('aria-invalid','true');
+            const key=selectedUser.id+'|'+ip;if(key!==linkMismatchKey){linkMismatchKey=key;toast('用户账号与原代理IP不匹配，无法提交更换');}
+          } else {
+            selectedAsset=asset;linkMismatchKey='';renderCard(asset);
+            const error=eligibility(asset);$('source-ip-error').textContent=error;if(error)$('source-ip').setAttribute('aria-invalid','true');
+            $('submit').disabled=!!error;
+          }
+        } else $('source-ip-help').textContent=ipOwners.length?'已识别代理，请输入或选择购买该代理的用户':'该代理暂无购买用户';
+      } else if(selectedUser) $('source-ip-help').textContent='可从下拉列表选择，也可直接输入代理 IP';
+      renderLinkChoices();
     }
     function setBusy(value) {busy=value;$('overlay').querySelectorAll('input,button').forEach(el=>el.disabled=value);if(!value)$('submit').disabled=!selectedAsset||!!eligibility(selectedAsset);$('submit').textContent=value?'正在更换…':'提交更换';}
     function submitReplacement() {
@@ -515,7 +528,7 @@
       const account=$('account').value.trim(),ip=$('source-ip').value.trim();
       if(!account){$('account-error').textContent='请输入用户账号';$('account').setAttribute('aria-invalid','true');$('account').focus();return;}
       if(!ip){$('source-ip-error').textContent='请输入用户原代理IP';$('source-ip').setAttribute('aria-invalid','true');$('source-ip').focus();return;}
-      if(!selectedUser||!selectedAsset||ip!==selectedAsset.ip||eligibility(selectedAsset)){
+      if(!selectedUser||!selectedAsset||matchUser(account)?.id!==selectedUser.id||selectedAsset.owner!==selectedUser.id||ip!==selectedAsset.ip||eligibility(selectedAsset)){
         $('submit-error').textContent=!matchUser(account)?'未找到该用户，请输入完整用户ID、手机号或邮箱':!selectedUser?'用户账号与原代理IP不匹配，无法提交更换':!selectedAsset?'该原代理 IP 信息无效，请重新输入后查询':ip!==selectedAsset.ip?'原代理IP已变化，请重新查询后重试':eligibility(selectedAsset);
         return;
       }
@@ -587,7 +600,7 @@
     document.getElementById('appContent').addEventListener('scroll',closePopovers);
     window.addEventListener('pagehide',saveView);
     // App Shell 恢复通用控件后，以本模块保存的查询状态恢复实际数据与草稿。
-    function restoreView() {for(const [key,value] of Object.entries(saved.draft||applied))if($(key))$(key).value=value;$('operator-text').textContent=operatorName($('operator').value)||'全部操作人';$('operator-trigger').classList.toggle('has-value',!!$('operator').value);syncReasonText();syncClear();renderRecords();}
+    function restoreView() {for(const [key,value] of Object.entries(saved.draft||applied))if($(key==='syncStatus'?'sync-status':key))$(key==='syncStatus'?'sync-status':key).value=value;$('operator-text').textContent=operatorName($('operator').value)||'全部操作人';$('operator-trigger').classList.toggle('has-value',!!$('operator').value);syncReasonText();syncClear();renderRecords();}
     persist();restoreView();requestAnimationFrame(restoreView);
     db.records.filter(r=>r.syncStatus==='syncing').forEach(queueSync);
   }

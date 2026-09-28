@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  const MODULE_VERSION = '20260928-proxy-replacement-ops';
+  const MODULE_VERSION = '20260928-proxy-bidirectional-lookup';
   const APP_ENTRY = 'index.html';
   const RESOURCE_ROOT = 'Prototype/';
   const MODULE_FILES = {"proxy-replacement": "Prototype/modules/proxy-replacement.js", "home": "Prototype/modules/home.js", "user-list": "Prototype/modules/user-list.js", "ops-user-list": "Prototype/modules/ops-user-list.js", "user-statistics": "Prototype/modules/user-statistics.js", "team-list": "Prototype/modules/team-list.js", "enterprise-list": "Prototype/modules/enterprise-list.js", "member-list": "Prototype/modules/member-list.js", "order-list": "Prototype/modules/order-list.js", "package-order": "Prototype/modules/package-order.js", "user-withdrawal": "Prototype/modules/user-withdrawal.js", "invoice-management": "Prototype/modules/billing-invoice.js", "environment-management": "Prototype/modules/environment-management.js", "proxy-list": "Prototype/modules/proxy-static.js", "tracking-overview": "Prototype/modules/tracking-overview.js", "tracking-events": "Prototype/modules/tracking-events.js", "tracking-metrics": "Prototype/modules/tracking-metrics.js", "tracking-debug": "Prototype/modules/tracking-debug.js", "tracking-quality": "Prototype/modules/tracking-quality.js", "tracking-detail": "Prototype/modules/tracking-detail.js", "tracking-analysis": "Prototype/modules/tracking-analysis.js", "tracking-dashboards": "Prototype/modules/tracking-dashboards.js", "tracking-insights": "Prototype/modules/tracking-insights.js"};

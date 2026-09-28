@@ -1,4 +1,4 @@
-/* 用户管理 / 更换代理。只提供内容区；Mock 数据和客户端同步均为本地演示。 */
+/* 运营中心 / 更换代理。只提供内容区；Mock 数据和客户端同步均为本地演示。 */
 (function () {
   'use strict';
   const icon = (name, cls = 'w-4 h-4') => `<i data-lucide="${name}" class="${cls}" aria-hidden="true"></i>`;
@@ -103,6 +103,8 @@
 .pr-module .data-table{min-width:2280px}
 .pr-module .data-table th{background:#F0F1F3;font-weight:600;padding:9px 12px;border-bottom:1px solid #DFE1E5}
 .pr-module .data-table td{padding:9px 12px;vertical-align:middle}
+/* 首列按用户要求保留 20px 左侧留白，表头与数据对齐。 */
+.pr-module .data-table th:first-child,.pr-module .data-table td:first-child{padding-left:20px}
 .pr-module .pr-sub{font-size:12px;color:#6E7685}
 .pr-module .pr-badge{display:inline-block;font-size:12px;white-space:nowrap}
 .pr-module .pr-help-dot{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:4px;padding:0;border:0;background:transparent;color:#9DA2AC;cursor:help;vertical-align:middle}

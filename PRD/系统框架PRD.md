@@ -112,6 +112,7 @@
 | 资源管理 / menuItem | environment-management | 环境管理 | `Prototype/modules/environment-management.js` | — |
 | 运营中心 / menuGroup | — | 运营中心 | — | 可展开一级菜单，位于代理及套餐管理上方 |
 | 运营中心 / subMenuItem | ops-user-list | 运营用户列表 | `Prototype/modules/ops-user-list.js` | 面向运营的全字段用户运营视图与字段解释 |
+| 运营中心 / subMenuItem | proxy-replacement | 更换代理 | `Prototype/modules/proxy-replacement.js` | 为用户更换已购代理并同步环境与指纹 |
 | 代理及套餐管理 / menuItem | proxy-static | 静态代理 | `Prototype/modules/proxy-static.js` | 已完成 |
 | sectionLabel | — | 数据埋点 | — | 灰色、不可点击；位于资源管理之后 |
 | 数据埋点 / menuItem | tracking-overview | 数据概览 | `Prototype/modules/tracking-overview.js` | 对应“概览”，直接进入数据概览 |
@@ -172,4 +173,8 @@ AppShell
 
 ## 2026-09-23 更换代理入口
 
-用户管理新增“更换代理”，路由 `index.html?page=proxy-replacement`，模块 `Prototype/modules/proxy-replacement.js`，兼容入口 `Prototype/更换代理.html`。导航配置与工作台模块卡片均已同步，详见 `用户管理/更换代理PRD.md`。
+用户管理新增“更换代理”，路由 `index.html?page=proxy-replacement`，模块 `Prototype/modules/proxy-replacement.js`，兼容入口 `Prototype/更换代理.html`。导航配置与工作台模块卡片均已同步，详见 `运营中心/更换代理PRD.md`。
+
+## 2026-09-28 更换代理归属调整
+
+“更换代理”由「用户管理」移入「运营中心」二级菜单（`运营用户列表` 之后），路由、模块文件、兼容入口与工作台卡片均不变；PRD 同步迁移至 `PRD/运营中心/更换代理PRD.md`。

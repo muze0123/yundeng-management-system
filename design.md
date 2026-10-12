@@ -151,6 +151,25 @@
 └───────────────────────────────────────────────┘
 ```
 
+**无筛选条件页签的区块合并**（页签区块内除页签外没有任何筛选条件时）：
+
+```
+┌─ 业务模块（左右各 16px）─────────────────────┐
+│  ┌─ 页签区块（100% 宽、无描边）──────────────┐ │
+│  │  [一级 Tab]                               │ │
+│  │  ─────────────────────────────── 分割线   │ │
+│  │  [语义列表标题] [总数]      [列表上下文操作]│ │
+│  │  data-table                               │ │
+│  └──────────────────────────────────────────┘ │
+└───────────────────────────────────────────────┘
+```
+
+- 页签区块内除页签外没有筛选条件时，不再输出第二个数据区块：数据列表直接并入页签区块，整页只呈现**一个**卡片，不得留下「只剩一条页签的空区块 + 独立列表卡片」的两段式结构。
+- 判断依据是「该页签本身是否具备筛选条件」，不是「用户当前是否填了筛选值」。填写与否只影响查询结果，不改变区块结构。
+- 同一页面的多个页签可各自成立：含筛选条件的页签仍用「筛选区块 + 数据区块」两段式；不含筛选条件的页签用单区块。
+- 并入时列表沿用数据区标准（语义列表标题 + 总数 + 列表上下文操作 + `data-table`），且**不得再套一层卡片背景、圆角或内边距**（禁止卡片套卡片，否则会多出一圈留白与内框）；页签与其下内容之间的间距由页签自身的分割线与 20px 下间距提供。
+- 参考实现：「出海吧」的「类型管理」页签（无筛选条件，单区块）与「网站管理」页签（有筛选条件，两区块）共存于同一页面。
+
 **布局规则**：
 
 | 区域 | 规则 |
@@ -158,6 +177,7 @@
 | 业务模块 | `width:100%; max-width:none; padding:16px`；不得通过固定最大宽度居中，内容左右边缘与主内容区各保持 16px |
 | 内容区块 | `width:100%; max-width:none; margin:0; bg-white rounded-lg p-5 md:p-6 border-0` |
 | 多内容区块 | 纵向堆叠，区块间距 16px；每个区块均保持无外描边 |
+| 无筛选条件的页签 | 页签区块内除页签外无筛选条件时，数据列表并入该区块，整页只呈现一个卡片；不得保留只剩一条页签的空区块再另起数据区块，也不得因并入而在卡片内再套一层卡片（见上「无筛选条件页签的区块合并」） |
 | 一级 Tab | 作为筛选区块的首个业务导航，Tab 自身不附加装饰性图标；Tab 与筛选条件之间使用 `line-light` 分割线 |
 | Tab 下内容 | 不展示当前 Tab 的重复标题或副标题；筛选条件位于 Tab 分割线下方 |
 | 数据区标题 | 仅在需要区分独立数据容器时展示语义列表标题，如“申请列表”“票据列表”；不得使用“数据列表”等泛化占位名，也不得重复当前一级 Tab 名称 |
@@ -216,6 +236,26 @@
         <span class="pg-stats">共 N 条记录　第 a/b 页</span>
       </div>
     </div>
+  </section>
+</main>
+```
+
+**无筛选条件页签的结构参考**（案例：「出海吧 → 类型管理」）：页签与筛选条件同属第一个区块，但无筛选条件的页签把数据列表并入同一区块，页面不再出现第二个卡片。
+
+```html
+<main class="app-business-module w-full max-w-none p-4" aria-label="出海吧">
+  <section class="w-full max-w-none bg-white rounded-lg border-0 p-5 md:p-6 mb-4">
+    <div class="primary-tabs border-b border-line-light" role="tablist">...</div>
+    <form class="filter-flow" role="search">…仅属于有筛选条件的页签…</form>
+
+    <!-- 该页签无筛选条件 → 列表并入本区块；面板自身不得带 bg-white / rounded-lg / p-5，避免卡片套卡片 -->
+    <section id="panel-types" role="tabpanel" hidden>
+      <div class="flex items-center justify-start gap-2 mb-3">
+        <h2 class="text-[16px] font-semibold text-ink-title">网站类型</h2>
+        <span class="text-[12px] text-ink-muted">共 N 条</span>
+      </div>
+      <div class="overflow-x-auto"><table class="data-table">...</table></div>
+    </section>
   </section>
 </main>
 ```
@@ -279,7 +319,7 @@
 
 - 内部 `input` / `select`：`width:100%; height:32px; font-size:14px; padding:0 8px; border-radius:4px; border:1px solid #DFE1E5; color:#3A3F4A; outline:none; font-family:inherit; background:#fff;`
 - placeholder 样式：`color:#9DA2AC; font-size:14px;`
-- focus 态：`border-color:#0066FF; box-shadow:0 0 0 2px rgba(0,102,255,.12);`
+- focus 态：`border-color:#0066FF; box-shadow:0 0 0 2px rgba(0,102,255,.12);`。**筛选区输入控件的焦点只用这一套指示**：模块必须同时声明 `.control:focus-visible{outline:none}`，并保证任何 `input`/`select` 描边规则都不命中本控件；否则同一控件会同时出现柔光环与实心描边，即「两个蓝色描边」。（完整规则见 §5.13 焦点态单一指示铁律）
 - select 下拉箭头使用内联 SVG background-image 替代浏览器默认样式，`padding-right:24px;`
 
 **日期范围 `.date-range`**：筛选区使用一个 300px 组合输入组件，`display:flex; align-items:center; gap:0; position:relative; border:1px solid line;`，内部依次为开始时间、分隔符、结束时间和右侧日历图标；内部只读输入框使用透明背景，外层描边必须完整可见，字段名与该组件间距仍为 0px。
@@ -333,7 +373,7 @@
 - `.pg-select-wrap::after`：`content:'▼';position:absolute;right:8px;font-size:8px;color:#9DA2AC;pointer-events:none`
 
 **跳页输入框 `.pg-jump-input`**：`font:12px inherit;width:44px;height:30px;text-align:center;border-radius:4px;border:1px solid #DFE1E5;color:#3A3F4A;outline:none`
-- focus：`border-color:primary;box-shadow:0 0 0 2px rgba(0,102,255,.12)`
+- focus：`border-color:primary;box-shadow:0 0 0 2px rgba(0,102,255,.12)`。`.pg-jump-input` 属输入类控件，须同时声明 `.pg-jump-input:focus-visible{outline:none}` 并纳入描边规则的排除列表（见 §5.13）
 - **默认值**：`value="1"`，输入框始终不为空；跳页成功后重置为 `1`（不清空）
 
 **统计文字 `.pg-stats`**：`color:#9DA2AC;white-space:nowrap`
@@ -459,6 +499,64 @@
 
 - 空状态：图标 + 说明文案 +（可选）操作引导；
 - 加载态：骨架屏或 loading 指示。
+
+### 5.13 焦点态（Focus）—— 单一指示铁律
+
+> **每个可聚焦元素在同一时刻只能出现一套焦点指示，严禁叠加。** 违反本条的典型症状是「控件出现两个蓝色描边」。
+
+**两套焦点指示（互斥，二选一）**：
+
+| 类型 | 适用元素 | 声明 |
+|---|---|---|
+| A. 柔光环 | 输入类控件：`.control`（`input` / `select`）、`.pg-jump-input`、日期范围等自带描边的组合控件 | `:focus { border-color:#0066FF; box-shadow:0 0 0 2px rgba(0,102,255,.12); }`（见 §5.4） |
+| B. 实心描边 | 非输入类可聚焦元素：`button`、`a`、`[tabindex]`、Tab、分页页码、表格内可点文本、日期格 `day` 等 | `:focus-visible { outline:2px solid #0066FF; outline-offset:2px; }`（`:focus-within` 容器同理） |
+
+**强制写法（模块级）**：
+
+```css
+/* 1) 输入类控件关闭 :focus-visible 描边，只保留柔光环 */
+.xx-module .control:focus,
+.xx-module .pg-jump-input:focus { border-color:#0066FF; box-shadow:0 0 0 2px rgba(0,102,255,.12); }
+.xx-module .control:focus-visible,
+.xx-module .pg-jump-input:focus-visible { outline:none; outline-offset:0; }
+
+/* 2) 描边规则必须显式排除输入类控件，禁止无差别扫射 input / select */
+.xx-module :is(button,input,select):not(.control):not(.pg-jump-input):focus-visible {
+  outline:2px solid #0066FF; outline-offset:2px;
+}
+```
+
+**禁止写法**：任何会被 `input` / `select` 命中的裸描边规则，以下均为反例：
+
+```css
+/* ✗ 会让 .control 同时出现光环 + 描边 → 两个蓝色描边 */
+.xx-module :is(button,input,select):focus-visible { outline:2px solid #0066FF; outline-offset:2px; }
+/* ✗ 全局扫射，跨模块且无法排除 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible { outline:2px solid #0066FF; }
+```
+
+**约束说明**：
+
+- `:focus-visible` 对**文本输入框恒定命中**（即使鼠标点击），因此「`.control:focus` 光环」+「`input:focus-visible` 描边」必然同时生效——这是双描边缺陷的根因，不是偶发渲染问题。
+- 关闭 `.control` 的描边**不降低可访问性**：A 类光环本身即满足焦点可见性要求（描边变色 `#DFE1E5 → #0066FF` + 2px 柔光环）。
+- 两套指示的**视觉语义必须保持区分**：A 类用于「我正在这个输入框里打字」，B 类用于「键盘焦点停在这个按钮/链接上」。不得用同一元素混用。
+- 描边规则必须**带模块作用域前缀**（`.xx-module`），禁止裸元素选择器写法：模块样式由 App Shell 注入 `<head>`，无前缀规则会越出模块边界。
+- 模块内新增自定义可聚焦控件时，须先判断它属于 A 类还是 B 类，再决定是否纳入排除列表（如 `.pg-jump-input` 属于 A 类，必须一并排除）。
+- **A 类控件基类必须声明 `outline:none`（容易被忽略的前提）**：浏览器 UA 样式表会对 `:focus-visible` 施加默认焦点环（Chrome 为 `outline:auto`）。作者样式优先于 UA 样式，因此 `` .xx-module .control{ … outline:none } `` 才是「只靠 `:not(.control)` 排除即可」真正成立的前提。**一旦基类重置被删掉，`.control` 会以「柔光环 + UA 默认环」的形式重新双描边，而描边规则文本上看不出任何问题。** 故两者必须配套：由 `.workbuddy/smoke-test-*.js` 的「`.control` 基类已 `outline:none`」断言把该前提钉死。
+- **检索工具**：`python3 scripts/lint-focus-ring.py`（`--strict` 忽略历史豁免，用于交付前把关；`--list` 列全部 `:focus` 规则；`--why` 打印判定分档）。
+  - 判定分三档：`hit`（必定重叠，退出码 1）／`maybe`（被非焦点环类祖先限定，静态不可证否，列为「待复核」不阻断）／`none`（合格）。
+  - `KNOWN_PENDING`：已知但本轮未修的历史缺陷，打印为待办、不影响退出码；**修复后必须从集合中删除**。
+  - `JUSTIFIED`：经人工复核确认无害的 `maybe`，须写明理由（如 `billing-invoice.js` 的具名单选组内原生 radio）。
+
+**历史缺陷修复记录**：
+
+| 日期 | 模块 | 问题 | 状态 |
+|---|---|---|---|
+| 2026-10-10 | 日志管理 / 代理异常日志 | `.pel-module :is(button,input,select):focus-visible` 未排除 `.control`，筛选区文本框/下拉同时出现光环与描边 | 已修复 |
+| 2026-10-10 | 返佣管理、更换代理、套餐订单 | 同源缺陷，已按本规范显式排除 `.control` | 已修复 |
+| 2026-10-10 | 环境管理 | `.control:focus-visible` 出现在描边分组中，与 `.control:focus` 光环叠加 | ⚠️ 待修复（`KNOWN_PENDING`） |
+| 2026-10-10 | 成员列表 | 裸 `input:focus-visible` / `select:focus-visible` 扫射，命中 `.control` | ⚠️ 待修复（`KNOWN_PENDING`） |
+| 2026-10-10 | 用户统计 | 裸 `input:focus-visible` / `select:focus-visible` 扫射，命中 `.control` | ⚠️ 待修复（`KNOWN_PENDING`） |
 
 ---
 

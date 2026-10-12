@@ -1,11 +1,11 @@
 (function () {
   'use strict';
 
-  const MODULE_VERSION = '20260928-proxy-bidirectional-lookup';
+  const MODULE_VERSION = '20261010-overseas-docsync';
   const APP_ENTRY = 'index.html';
   const RESOURCE_ROOT = 'Prototype/';
-  const MODULE_FILES = {"proxy-replacement": "Prototype/modules/proxy-replacement.js", "home": "Prototype/modules/home.js", "user-list": "Prototype/modules/user-list.js", "ops-user-list": "Prototype/modules/ops-user-list.js", "user-statistics": "Prototype/modules/user-statistics.js", "team-list": "Prototype/modules/team-list.js", "enterprise-list": "Prototype/modules/enterprise-list.js", "member-list": "Prototype/modules/member-list.js", "order-list": "Prototype/modules/order-list.js", "package-order": "Prototype/modules/package-order.js", "user-withdrawal": "Prototype/modules/user-withdrawal.js", "invoice-management": "Prototype/modules/billing-invoice.js", "environment-management": "Prototype/modules/environment-management.js", "proxy-list": "Prototype/modules/proxy-static.js", "tracking-overview": "Prototype/modules/tracking-overview.js", "tracking-events": "Prototype/modules/tracking-events.js", "tracking-metrics": "Prototype/modules/tracking-metrics.js", "tracking-debug": "Prototype/modules/tracking-debug.js", "tracking-quality": "Prototype/modules/tracking-quality.js", "tracking-detail": "Prototype/modules/tracking-detail.js", "tracking-analysis": "Prototype/modules/tracking-analysis.js", "tracking-dashboards": "Prototype/modules/tracking-dashboards.js", "tracking-insights": "Prototype/modules/tracking-insights.js"};
-  const PAGE_NAMES = {"proxy-replacement": "proxy-replacement", "home": "home", "user-list": "user-list", "ops-user-list": "ops-user-list", "user-statistics": "user-statistics", "team-list": "team-list", "enterprise-list": "enterprise-list", "member-list": "member-list", "order-list": "order-list", "package-order": "package-order", "user-withdrawal": "user-withdrawal", "invoice-management": "billing-invoice", "environment-management": "environment-management", "proxy-list": "proxy-static", "tracking-overview": "tracking-overview", "tracking-events": "tracking-events", "tracking-metrics": "tracking-metrics", "tracking-debug": "tracking-debug", "tracking-quality": "tracking-quality", "tracking-detail": "tracking-detail", "tracking-analysis": "tracking-analysis", "tracking-dashboards": "tracking-dashboards", "tracking-insights": "tracking-insights"};
+  const MODULE_FILES = {"proxy-replacement": "Prototype/modules/proxy-replacement.js", "home": "Prototype/modules/home.js", "user-list": "Prototype/modules/user-list.js", "ops-user-list": "Prototype/modules/ops-user-list.js", "user-statistics": "Prototype/modules/user-statistics.js", "team-list": "Prototype/modules/team-list.js", "enterprise-list": "Prototype/modules/enterprise-list.js", "member-list": "Prototype/modules/member-list.js", "order-list": "Prototype/modules/order-list.js", "package-order": "Prototype/modules/package-order.js", "user-withdrawal": "Prototype/modules/user-withdrawal.js", "invoice-management": "Prototype/modules/billing-invoice.js", "environment-management": "Prototype/modules/environment-management.js", "proxy-list": "Prototype/modules/proxy-static.js", "tracking-overview": "Prototype/modules/tracking-overview.js", "tracking-events": "Prototype/modules/tracking-events.js", "tracking-metrics": "Prototype/modules/tracking-metrics.js", "tracking-debug": "Prototype/modules/tracking-debug.js", "tracking-quality": "Prototype/modules/tracking-quality.js", "tracking-detail": "Prototype/modules/tracking-detail.js", "tracking-analysis": "Prototype/modules/tracking-analysis.js", "tracking-dashboards": "Prototype/modules/tracking-dashboards.js", "tracking-insights": "Prototype/modules/tracking-insights.js", "rebate-management": "Prototype/modules/rebate-management.js", "proxy-exception-log": "Prototype/modules/proxy-exception-log.js", "overseas-nav": "Prototype/modules/overseas-nav.js"};
+  const PAGE_NAMES = {"proxy-replacement": "proxy-replacement", "home": "home", "user-list": "user-list", "ops-user-list": "ops-user-list", "user-statistics": "user-statistics", "team-list": "team-list", "enterprise-list": "enterprise-list", "member-list": "member-list", "order-list": "order-list", "package-order": "package-order", "user-withdrawal": "user-withdrawal", "invoice-management": "billing-invoice", "environment-management": "environment-management", "proxy-list": "proxy-static", "tracking-overview": "tracking-overview", "tracking-events": "tracking-events", "tracking-metrics": "tracking-metrics", "tracking-debug": "tracking-debug", "tracking-quality": "tracking-quality", "tracking-detail": "tracking-detail", "tracking-analysis": "tracking-analysis", "tracking-dashboards": "tracking-dashboards", "tracking-insights": "tracking-insights", "rebate-management": "rebate-management", "proxy-exception-log": "proxy-exception-log", "overseas-nav": "overseas-nav"};
   const PAGE_IDS = Object.fromEntries(Object.entries(PAGE_NAMES).map(([id,name]) => [name,id]));
   const SIDEBAR_STATE_KEY = 'yundeng-app-shell-sidebar-compact';
   const MENU_STATE_KEY = 'yundeng-app-shell-menu-state';
@@ -63,7 +63,8 @@
       icon: 'gauge',
       children: [
         { id: 'ops-user-list', label: '运营用户列表', icon: 'users-round', module: 'ops-user-list', description: '面向运营的全字段用户运营视图与字段解释' },
-        { id: 'proxy-replacement', label: '更换代理', icon: 'replace', module: 'proxy-replacement', description: '为用户更换已购代理并同步环境与指纹' }
+        { id: 'proxy-replacement', label: '更换代理', icon: 'replace', module: 'proxy-replacement', description: '为用户更换已购代理并同步环境与指纹' },
+        { id: 'rebate-management', label: '返佣管理', icon: 'badge-percent', module: 'rebate-management', description: '查看用户返佣汇总、返佣明细与返佣规则配置' }
       ]
     },
     {
@@ -89,6 +90,21 @@
         { id: 'tracking-dashboards', label: '资产沉淀', icon: 'panels-top-left', module: 'tracking-dashboards', description: '沉淀可复用看板和分析资产' },
         { id: 'tracking-insights', label: '决策复盘', icon: 'lightbulb', module: 'tracking-insights', description: '记录洞察、行动和迭代效果' }
       ]
+    },
+    {
+      id: 'section-log',
+      label: '日志管理',
+      icon: 'scroll-text',
+      children: [
+        { id: 'proxy-exception-log', label: '代理异常日志', icon: 'triangle-alert', module: 'proxy-exception-log', description: '查看客户端上报的代理异常日志与终端环境信息' }
+      ]
+    },
+    {
+      id: 'overseas-nav',
+      label: '出海吧',
+      icon: 'rocket',
+      module: 'overseas-nav',
+      description: '维护出海工具导航站的网站与网站类型'
     }
   ];
 
@@ -117,7 +133,10 @@
     '明细排查.html': 'tracking-detail',
     '数据分析.html': 'tracking-analysis',
     '资产沉淀.html': 'tracking-dashboards',
-    '决策复盘.html': 'tracking-insights'
+    '决策复盘.html': 'tracking-insights',
+    '返佣管理.html': 'rebate-management',
+    '代理异常日志.html': 'proxy-exception-log',
+    '出海吧.html': 'overseas-nav'
   };
 
   const notices = [

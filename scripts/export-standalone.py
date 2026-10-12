@@ -59,6 +59,23 @@ MODULE_REGISTRY = {
         "module_file": "Prototype/modules/billing-invoice.js",
         "output": "exports/发票管理-独立版.html",
     },
+    "proxy-exception-log": {
+        "title": "代理异常日志",
+        "module_file": "Prototype/modules/proxy-exception-log.js",
+        "output": "exports/代理异常日志-独立版.html",
+    },
+    "rebate-management": {
+        "title": "返佣管理",
+        "module_file": "Prototype/modules/rebate-management.js",
+        "output": "exports/返佣管理-独立版.html",
+    },
+    # 注意：本模块的产物是「后台管理界面」的单文件快照（exports/出海吧-独立版.html），
+    # 与 exports/出海吧-独立页面.html（对外发布的导航站页面，手写、非本脚本产物）是两个不同文件。
+    "overseas-nav": {
+        "title": "出海吧",
+        "module_file": "Prototype/modules/overseas-nav.js",
+        "output": "exports/出海吧-独立版.html",
+    },
 }
 
 

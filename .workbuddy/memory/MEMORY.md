@@ -2,50 +2,54 @@
 
 ## 工程约定
 - 入口统一 `index.html?page=<英文模块名>`；框架层 = `Prototype/app-shell.js` + `Prototype/系统框架.css`；业务 = `Prototype/modules/*.js`（只建内容区，无 iframe、无本地 JS/CSS 拆分）。
-- **缓存破坏（强制）**：任何 `Prototype/modules/*.js` 或 `Prototype/系统框架.css` 改动后，必须同步 bump 两处 —— `Prototype/app-shell.js` 的 `MODULE_VERSION` 与 `index.html` 里 `系统框架.css?v=` / `app-shell.js?v=`。
-- **编辑 JSON-string 型模块**（如 `billing-invoice.js`、`user-list.js`）：`scripts[]`/`html` 是 JSON 字符串。必须用「剥缩进+尾逗号 → `json.loads` → 改 → `json.dumps(ensure_ascii=False)` → 还原缩进/逗号」的往返流程，禁止手工向 JSON 字符串内插代码（含未转义双引号会整体损坏模块）。
-- 补丁需带断言（命中次数校验），出现 FAIL 必须追查，禁止静默 no-op 交付。
-- **⚠️ 原型改动必须做运行时冒烟验证（V1.11 血泪教训）**：`node --check`（只验语法）+ grep 断言（只验字符串命中）+ 纯函数逻辑测试（不跑 UI）**三者都抓不到「点击无反应」这类缺陷**。冒烟脚本 `.workbuddy/smoke-test.js`（jsdom），真实执行 `init(root)` 并触发模块内**每一个事件处理器**。跑法：`NODE_PATH=/Users/zhangbin/.workbuddy/binaries/node/workspace/node_modules /Users/zhangbin/.workbuddy/binaries/node/versions/22.22.2-3/bin/node .workbuddy/smoke-test.js`（jsdom 装在 `/Users/zhangbin/.workbuddy/binaries/node/workspace`）。**改完模块务必跑一遍再交付。**
-- **给状态变量赋值前，必须先确认 `let` 声明已存在**：模块以**严格模式**运行，未声明变量赋值会抛 `ReferenceError`（不是静默创建全局）。V1.7 加 `ipOwners` / `linkMismatchKey` 时只加了赋值处、漏了声明行，导致 `openReplacement` 首行即抛错、**「更换代理」按钮完全打不开弹窗**，直到 V1.11 才发现。新增状态一律写进 `let modalKind='',returnFocus=null,busy=false,lookupTimer,lookupVersion=0,selectedUser=null,selectedAsset=null,ipOwners=[],linkMismatchKey='';` 这一行。**断言式补丁只校验命中次数，不校验语义完整性** —— 所以运行时验证不可省。
-- **本机工具坑**：BSD grep 的 `\|` 多模式交替会**静默失效**（返回 0 命中而不报错），核验必须用 `grep -F` 逐词或 `grep -E`；Read 工具对 >2000 字符的超长行会截断，此时改用 Python 按行号改（带断言）。
-- **按钮标准（跨模块，模块内自建 `.btn`）**：`height:32px;padding:0 14px;gap:6px;font-size:13px;font-weight:500;white-space:nowrap;transition:background .15s,border-color .15s,color .15s`，圆角 4px；`-primary` `#0066FF` → hover `#0052CC` → active `#0047B3`（均带 `border-color`）；`-default` 白底 + `#DFE1E5` 描边，hover `#E6F0FF` 底 + primary 描边与字色；`:disabled` 统一 `#F7F8FA` 底 / `#DFE1E5` 描边 / `#9DA2AC` 字 + `cursor:not-allowed`（不要用 `opacity` 淡化）。筛选区按钮为**纯文字、不带装饰图标**，放在 `.filter-actions`（gap 12px、高 32px、整组不拆分）。
-- **判断模块是否合规前先看 CSS 覆盖顺序**：模块样式串里常有前段旧规则 + 后段覆盖块（如 `filter-flow` 前 480px/auto-fit、后 388px/auto-fill；`filter-label` 前 112px、后 88px），按前段判会误判。
-- 独立版导出：`scripts/export-standalone.py <模块名> --output exports/<名>-独立版.html`（先例 `exports/发票管理-独立版.html`）。
-- **模块内新增/改动 DOM 控件的 id 约束（V1.10 踩坑总结）**：① `$ = id => root.querySelector('#pr-'+id)` 取**文档顺序第一个**匹配，筛选区控件**绝不能**与弹窗 `field()` / `selectField()` 生成的名字撞车（弹窗字段名 = `pr-<字段id>`，已有 `pr-account` / `pr-source-ip` / `pr-channel` / `pr-change-reason` / `pr-remark` 及其 `-error/-count/-help`），否则弹窗打开时读值会拿到筛选区的 hidden input（本轮 `pr-change-reason` 撞车会导致提交永久失败）；② 筛选区控件的 `name` **必须等于** `id` 去掉 `pr-` 前缀（`getDraft` 用 `new FormData`、`restoreView` 用 `$(key)` 按 name 反查 id），否则草稿恢复静默失效；③ 改 id 必须同时改三处 —— HTML 的 `id` 属性、JS 的 `$()` 引用、点击穿透白名单里的 `#id`；④ 用脚本兜底：提取静态 `id="pr-xxx"` 做去重检查 + 提取全部 `$('xxx')` 与静态 id 比对（弹窗动态字段放白名单），本轮正是它抓出了漏改的 `pr-reason-filter-trigger`。
+- **缓存破坏（强制）**：模块/CSS 改动后 bump 两处 —— `app-shell.js` 的 `MODULE_VERSION` + `index.html` 的 `系统框架.css?v=` / `app-shell.js?v=`。动版本前先 grep 实际值（多会话并行会互相覆盖）。
+- **JSON-string 型模块**（`billing-invoice.js`、`user-list.js` 等）必须用「剥缩进+尾逗号 → json.loads → 改 → json.dumps(ensure_ascii=False) → 还原」往返流程，禁止手工内插代码。补丁需带断言，FAIL 必须追查。
+- **⚠️ 必须运行时冒烟验证**：`node --check`/grep/纯函数测试都抓不到「点击无反应」。jsdom 脚本真实执行 `init(root)` 并触发每个事件处理器。跑法：`NODE_PATH=/Users/zhangbin/.workbuddy/binaries/node/workspace/node_modules /Users/zhangbin/.workbuddy/binaries/node/versions/22.22.2-6/bin/node .workbuddy/smoke-test.js`（jsdom 在 workspace）。
+- **严格模式**：状态变量必须先 `let` 声明再赋值（V1.7/1.11 血泪教训，漏声明 → ReferenceError → 按钮打不开）。
+- **id 约束**：`$()` 取文档第一个匹配，筛选区与弹窗字段 id 绝不能撞车；改 id 三处同步（HTML `id` / `$()` 引用 / 点击白名单）；用脚本做静态 id 去重 + 引用比对兜底。
+- **按钮标准**：32px 高、圆角 4px；primary `#0066FF`→hover `#0052CC`→active `#0047B3`；disabled 灰底 `#9DA2AC` 字、不用 opacity。筛选区按钮纯文字放 `.filter-actions`。
+- **工具坑**：BSD grep 的 `\|` 静默失效（用 `grep -E`）；Read 对 >2000 字符行截断（改用 Python 按行号改）；冒烟脚本里 jsdom 的 `new Event('keydown',{key})` **不携带 key 属性**，键盘用例必须用 `new window.KeyboardEvent(...)`，否则 Esc/方向键类断言会「假通过或假失败」。
+- **⚠️ 绑定期的引用快照陷阱（2026-10-12 拖拽不生效根因）**：模块内状态数组（`sites`/`types` 等）在 init 加载、删除等路径会被**重新赋值**；任何在绑定时固定数组引用的监听器（如拖拽排序）都会改到旧数组上。统一写法：绑定传取值函数 `() => sites`，并在删除时用就地 `splice` 保持引用稳定。凡「操作后不生效」类缺陷，先查引用是否陈旧。
+- **⚠️ CSS 规则「写了 ≠ 生效」（2026-10-12 文本域高度不生效根因）**：三条独立死因——
+  1. **选择器类名写错**：元素是 `class="control"`，规则却写 `textarea.on-control` → 整条规则零匹配（连 `min-height` 都不生效）。
+  2. **类名根本没定义**：独立页写 `class="mono"`，但 Tailwind 只生成 `font-mono`，页面里也没有 `.mono{...}` 规则 → 该 class 是**死类名**，样式静默回落到继承值（2026-10-12 独立页 chip 数量数字未走等宽字体即此因）。凡是自己命的类名（`.mono`/`.on-xxx`/`.xx-xxx`）都必须能在同文件里找到规则定义；用 `getComputedStyle` 真机确认，别只看 HTML。
+  3. **特异性被基类压过**：基类 `.on-module .control{height:32px;padding:0 8px}`（0,2,0）会盖掉无前缀的 `textarea.on-control{...}`（0,1,1）。
+  正确写法：**作用域前缀 + 元素.真实类**，如 `.on-module .on-modal textarea.control{...}`（0,3,1）。模块内要覆盖 `.control` 的尺寸/间距/行高时一律照此办理。
+- **⚠️ 必须跑真引擎计算样式守卫（强制）**：jsdom **不做 CSS 级联**，所以「断言 CSS 文本含 `height:60px`」是**假通过**。R 级改动 CSS 尺寸/级联类规则后，跑
+  `NODE_PATH=... node .workbuddy/verify-computed-style.js .workbuddy/specs/<name>.json`
+  它把模块真实 CSS+HTML 塞进 headless Chrome（`--headless=new --dump-dom`），断言 `getComputedStyle` 与 `offsetHeight`。spec 支持 `unhide`（去弹窗 hidden）、`checks[].extraClass`（补运行时状态类）。新增视觉断言时同步加 spec。
+- **CSS 假通过的第二道补丁**：jsdom 冒烟里用 `element.matches(选择器)` 校验「规则选择器确实命中元素」+「含 `.on-module` 前缀」，可低成本抓出类名写错/缺作用域（本次两处守卫均已用变异测试证明有效）。
+- **⚠️ hover / 交互态必须用 CDP 真机验证（强制）**：`:hover` 无法用 JS 合成，jsdom 更无级联与布局。`.workbuddy/verify-standalone-footer.js` 是可复用的 CDP 骨架：`WebSocket`（Node 22 内建）直连 Chrome、`Input.dispatchMouseEvent` 派发真实鼠标移动、`Emulation.setFocusEmulationEnabled` + **`DOM.focus`** 验证 `:focus-within`、再用 `getComputedStyle`/`getBoundingClientRect` 断言。**坑**：headless 下 `element.focus()` 不建立真实焦点（activeElement 变了但 `:focus` 不匹配）→ 会造成「假失败」，必须用 `DOM.focus`。新增交互态（hover/focus/drag）一律照此补验证 + 变异测试。
+- **可访问性守卫**：页脚/正文类小字不要用 `ink.muted #9DA2AC`（白底仅 2.56:1，不达 WCAG AA）；改用 `ink.sub #6E7685`（4.57:1）。CDP 脚本内置对比度计算断言。
+- **独立版导出**：`scripts/export-standalone.py <MODULE_REGISTRY键>`（发票=**invoice-management**，非文件名）；**导出件 mtime 必须晚于模块源**（改完模块不重导 = 导出件内联的是旧代码，2026-10-12 出海吧就踩过：模块 12:03 改完、导出件停在 12:01，里面的路径引用还是旧的）；重导前备份。**它只导出「后台模块抽取版」**（把模块 HTML/CSS 抽出来并内联 Tailwind/lucide），注册表当前 **5 项**：proxy-replacement / invoice-management / proxy-exception-log / rebate-management / **overseas-nav**。**⚠️ 出海吧有两个 exports 产物、极易混**：① `exports/出海吧-独立页面.html` —— 独立设计的**导航站单文件**，手写维护、不进注册表、用公网 CDN（不内联，故离线不可用），是**对外**页面；② `exports/出海吧-独立版.html` —— 本脚本产物（键 `overseas-nav`），**后台模块的单文件快照**（保留顶栏/侧栏），供**分享评审**。一句话：独立页面给用户看，独立版给同事看后台界面。
+- **兼容重定向页**：每个后台模块都要有 `Prototype/<中文名>.html`（模板见 `Prototype/返佣管理.html`：`new URL('../index.html',location.href)` → 透传 `location.search` → `searchParams.set('page',路由)` → `location.replace`，并带 `noscript` 兜底链接）。`app-shell.js` 的 `legacyRoutes` 里已登记的名字**必须**有对应文件，否则旧链接 404（2026-10-12 出海吧即缺此文件才被发现）。**守卫：`python3 .workbuddy/verify-legacy-routes.py`**（28 项全查：文件存在性 / page 是否指向本模块或官方别名 `PAGE_NAMES` / noscript 兜底 / 无外部依赖）；已用 4 组变异测试证明灵敏度。历史遗留兼容页有两种代数：老式带 `aliases` 哈希映射（约 20 个）、新式单行模板（更换代理/返佣管理/代理异常日志/出海吧）；`PAGE_NAMES` 是**单行**对象字面量，解析要 `\{(.*?)\};` 不能用 `\n  \};`。
 
-## 更换代理页面约定（2026-09-23 定稿）
-- **设计规则**：数据列表的标题栏与数据表之间，只有当两者中间存在 KPI 指标卡、批量操作工具条等辅助内容时才需要分割线；**标题栏直接接数据表时不需要分割线**（本次已据此移除「更换记录」标题栏下分割线）。
-- **「更换结果 / 同步状态」双字段口径**：`result`（资源替换结果）= success 更换成功 / failed 更换失败；`syncStatus`（环境与指纹同步状态）= syncing 同步中 / success 同步成功 / failed 同步失败 / na 不适用（列表显示 `- -`）。合法组合仅 4 种，`result=failed ⟺ syncStatus=na`。**更换结果 ≠ 同步成功**：syncing/sync-failed 都属于 result=success（新 IP 已生效）。
-- 列表列序（**V1.9 起 15 列**）：用户ID / 用户手机号邮箱 / 原代理IP(+单价) / 新代理IP(+单价) / **渠道商** / 代理类型 / 最近登录时间 / 代理到期时间 / **更换原因** / 更换结果 / 同步状态 / 备注 / 操作人 / 操作时间 / 操作。主表 `min-width:2280px`，空态 `colspan="15"`。单价为 IP 下方子行（`192.0.2.31` → 换行 `中国-浙江-杭州 ￥50.25/月`）。
-- **渠道商列（V1.9）= 原 / 新两行**：`原：{oldChannel}` / `新：{channel}`，前缀用 `.pr-sub` 灰、值用正文色。**记录存双快照** `oldChannel`（原代理所属渠道商）+ `channel`（本次所选 = 新渠道商）；**新行跟 `r.newIp` 判断**，更换失败无新代理时显示 `- -`（与「新代理IP」「同步状态」空值口径一致）。种子 `oldChannel = channels[(i+2)%5].name`、`channel` 保持 `channels[i%5]` 不动（+2 保证历史记录原/新全部错开、且旧会话 `channel` 数据不失效）。⚠️ **历史记录的 `oldIp`（198.51.100.80~91）不在资产表内**，无法靠 IP 反查资产取渠道商，必须用记录级快照。
-- **改字段顺序必须表头 + 行渲染两处同步改**（`<th>` 序列与 split('<td') 的序列），漏一处就整行错位。核验小坑：`grep -oE "<th>[^<]+</th>"` 只出 14 个（`操作时间` 是 `<th id="pr-sort-th">` 不匹配），不是缺列。
-- 已移除：「绑定环境」列、「代理状态」列、「代理到期时间」下剩余天数、「绑定环境详情」弹窗（入口随列移除）。`envs` 数据模型、`environments()` 种子与 `queueSync`/`retrySync` 环境遍历**保留**（同步功能仍在）。
-- **更换弹窗代理信息卡片（V1.7 起 7 项）**：代理IP / 所属地区 / 代理类型 / **渠道商** / **单价** / 最近登录时间 / 到期时间；**不展示代理状态**，状态拦截原因由 `#pr-source-ip-error` 的字段级文案（F-05 / F-06）承担。资产状态在列表与弹窗中均不成列/成项，仅用于资格判定。
-- **弹窗双向联动（V1.7）**：可「先账号后原代理IP」也可反向。先填 IP 时按 IP 反查关联用户下拉（`ownersFor(ip)` / `renderOwners`），单选回填账号；两者无关联 → **不可提交 + toast**（`linkMismatchKey` 去重防重复弹）。判定集中在一个函数 **`evaluateLink()`**，一次算出卡片内容 / 关联用户下拉 / 字段错误 / 提交按钮可用性，禁止散落多处各判一套。
-- **弹窗必填项（V1.7）**：渠道商（下拉单选，**= 货源渠道，仅记录来源**，选项显示「名称 + ￥区间/月」**不显示 IP**，回显时带渠道商名称）；更换原因（下拉单选，13 值：下架/断网/卡顿/跳地区/黑白名单/浏览器问题/业务不支持/IP质量与实际不符/复卖/客户自身问题/其他/买错地区/外网（无法认证））；备注（多行，选填，限 **500 字**，带 `0/500` 计数器）。
-- **单价口径（V1.7）**：`priceText(v)` 空值显示 `- -`，否则 `￥xx.xx/月`。**新代理单价 = 自动分配后那台新代理 IP 的单价**（非原 IP、非渠道商报价）。
-- **状态列呈现是本模块的特例（V1.8）**：更换结果 / 同步状态改为**纯文字 + 语义色**——`.pr-badge` 已去掉 `border`/`border-radius`/`padding`（padding 必须一起去，否则文字左右留空隙与相邻列对不齐），`.pr-success`/`.pr-warning`/`.pr-info`/`.pr-danger` 已去掉 `background`，只剩 `color`。⚠️ **其余 18 个模块仍是带底色描边的徽标**，跨模块观感不一致；若要全站统一需另开一轮批量改造。
-- **浮层入口有两套（V1.8）**：① 更换结果 / 同步状态 → 状态文本右侧**问号**按钮（`.pr-help-dot`），hover / focus 展开 `.pr-reason-pop`；② 备注 → **无问号**，备注文本本身带 `.pr-clamp pr-help-text`，鼠标移入或键盘聚焦即弹同一浮层。两者都由 `data-reason` / `data-reason-label` 驱动同一个 `openReason()`，与元素标签类型无关。**事件委托选择器必须写成 `'.pr-help-dot,.pr-help-text'`（共 5 处：pointerdown 白名单 1 + pointerover/out/focusin/out 4），漏改则备注悬浮失效**。备注列不再写 `title` 属性（否则原生 tooltip 与自定义浮层同时弹出），并保留 `tabindex="0"` + `aria-describedby` 维持键盘可达。
-- **动版本号前必须先 grep `MODULE_VERSION` 实际值**（多会话并行改同一文件，上一轮记下的字符串可能已被覆盖，按旧值断言会 FAIL）。当前值：`20260927-channel-copy-align`。
-- **渠道商口径已定稿（2026-09-27 用户「其他说明」7 条最终确认）**：渠道商**不参与**新 IP 分配、仅记录来源（R-09 权威）；「新渠道商」= 本次所选渠道商（仅记录快照）。弹窗固定说明已修正为「自动分配其他可用 IP」（V1.11 消除了 V1.8 文案与 R-09 的矛盾）。用户 7 条权威口径已结构化落在 PRD §1.5。若日后要求渠道商参与库存限定，需同时改原型匹配代码 + R-09 + §3.2.3/§3.2.4。
-- 筛选区顺序（**V1.10 起 8 项**）：用户搜索 / 原代理IP / 新代理IP / **更换原因（多选下拉）** / 更换结果 / 同步状态 / 操作人 / 操作时间。多选与其他条件 AND、内部 OR，选择只改草稿、点「查询」才应用；触发器文案 0 项→「全部更换原因」、1 项→该项名、≥2 项→「已选 N 项」。
-- 交付物：`exports/更换代理-独立版.html`（单文件可分享，与 `Prototype/modules/proxy-replacement.js` 同步导出）。**导出前后必比 mtime**：模块 mtime 必须早于导出件，否则重导。
-- 多持有者演示数据：`198.51.100.21` 同属 `100001` + `100003`（演示反查下拉多选一）；`198.51.100.27` 只属 `100002`。
+## 焦点态单一指示铁律（design.md §5.13）
+- 输入类 `.control`/`.pg-jump-input` 用 A 类光环（`:focus`），其余 B 类描边（`:focus-visible`），二选一。模块必须写：`.xx-module .control:focus-visible{outline:none}` + `:is(button,input,select):not(.control):not(.pg-jump-input):focus-visible{outline:2px...}`。
+- **前提**：`.control` 基类必须含 `outline:none`（否则 UA 默认环叠加成双描边）。
+- 守卫：`python3 scripts/lint-focus-ring.py --strict`（交付把关）。KNOWN_PENDING 未修：environment-management / member-list / user-statistics。解析坑：先剥 CSS 注释；JSON-string 换行多重转义需 `re.sub(r"\\{1,3}n","\n")`。
 
-## 发票管理状态体系（2026-09-18 定稿）
-- **票据状态（6）**：有效 / 红冲中 / 部分红冲 / 已红冲 / 红冲失败 / 未生成。
-- **红冲状态（8，业务顺序）**：提交中 / 待处理 / 红冲中 / 部分红冲 / 已红冲 / 结果未知 / 红冲失败 / 已取消。
-  - 「待受票方确认」（`AWAITING_CONFIRMATION`）已于 2026-09-18 按原型**全量移除**（含权限点、`confirmation-query` 接口、幂等键、通知与验收条目）；如需恢复见 PRD 第 23 章 O-09。
-- **更正申请状态（独立体系，勿混用）**：待审核 / 审核通过 / 红冲处理中 / 红冲失败 / 已完成 / 已驳回 / 已撤回 / 已取消。注意「红冲处理中」是更正域专有词，不随票据/红冲状态改名。
-- 作废词：红冲处理中、已全额红冲、已部分红冲、部分红冲成功、全部任务状态（票据/红冲域内不再使用）。
-  - ⚠️ 两份文档中的「停用词声明」会故意保留这些词，grep 命中属正常，不是遗漏。
-- 业务规则：同一原票不得同时存在两条在途红冲任务。
-- 关联文档：`PRD/财务管理/发票管理PRD.md`（V2.2）、`PRD/财务管理/发票管理产品设计方案.md`（v1.5）以本章口径为准。
+## Mock 数据口径（2026-10-10 定稿）
+- Mock 源值一律**明文**（手机/邮箱/账号），仅代理凭证脱敏；**产品级脱敏**由各模块 PRD 规定、渲染层负责（成员列表/团队列表/环境管理/套餐订单/发票管理等 PRD 有要求）。判定「残留脱敏」必须查该模块 PRD「脱敏」词频，不能只看正则命中。守卫：`.workbuddy/verify-plaintext-mock.js`。claude.md 与 PRD 冲突时按「产品需求 vs Mock 规范」定性，两方同时满足。
 
-## 发票管理分期交付（2026-09-18 定稿）
-- **一期**：仅「申请管理 + 票据管理」（用户申请 → 财务审核 → 第三方开蓝票 → 交付）。**不做**红冲任务、更正申请、开票配置、灾备线下登记、组合支付、批量选择、KPI 指标卡。
-- **二期**：红冲任务（含更正申请）+ 开票配置。
-- 一期文档：`PRD/财务管理/发票管理（一期）PRD.md`（V1.0，开发基线）+ `PRD/财务管理/发票管理（一期）后台开发简要清单.md`（项目组通知用）。母文档 `发票管理PRD.md` 仍是业务规则唯一来源；一期只裁剪**范围与排期**，不重定义规则。
-- 一期 `document_status` 只产 `NONE`/`ACTIVE`（筛选项按原型保留 6 值以便二期零返工）；一期权限点 17 个（剔除 `invoice.red.*` / `invoice.correction.*` / `invoice.config.*` / `offline.*`，新增 `invoice.application.proxy.create`）。
-- **两处硬阻塞**：① 一期无配置页面，配置数据靠初始化脚本 + 变更工单（否则无法开票）；② 一期无红冲，已开票后退款只登记人工待办 + 告警，`effective_blue_amount` 不静默改写，需人工 SOP。
-- 原型与完整版 PRD 的 **9 项差异（D1–D9）** 已记录在一期 PRD 第 25.2 节，研发按该表实现。
+## 新增业务模块标准清单（2026-10-10 沉淀）
+1. 手写 JS 对象式模块（`styles[]`+`html`+`init(root)`，作用域 `.xx-module`，仿 rebate-management）。
+2. `app-shell.js` 四处注册：`MODULE_FILES` / `PAGE_NAMES` / `navigation` / `legacyRoutes`。
+3. 两处版本 bump（见工程约定）。
+4. 兼容重定向页 `Prototype/<中文名>.html`。
+5. `PRD/<域>/<中文名>PRD.md` + `PRD/系统框架PRD.md` 路由表补行。
+6. 需独立版时注册 `export-standalone.py` 并导出。
+7. `.workbuddy/smoke-test-<name>.js` 跑绿；含输入控件时跑 lint-focus-ring 确认不新增 hit。
+
+## 模块口径速查（详见各自 PRD）
+- **更换代理** proxy-replacement：列表 15 列；`result`/`syncStatus` 双字段（`failed ⟺ na`）；渠道商仅记录来源不参与分配（R-09，PRD §1.5 七条权威口径）；弹窗代理卡片 7 项；更换原因 13 值；备注 500 字。交付 `exports/更换代理-独立版.html`。
+- **发票管理** invoice-management（文件 billing-invoice.js）：票据 6 态 / 红冲 8 态 / 更正 8 态三体系勿混；一期只做申请+票据（两处硬阻塞、D1–D9 差异见一期 PRD 第 25.2 节）。
+- **代理异常日志** proxy-exception-log：13 列，标签「平/静」两维独立可并存；脱敏口径冲突未决（PRD O-07）。
+- **出海吧** overseas-nav（2026-10-10 新增）：一级菜单侧栏末尾（rocket 图标），下划线式双 Tab（网站管理/类型管理），筛选=搜索+网站类型+是否精选+查询/重置（草稿态提交），拖拽排序（筛选生效时禁用），列表精选列为**星标按钮**点击切换推荐、简介列 hover/聚焦弹完整简介气泡，图标上传（≤200KB dataURL）/网址自动匹配 favicon（favicon.im，降级首字母头像）；与独立页 `exports/出海吧-独立页面.html` 共享 localStorage **`yundeng_overseas_nav_v1`**（后台写、独立页 storage 事件联动；独立页无键时回退内置种子）。删除类型需先清空其下网站。**区块合并（2026-10-12，design.md §5.0 新规）**：无筛选条件的页签，其数据列表并入页签区块、整页单区块（类型管理=单区块；网站管理有筛选=两区块）；并入面板不得带 bg-white/rounded-lg/p-5（禁卡片套卡片）。**独立页（2026-10-12 补）**：平台名「出海吧」纯标题黑；`#content` 为纵向 flex，底部白色页脚（三列=品牌+定位语 / 中列产品云登指纹浏览器 / 右列联系方式三图标 hover·focus 展开邮箱地址与二维码占位槽；法务行 + 服务协议/隐私政策链接），二维码待业务方提供真实图片。**PRD 现为两份**：`PRD/出海吧PRD.md`（后台模块 + 数据契约权威；第三章已精简为耦合口径速览；开头有「〇 交付物对照」表区分 4 个同名前缀文件）、`PRD/出海吧独立页PRD.md`（**独立页唯一事实来源**，页面结构/交互/视觉/验收）；兼容入口 `Prototype/出海吧.html`；导出产物 `exports/出海吧-独立版.html`（后台单文件快照，供分享评审）。**守卫清单**：冒烟 `.workbuddy/smoke-test-overseas.js`（B2 段断言区块数）+ `.workbuddy/smoke-standalone-chuhai.js`；真机 `.workbuddy/verify-standalone-footer.js`（独立页页脚/hover）+ `.workbuddy/verify-standalone-export.js <导出件> overseas-nav`（导出快照 8 段 25 断言）+ `.workbuddy/verify-computed-style.js .workbuddy/specs/overseas-nav.json`（计算样式）。
+
+## 集成测试环境（jsdom 30）
+- 用 `resources:{interceptors:[...]}` 拦截 CDN（jsdom 30 已移除 `resources:'usable'`）；`beforeParse` 里 `defineProperty(window,'innerWidth',{value:1440})` + scrollBy/scrollTo/scrollIntoView no-op polyfill；先起 `python3 -m http.server 8788`（必须后台任务方式）。
+
+## 通用缺陷模式（静态检查抓不到，靠运行时断言兜）
+- `form.reset()` 不复位 hidden input：日期区间等隐藏域须显式清空（rebate-management 仍有同类隐患）。
+- 枚举标签映射漏配渲染字面量 `undefined`：`map` 前 `filter(t=>LABEL[t])`，断言覆盖标签文案白名单。

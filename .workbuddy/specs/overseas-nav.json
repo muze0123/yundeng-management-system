@@ -1,0 +1,51 @@
+{
+  "module": "overseas-nav",
+  "unhide": ["ov-site-overlay", "ov-panel-types"],
+  "checks": [
+    {
+      "selector": "#ov-f-intro",
+      "props": {
+        "height": "60px",
+        "minHeight": "60px",
+        "paddingTop": "6px",
+        "paddingBottom": "22px",
+        "lineHeight": "20px",
+        "boxSizing": "border-box"
+      },
+      "offsetHeight": 60
+    },
+    {
+      "selector": ".on-textarea-wrap",
+      "props": { "position": "relative" }
+    },
+    {
+      "selector": ".on-counter-below",
+      "props": { "position": "absolute", "right": "8px", "bottom": "6px" }
+    },
+    {
+      "selector": "#ov-f-type",
+      "props": { "color": "rgb(58, 63, 74)", "height": "30px" }
+    },
+    {
+      "selector": "#ov-f-type",
+      "extraClass": "is-placeholder",
+      "props": { "color": "rgb(157, 162, 172)" }
+    },
+    {
+      "_note": "「类型管理」列表并入页签区块（design.md §5.0）：面板自身不得是卡片，否则卡片套卡片出现双层留白与内框",
+      "selector": "#ov-panel-types",
+      "props": {
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "paddingTop": "0px",
+        "paddingLeft": "0px",
+        "borderTopWidth": "0px",
+        "borderTopLeftRadius": "0px"
+      }
+    },
+    {
+      "_note": "类型列表标题行下间距与网站列表一致（12px 标准值，不得再被 16px 内联覆盖）",
+      "selector": "#ov-panel-types .on-list-head",
+      "props": { "marginBottom": "12px" }
+    }
+  ]
+}

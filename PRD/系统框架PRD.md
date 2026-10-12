@@ -125,6 +125,9 @@
 | 数据埋点 / menuItem | tracking-analysis | 数据分析 | `Prototype/modules/tracking-analysis.js` | 直接进入数据分析 |
 | 数据埋点 / menuItem | tracking-dashboards | 资产沉淀 | `Prototype/modules/tracking-dashboards.js` | 进入资产沉淀 |
 | 数据埋点 / menuItem | tracking-insights | 决策复盘 | `Prototype/modules/tracking-insights.js` | 进入决策复盘 |
+| 日志管理 / menuGroup | — | 日志管理 | — | 可展开一级菜单，位于数据埋点之后 |
+| 日志管理 / subMenuItem | proxy-exception-log | 代理异常日志 | `Prototype/modules/proxy-exception-log.js` | 客户端上报的代理异常日志与终端环境信息 |
+| 出海吧 / menuItem | overseas-nav | 出海吧 | `Prototype/modules/overseas-nav.js` | 侧栏末尾（rocket 图标），维护出海工具导航站的网站与网站类型；数据经 localStorage 供独立导航页 `exports/出海吧-独立页面.html` 读取；兼容入口 `Prototype/出海吧.html` |
 
 > 约定：灰色分组标题不进入 Tab 顺序，不绑定 click/keydown，不显示 Chevron。`口径治理`显示 Chevron 并维护 expanded 状态；点击一级菜单行仅展开/收起，事件管理和指标管理负责路由跳转。直接型一级菜单点击即跳转。权限过滤后二级菜单为空时隐藏口径治理；数据埋点全部一级菜单为空时连同灰色标题一起隐藏。
 
@@ -178,3 +181,9 @@ AppShell
 ## 2026-09-28 更换代理归属调整
 
 “更换代理”由「用户管理」移入「运营中心」二级菜单（`运营用户列表` 之后），路由、模块文件、兼容入口与工作台卡片均不变；PRD 同步迁移至 `PRD/运营中心/更换代理PRD.md`。
+
+## 2026-10-10 出海吧接入
+
+新增一级菜单「出海吧」（`overseas-nav`，位于侧栏末尾，rocket 图标），模块 `Prototype/modules/overseas-nav.js`，兼容入口 `Prototype/出海吧.html`（旧文件名 `location.replace` 重定向）。导航配置（`navigation`）、路由映射（`MODULE_FILES` / `PAGE_NAMES` / `legacyRoutes`）均已同步。
+
+该模块是出海工具导航站的数据维护端：数据经 localStorage `yundeng_overseas_nav_v1` 供独立导航页 `exports/出海吧-独立页面.html` 读取（该页为单文件自包含页面，不在云登框架内、不经 `export-standalone.py` 导出）。另有后台模块的单文件快照 `exports/出海吧-独立版.html`（`export-standalone.py` 产物，供分享评审）。PRD：`PRD/出海吧PRD.md`（后台模块 + 数据契约）+ `PRD/出海吧独立页PRD.md`（独立页）。

@@ -338,7 +338,7 @@ for(var i=0;i<10;i+=1){
   var paid=hasPkg[i]?'已付费':'未付费';
   var teamId=String(276913-i);
   var u={
-    id:hexId(i*37+7),account:accounts[i].slice(0,3)+'****'+accounts[i].slice(-4),usedAccount:i===3?'133****7745':'-',
+    id:hexId(i*37+7),account:accounts[i],usedAccount:i===3?'13377457745':'-',
     registered:'2026-09-14 '+times[i],regType:'手机号',paid:paid,
     accountStatus:'正常',isTest:'否',disabled:'否',payDisabled:'否',
     channelCat:catList[i],sourceChannel:srcList[i],keyword:kwList[i],sourcePage:pageList[i],
@@ -361,14 +361,14 @@ for(var i=0;i<10;i+=1){
     firstOrderProduct:hasPkg[i]?['套餐A·月付','套餐B·月付','套餐A·季付','套餐C·月付','套餐B·年付'][i%5]:'-',
     repurchase:[2,1,0,0,0,0,1,3,0,0][i],
     lastConsume:hasPkg[i]?'2026-09-14 '+times[i]:'-',
-    initTeamId:teamId,initTeamName:accounts[i].slice(0,3)+'****'+accounts[i].slice(-4)+'的团队',
-    curTeamId:teamId,curTeamName:accounts[i].slice(0,3)+'****'+accounts[i].slice(-4)+'的团队',
+    initTeamId:teamId,initTeamName:accounts[i]+'的团队',
+    curTeamId:teamId,curTeamName:accounts[i]+'的团队',
     teamCount:[1,1,1,1,1,1,2,3,1,1][i],
     multiTeam:i===6||i===7?'是':'否',
     invited:i%4===3?'是':'否',
     linkedAccounts:i===0||i===1?'微信':'-',
     firstStartTeamId:teamId,firstOrderTeamId:hasPkg[i]?teamId:'-',
-    linkedTeams:accounts[i].slice(0,3)+'****'+accounts[i].slice(-4)+'的团队'+(i===7?'、合作团队'+i:''),
+    linkedTeams:accounts[i]+'的团队'+(i===7?'、合作团队'+i:''),
     linkedTeamConsume:hasPkg[i]?['1897.00','998.00','299.00','0.00','0.00','0.00','996.00','3591.00','299.00','499.00'][i]:'0.00',
     firstPayTime:hasPkg[i]?'2026-09-14 '+times[i]:'-',
     firstPayMonth:hasPkg[i]?'2026-09':'-',

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>出海吧 · 出海工具导航</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script>
+  /* design.md §七 Tailwind 配置镜像（单一事实来源） */
+  tailwind.config = {
+    theme: { extend: {
+      colors: {
+        primary: { DEFAULT: '#0066FF', hover: '#0052CC', active: '#0047B3', bg: '#E6F0FF' },
+        ink: { title: '#1A1D24', body: '#3A3F4A', sub: '#6E7685', muted: '#9DA2AC' },
+        line: { DEFAULT: '#DFE1E5', light: '#E8EAED', lighter: '#F0F1F3' },
+        bg: { page: '#F7F8FA', card: '#FFFFFF', hover: '#F3F4F6' },
+        success: { DEFAULT: '#0FC060', bg: '#E7F9F0' },
+        warning: { DEFAULT: '#E7772D', bg: '#FDF2E9' },
+        danger: { DEFAULT: '#D9001B', bg: '#FFE8EB' },
+        info: { DEFAULT: '#0091D5', bg: '#E4F4FB' }
+      },
+      borderRadius: { DEFAULT: '4px', md: '6px', lg: '8px' },
+      fontFamily: {
+        sans: ['-apple-system','BlinkMacSystemFont','PingFang SC','Hiragino Sans GB','Microsoft YaHei','Helvetica Neue','Helvetica','Arial','sans-serif'],
+        mono: ['JetBrains Mono','monospace']
+      }
+    } }
+  };
+</script>
+<style>
+  /* 焦点态单一指示铁律（design.md §5.13）：B 类实心描边，输入类 A 类柔光环 */
+  input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid #0066FF; outline-offset: 2px; }
+  input:focus { outline: none; border-color: #0066FF; box-shadow: 0 0 0 2px rgba(0,102,255,.12); }
+
+  body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+  /* ---------- 左侧导航（参考 PartnerShare：粗图标 + 粗体文字，全高侧栏） ---------- */
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 0 12px; height: 40px; border-radius: 6px;
+              color: #1A1D24; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+              transition: background .15s, color .15s; }
+  .nav-item svg { width: 18px; height: 18px; stroke-width: 2.4; color: #1A1D24; flex: none; }
+  .nav-item:hover { background: #F3F4F6; }
+  .nav-item.is-active { background: #E6F0FF; color: #0066FF; }
+  .nav-item.is-active svg { color: #0066FF; }
+  .nav-count { margin-left: auto; font-size: 11px; color: #9DA2AC; font-weight: 400; }
+  .nav-item.is-active .nav-count { color: #0066FF; }
+  /* 侧栏类型兜底图标：中性浅灰块 + 深色首字（贴近参考图的单色粗图标观感） */
+  .nav-type-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+                   border-radius: 6px; background: #F0F1F3; color: #1A1D24; font-weight: 700; font-size: 11px; flex: none; }
+
+  /* 折叠态：隐藏文字与数量，仅图标 */
+  .sidebar-collapsed .nav-label, .sidebar-collapsed .nav-count { display: none; }
+  .sidebar-collapsed .nav-item { justify-content: center; padding: 0; width: 40px; margin: 0 auto; }
+
+  /* ---------- 分组标题 ---------- */
+  .group-title { display: flex; align-items: center; gap: 8px; font-size: 17px; font-weight: 600; color: #1A1D24; }
+  .group-sub { font-size: 12px; color: #9DA2AC; font-weight: 400; }
+
+  /* ---------- 精选 chips（design.md §5.1 状态 Tab） ---------- */
+  /* 数量数字用等宽字体（与后台模块 .font-mono 同口径：JetBrains Mono + 表格数字，
+     保证多位数不抖动）。⚠️ 不能只写 class="mono" 而不定义 —— Tailwind 生成的是 font-mono，
+     未定义的 .mono 是死类名，数字会静默回落到正文字体 */
+  .mono { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 12px; font-size: 13px;
+          background: #fff; color: #6E7685; border: 1px solid #DFE1E5; border-radius: 4px; cursor: pointer; transition: all .15s; }
+  .chip + .chip { margin-left: -1px; }
+  .chip:hover { color: #0066FF; border-color: #0066FF; position: relative; z-index: 1; }
+  .chip.is-active { border: 1px solid #0066FF; color: #0066FF; background: #E6F0FF; font-weight: 600; position: relative; z-index: 1; }
+
+  /* ---------- 网站卡片 ---------- */
+  /* 注意：hover 的 transform 会让卡片自身形成层叠上下文，若只在气泡上设 z-index，
+     气泡会被 DOM 顺序更靠后的同行卡片盖住（表现为「气泡被遮住」）。
+     因此层级必须抬升到卡片自身（hover → z-index:30），气泡才能越过相邻卡片。 */
+  .site-card { position: relative; z-index: 0; display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px;
+               background: #fff; border: 1px solid #DFE1E5; border-radius: 8px; cursor: pointer;
+               transition: box-shadow .15s, transform .15s, border-color .15s; min-width: 0; }
+  .site-card:hover, .site-card:focus-within { z-index: 30; }
+  .site-card:hover { border-color: #E8EAED; box-shadow: 0 2px 8px rgba(0,0,0,.06); transform: translateY(-1px); }
+  .site-name { font-size: 14px; font-weight: 600; color: #1A1D24; line-height: 20px; }
+  .site-intro { margin-top: 2px; font-size: 12px; color: #6E7685; line-height: 18px;
+                display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  /* hover 全显简介：卡内浮层展开全部文本，不裁切、不推动布局 */
+  .site-intro-full { position: absolute; left: 12px; right: 12px; top: calc(100% - 6px); z-index: 40;
+                     background: #fff; border: 1px solid #E8EAED; border-radius: 6px;
+                     box-shadow: 0 6px 24px rgba(0,0,0,.12); padding: 10px 12px;
+                     font-size: 12px; color: #3A3F4A; line-height: 18px;
+                     opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s; pointer-events: none; }
+  .site-card:hover .site-intro-full, .site-card:focus-within .site-intro-full { opacity: 1; visibility: visible; }
+  /* 卡片贴近内容区底部时，气泡向上展开，避免被内容区滚动容器裁切（由脚本置 is-flip） */
+  .site-card.is-flip .site-intro-full { top: auto; bottom: calc(100% - 6px); }
+  /* 精选角标（橙色斜角） */
+  .feat-ribbon { position: absolute; top: 0; right: 0; width: 34px; height: 34px; overflow: hidden; border-radius: 0 8px 0 0; pointer-events: none; }
+  .feat-ribbon::before { content: ''; position: absolute; top: 0; right: 0; border-style: solid; border-width: 0 34px 34px 0; border-color: transparent #E7772D transparent transparent; }
+  .feat-ribbon span { position: absolute; top: 4px; right: 2px; font-size: 10px; color: #fff; font-weight: 600; transform: rotate(45deg); }
+
+  /* 头像（无图标降级：首字母色块） */
+  .avatar-fallback { display: flex; align-items: center; justify-content: center; flex: none;
+                     border-radius: 8px; color: #fff; font-weight: 600; }
+
+  /* ---------- 页脚（内容区底部，白色背景） ----------
+     左右与底部留 20px 间距（Tailwind mx-5 mb-5），8px 圆角；因不再是通栏贴边，改用四边描边 */
+  .site-footer { background: #fff; border: 1px solid #E8EAED; border-radius: 8px; }
+  /* 栏目标题用 ink.body（参考 PartnerShare 页脚的浅灰标题层级；#1A1D24 过重） */
+  .site-footer-col-title { font-size: 13px; font-weight: 600; color: #3A3F4A; margin: 0 0 12px; }
+  .site-footer-slogan { margin: 0; max-width: 34em; font-size: 12px; line-height: 20px; color: #6E7685; }
+  .site-footer-link { font-size: 13px; line-height: 22px; color: #6E7685; transition: color .15s; }
+  .site-footer-link:hover { color: #0066FF; }
+  /* 法务行用 ink.sub 而非 ink.muted：#9DA2AC 在白底对比度仅 2.56:1，不达 WCAG AA；
+     #6E7685 为 4.57:1，满足正文 4.5:1 要求 */
+  .site-footer-legal { margin: 0; font-size: 12px; line-height: 20px; color: #6E7685; }
+  .site-footer-legal a { color: #6E7685; transition: color .15s; }
+  .site-footer-legal a:hover { color: #0066FF; }
+  /* 公安备案徽标（内嵌 base64，维持单文件自包含；62×67 源图按 20px 高等比缩放） */
+  .gongan-badge { display: inline-block; height: 20px; width: auto; vertical-align: -5px; margin-right: 5px; }
+
+  /* 联系方式图标 + 悬停/聚焦浮层（邮箱地址、二维码）
+     按钮为深色圆角方形（参考 PartnerShare 页脚），hover 切主色 */
+  .contact-item { position: relative; }
+  .contact-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;
+                 border: 0; border-radius: 8px; background: #1A1D24; color: #fff; cursor: pointer;
+                 transition: background .15s, color .15s; }
+  .contact-btn:hover { background: #0066FF; color: #fff; }
+  .contact-btn svg { width: 18px; height: 18px; }
+  .contact-pop { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 30; margin: 0;
+                 background: #fff; border: 1px solid #E8EAED; border-radius: 8px;
+                 box-shadow: 0 6px 24px rgba(0,0,0,.12);
+                 opacity: 0; visibility: hidden; transform: translateY(4px);
+                 transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+  .contact-item:hover .contact-pop,
+  .contact-item:focus-within .contact-pop { opacity: 1; visibility: visible; transform: translateY(0); }
+  .contact-pop-email { padding: 10px 12px; font-size: 13px; color: #1A1D24; white-space: nowrap; }
+  .contact-pop-qr { padding: 10px; text-align: center; }
+  .contact-pop-cap { margin: 8px 0 0; font-size: 12px; line-height: 16px; color: #6E7685; }
+  /* 二维码占位槽：替换时改为 <img class="qr-slot" src="真实图片路径" alt="..."> 即可（见页脚 TODO 注释） */
+  .qr-slot { display: flex; align-items: center; justify-content: center; width: 132px; height: 132px;
+             background: #F7F8FA; border: 1px dashed #DFE1E5; border-radius: 6px; color: #9DA2AC; }
+  .qr-slot svg { width: 40px; height: 40px; }
+
+  /* ---------- 回到顶部（页面右下角悬浮） ---------- */
+  .totop-wrap { position: fixed; right: 24px; bottom: 24px; z-index: 40; }
+  .totop-btn { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+               border: 1px solid #E8EAED; border-radius: 50%; background: #fff; color: #3A3F4A; cursor: pointer;
+               box-shadow: 0 4px 16px rgba(0,0,0,.10);
+               transition: color .15s, border-color .15s, box-shadow .15s; }
+  .totop-btn:hover { color: #0066FF; border-color: #0066FF; box-shadow: 0 6px 20px rgba(0,102,255,.18); }
+  .totop-btn svg { width: 18px; height: 18px; }
+  /* 提示语置于按钮左侧（贴右缘，向上/向下都可能出界，向左最稳） */
+  .totop-tip { position: absolute; right: calc(100% + 8px); top: 50%; z-index: 40; margin: 0;
+               padding: 6px 10px; border: 1px solid #E8EAED; border-radius: 6px; background: #fff;
+               box-shadow: 0 6px 24px rgba(0,0,0,.12); font-size: 12px; line-height: 16px; color: #1A1D24;
+               white-space: nowrap; opacity: 0; visibility: hidden;
+               transform: translateY(calc(-50% + 4px));
+               transition: opacity .15s, transform .15s, visibility .15s; pointer-events: none; }
+  .totop-wrap:hover .totop-tip,
+  .totop-wrap:focus-within .totop-tip { opacity: 1; visibility: visible; transform: translateY(-50%); }
+
+  /* 降级动效：尊重系统「减少动态效果」偏好 */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body class="bg-bg-page font-sans text-ink-body">
+<div class="flex h-screen overflow-hidden" id="layoutBody">
+
+  <!-- ======================= 左侧类型导航（全高，参考图样式） ======================= -->
+  <aside id="sidebar" class="w-[220px] flex-none bg-white border-r border-line-light overflow-y-auto py-3 transition-[width] duration-200"
+         aria-label="网站类型导航">
+    <nav id="typeNav" class="px-3 flex flex-col gap-1"></nav>
+  </aside>
+
+  <!-- ======================= 右列：顶部导航栏 + 内容区 ======================= -->
+  <div class="flex-1 flex flex-col min-w-0">
+
+    <!-- 顶部导航栏：汉堡按钮 + 平台 logo + 平台名称（仅覆盖内容区，不横跨侧栏） -->
+    <header class="flex items-center gap-3 h-14 px-5 bg-white border-b border-line-light z-20 flex-none">
+      <button id="collapseBtn" type="button" aria-label="收起/展开导航" aria-expanded="true"
+              class="flex items-center justify-center w-8 h-8 rounded text-ink-title hover:bg-bg-hover transition-colors">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+      <div class="flex items-center gap-2.5" aria-label="出海吧">
+        <span class="flex items-center justify-center w-7 h-7 rounded-lg text-white flex-none"
+              style="background:linear-gradient(135deg,#2D6BFF 0%,#7C5CFF 100%)">
+          <i data-lucide="rocket" class="w-4 h-4"></i>
+        </span>
+        <span class="text-[17px] font-bold text-ink-title tracking-wide">出海吧</span>
+      </div>
+    </header>
+
+    <!-- ======================= 内容区 ======================= -->
+    <main id="content" class="flex-1 overflow-y-auto flex flex-col" tabindex="-1">
+      <div class="flex-1 px-6 py-5">
+        <div id="groups"></div>
+        <div id="emptyAll" class="hidden text-center text-ink-muted py-24" >
+          <i data-lucide="package-open" class="w-10 h-10 mx-auto mb-3"></i>
+          <p>暂无网站数据，请在云登后台「出海吧」中添加</p>
+        </div>
+      </div>
+
+      <!-- ======================= 页脚（白色背景，贴内容区底部） ======================= -->
+      <footer class="site-footer flex-none mx-5 mb-5 px-6 py-8">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-[2fr_1fr_auto] md:gap-12">
+          <!-- 左侧：logo + 平台名称 + 一句话定位 -->
+          <div>
+            <div class="flex items-center gap-2.5 mb-2.5">
+              <span class="flex items-center justify-center w-7 h-7 rounded-lg text-white flex-none"
+                    style="background:linear-gradient(135deg,#2D6BFF 0%,#7C5CFF 100%)">
+                <i data-lucide="rocket" class="w-4 h-4"></i>
+              </span>
+              <span class="text-[15px] font-bold text-ink-title">出海吧</span>
+            </div>
+            <p class="site-footer-slogan">帮出海 SaaS 找到推广者、跑起联盟、放大用户推荐。先免费接入，跑出数据再升级。</p>
+          </div>
+
+          <!-- 中间：产品 -->
+          <div>
+            <h3 class="site-footer-col-title">产品</h3>
+            <a class="site-footer-link" href="https://www.yunlogin.com/" target="_blank" rel="noopener noreferrer">云登指纹浏览器</a>
+          </div>
+
+          <!-- 右侧：联系方式（图标悬停/聚焦展开邮箱地址与二维码） -->
+          <div>
+            <h3 class="site-footer-col-title">联系方式</h3>
+            <div class="flex items-center gap-2.5">
+              <div class="contact-item">
+                <a class="contact-btn" href="mailto:service@yunlogin.com" aria-label="邮箱 service@yunlogin.com" aria-describedby="pop-mail">
+                  <i data-lucide="mail"></i>
+                </a>
+                <span class="contact-pop contact-pop-email" id="pop-mail" role="tooltip">service@yunlogin.com</span>
+              </div>
+              <div class="contact-item">
+                <button class="contact-btn" type="button" aria-label="微信二维码" aria-describedby="pop-wechat">
+                  <i data-lucide="message-circle"></i>
+                </button>
+                <div class="contact-pop contact-pop-qr" id="pop-wechat" role="tooltip">
+                  <!-- TODO: 替换为真实微信二维码：<img class="qr-slot" src="真实图片路径" alt="微信二维码"> -->
+                  <div class="qr-slot"><i data-lucide="qr-code"></i></div>
+                  <p class="contact-pop-cap">微信二维码</p>
+                </div>
+              </div>
+              <div class="contact-item">
+                <button class="contact-btn" type="button" aria-label="24 小时在线咨询二维码" aria-describedby="pop-service">
+                  <i data-lucide="headphones"></i>
+                </button>
+                <div class="contact-pop contact-pop-qr" id="pop-service" role="tooltip">
+                  <!-- TODO: 替换为真实客服二维码：<img class="qr-slot" src="真实图片路径" alt="24 小时在线咨询二维码"> -->
+                  <div class="qr-slot"><i data-lucide="qr-code"></i></div>
+                  <p class="contact-pop-cap">24 小时在线咨询</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      <!-- 分割线 + 底部法务信息（md+ 右侧留 64px，避免与固定定位的「回到顶部」按钮点击区重叠） -->
+        <div class="mt-8 pt-5 border-t border-line-lighter flex flex-col gap-3 md:flex-row md:items-center md:justify-between md:pr-16">
+          <p class="site-footer-legal">© 版权所有 杭州辰链信息科技有限公司 | <img class="gongan-badge" src="data:image/png;base64,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" alt="公安备案徽标"/>浙公安网备 33010902003507号 浙ICP备2022019151号-6</p>
+          <div class="flex items-center gap-5">
+            <a class="site-footer-link" href="https://www.yunlogin.com/v2/news/userAgreement.html" target="_blank" rel="noopener noreferrer">服务协议</a>
+            <a class="site-footer-link" href="https://www.yunlogin.com/v2/news/privacyAgreement.html" target="_blank" rel="noopener noreferrer">隐私政策</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+</div>
+
+<!-- 回到顶部（页面右下角悬浮；hover/聚焦显示提示语，点击线性滚动回顶部） -->
+<div class="totop-wrap">
+  <button id="totopBtn" class="totop-btn" type="button" aria-label="回到顶部" aria-describedby="totop-tip">
+    <i data-lucide="arrow-up"></i>
+  </button>
+  <span class="totop-tip" id="totop-tip" role="tooltip">回到顶部</span>
+</div>
+
+<script>
+/* =====================================================================
+ * 出海吧 · 独立导航页
+ * 数据来源：localStorage `yundeng_overseas_nav_v1`（云登后台「出海吧」模块维护）；
+ * 读取失败或为空时回退内置种子数据；跨标签 storage 事件实时联动。
+ * ===================================================================== */
+
+/* ---------- 数据契约与种子 ---------- */
+const STORE_KEY = 'yundeng_overseas_nav_v1';
+
+const SEED = {
+  version: 1,
+  types: [
+    { id: 't01', name: 'AI 工具',   icon: '' },
+    { id: 't02', name: '独立站工具', icon: '' },
+    { id: 't03', name: '效率工具',   icon: '' },
+    { id: 't04', name: '广告工具',   icon: '' },
+    { id: 't05', name: '社媒资源',   icon: '' },
+    { id: 't06', name: '社媒管理',   icon: '' },
+    { id: 't07', name: 'SEO 工具',  icon: '' },
+    { id: 't08', name: '建站工具',   icon: '' },
+    { id: 't09', name: '电商工具',   icon: '' },
+    { id: 't10', name: 'ERP 工具',  icon: '' },
+    { id: 't11', name: '物流工具',   icon: '' },
+    { id: 't12', name: '出海咨询',   icon: '' }
+  ],
+  sites: [
+    { id: 's01', name: 'IPFoxy 代理优惠', url: 'https://www.ipfoxy.com/', intro: 'IPFoxy代理，专注海外静态住宅代理、动态住宅代理与数据中心代理，助力跨境电商与社媒多账号运营。', typeId: 't05', featured: true, icon: '' },
+    { id: 's02', name: 'Social Rochela 社媒管理', url: 'https://www.socialrochela.com/', intro: '社媒矩阵账号一站式管理工具，支持多平台账号聚合、内容排期与数据看板。', typeId: 't06', featured: true, icon: '' },
+    { id: 's03', name: 'HelpLook', url: 'https://www.helplook.net/', intro: '零代码搭建帮助中心与产品文档，支持多语言站点与 AI 搜索，快速交付专业的自助服务页面。', typeId: 't08', featured: true, icon: '' },
+    { id: 's04', name: 'PopAi', url: 'https://www.popai.pro/', intro: '一体化 AI 工作助手：AI 对话、文档阅读、PPT 生成与图片创作，覆盖个人与团队的日常生产力场景。', typeId: 't01', featured: true, icon: '' },
+    { id: 's05', name: 'Proxy302', url: 'https://www.proxy302.com/', intro: '按需付费的IP代理平台，支持住宅、数据中心与手机代理，提供浏览器插件与 API 接入。', typeId: 't05', featured: true, icon: '' },
+    { id: 's06', name: '302.AI', url: 'https://302.ai/', intro: '按需付费的 AI 应用平台，聚合全球主流大模型与热门 AI 工具，企业级稳定接入。', typeId: 't01', featured: true, icon: '' },
+    { id: 's07', name: 'FrameDNS', url: 'https://www.framedns.com/', intro: '智能域名解析与分组管理平台，支持多线路智能解析、批量管理与 API 同步。', typeId: 't02', featured: true, icon: '' },
+    { id: 's08', name: 'DuoPlus 云手机', url: 'https://www.duoplus.cn/', intro: '海外云手机，arm 真机环境，支持 TikTok 等社媒矩阵养号与多开管理。', typeId: 't03', featured: true, icon: '' },
+    { id: 's09', name: 'AdsPower', url: 'https://www.adspower.net/', intro: '多账号防关联浏览器，指纹隔离、团队协作与 RPA 自动化，跨境运营必备。', typeId: 't03', featured: true, icon: '' },
+    { id: 's10', name: 'Kookeey', url: 'https://www.kookeey.com/', intro: '全球代理IP服务商，静态住宅与数据中心代理资源覆盖 200+ 国家与地区。', typeId: 't05', featured: true, icon: '' },
+    { id: 's11', name: 'SaleSmartly', url: 'https://www.salesmartly.com/', intro: '全渠道聊天聚合客服系统，聚合 WhatsApp、Telegram、Messenger 等渠道，提升海外转化。', typeId: 't06', featured: true, icon: '' },
+    { id: 's12', name: 'EchoTik', url: 'https://www.echotik.live/', intro: 'TikTok 电商数据分析与选品工具，直播、达人、商品多维度洞察。', typeId: 't09', featured: true, icon: '' },
+    { id: 's13', name: '芒果店长', url: 'https://www.mangoerp.com/', intro: '跨境电商 ERP，支持多平台店铺订单、采购、库存与物流一体化管理。', typeId: 't10', featured: true, icon: '' },
+    { id: 's14', name: 'Adsos', url: 'https://www.adsos.cn/', intro: '广告素材批量生成与投放管理工具，支持多渠道广告账户聚合与自动化规则。', typeId: 't04', featured: false, icon: '' },
+    { id: 's15', name: 'QuarkIP', url: 'https://www.quarkip.com/', intro: '海外动态住宅代理，海量真实住宅 IP 池，支持城市级定位与长时效会话。', typeId: 't05', featured: false, icon: '' },
+    { id: 's16', name: 'Datary', url: 'https://www.datary.io/', intro: '跨境数据采集与自动化平台，无代码配置采集流程，稳定交付结构化数据。', typeId: 't01', featured: false, icon: '' },
+    { id: 's17', name: 'Thoradata', url: 'https://www.thoradata.io/', intro: '面向增长团队的用户行为分析引擎，支持 SQL 自助查询与实时看板。', typeId: 't07', featured: false, icon: '' },
+    { id: 's18', name: 'DataL—网数据', url: 'https://www.datal.dev/', intro: '全球网站流量与市场数据分析平台，洞察竞品流量结构、关键词与广告投放策略。', typeId: 't07', featured: false, icon: '' },
+    { id: 's19', name: 'Claudeg', url: 'https://www.claudeg.com/', intro: '面向内容团队的 AI 写作工作台，多语言营销文案与站内内容批量生成。', typeId: 't01', featured: false, icon: '' },
+    { id: 's20', name: 'IPWO 全球住宅代理', url: 'https://www.ipwo.net/', intro: '海外住宅IP代理服务商，动态与静态住宅资源，支持 API 提取与账密认证。', typeId: 't05', featured: false, icon: '' },
+    { id: 's21', name: 'ChatCut', url: 'https://www.chatcut.ai/', intro: 'AI 视频剪辑与字幕工具，支持多语言口播视频快速出片与批量翻译。', typeId: 't01', featured: false, icon: '' },
+    { id: 's22', name: '领客优选', url: 'https://www.linkor.cn/', intro: '出海供应链选品平台，覆盖 3C、家居等品类的工厂直连货源。', typeId: 't09', featured: false, icon: '' },
+    { id: 's23', name: 'TakeFlow', url: 'https://www.takeflow.com/', intro: '团队流程自动化工具，连接常用 SaaS 与内部系统，搭建无需代码的自动化工作流。', typeId: 't03', featured: false, icon: '' },
+    { id: 's24', name: 'ipkag', url: 'https://www.ipkag.com/', intro: 'IP 代理聚合市场，一站比价多家代理商资源，支持按需试用。', typeId: 't05', featured: false, icon: '' },
+    { id: 's25', name: '独立产品出海工具箱', url: 'https://toolbox.example.com/', intro: '面向独立开发者的出海工具合集：支付、订阅、税号、落地页与增长工具一览。', typeId: 't02', featured: false, icon: '' },
+    { id: 's26', name: '极客出海咨询', url: 'https://geekabroad.example.com/', intro: '提供海外公司注册、税务合规、商标与收款方案的一站式出海咨询服务。', typeId: 't12', featured: false, icon: '' },
+    { id: 's27', name: '飞舰国际物流', url: 'https://www.feijian56.com/', intro: '跨境物流聚合平台，国际小包、专线与海外仓一站式比价下单。', typeId: 't11', featured: false, icon: '' },
+    { id: 's28', name: '建站魔方', url: 'https://www.sitemofang.com/', intro: '外贸独立站建站系统，模板化搭建、多语言 SEO 与支付网关开箱即用。', typeId: 't08', featured: false, icon: '' }
+  ]
+};
+
+/* ---------- 数据读取与监听 ---------- */
+let data = loadData();
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.types) && Array.isArray(parsed.sites)) return parsed;
+    }
+  } catch (_) { /* file:// 受限或数据损坏时回退种子 */ }
+  return JSON.parse(JSON.stringify(SEED));
+}
+
+window.addEventListener('storage', (event) => {
+  if (event.key === STORE_KEY) { data = loadData(); featuredFilter = 'all'; render(); }
+});
+
+/* ---------- 工具函数 ---------- */
+const $ = (sel) => document.querySelector(sel);
+function hostOf(url) { try { return new URL(url).hostname; } catch (_) { return ''; } }
+function faviconUrl(url) {
+  const host = hostOf(url);
+  return host ? `https://favicon.im/${host}?larger=true` : '';
+}
+/* 基于名称生成稳定的降级头像配色（取 design.md 语义色系） */
+const AVATAR_COLORS = ['#0066FF', '#0FC060', '#E7772D', '#0091D5', '#7C5CFF', '#D9001B'];
+function avatarColor(name) {
+  let hash = 0;
+  for (const ch of String(name)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
+}
+function escapeHtml(text) {
+  return String(text).replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+}
+
+/* 图标统一渲染：icon(dataURL) 优先，其次 favicon 自动匹配，最后首字母头像。
+   favicon 加载失败通过全局 handleFavError 降级，避免内联 onerror 的引号转义问题 */
+function iconHtml(item, size, extraClass = '') {
+  const s = `width:${size}px;height:${size}px;border-radius:8px;flex:none;object-fit:contain;background:#F7F8FA;`;
+  if (item.icon) return `<img src="${escapeHtml(item.icon)}" alt="" style="${s}" onerror="this.style.display='none'"/>`;
+  const fav = faviconUrl(item.url || '');
+  if (fav) {
+    return `<img src="${fav}" alt="" style="${s}"
+              onerror="handleFavError(this)" data-name="${escapeHtml(item.name)}" data-size="${size}" data-cls="${escapeHtml(extraClass)}"/>`;
+  }
+  return avatarFallbackHtml(item.name, size, extraClass);
+}
+function avatarFallbackHtml(name, size, extraClass = '') {
+  return `<span class="avatar-fallback ${extraClass}" style="width:${size}px;height:${size}px;font-size:${Math.round(size * .42)}px;background:${avatarColor(name)}">${escapeHtml(String(name).trim().charAt(0) || '网')}</span>`;
+}
+/* 全局：favicon 加载失败 → 替换为首字母色块头像 */
+function handleFavError(img) {
+  img.outerHTML = avatarFallbackHtml(img.dataset.name || '', Number(img.dataset.size) || 20, img.dataset.cls || '');
+}
+
+/* ---------- 左侧导航 ---------- */
+/* 类型兜底图标：中性浅灰块 + 深色首字（有上传图时用上传图） */
+function sidebarTypeIcon(t) {
+  if (t.icon) return '<img src="' + escapeHtml(t.icon) + '" alt="" style="width:20px;height:20px;border-radius:6px;object-fit:contain;flex:none;background:#F7F8FA" onerror="this.style.display=\'none\'"/>';
+  return '<span class="nav-type-icon">' + escapeHtml(String(t.name).trim().charAt(0) || '类') + '</span>';
+}
+function renderNav() {
+  const featuredCount = data.sites.filter((s) => s.featured).length;
+  const items = [{ id: '__featured', name: '精选推荐', icon: '', featured: true, count: featuredCount }]
+    .concat(data.types.map((t) => ({ id: t.id, name: t.name, icon: t.icon, count: countOf(t.id) })));
+  $('#typeNav').innerHTML = items.map((it) => `
+    <a class="nav-item" href="#group-${it.id}" data-nav="${it.id}" title="${escapeHtml(it.name)}">
+      ${it.featured
+        ? `<i data-lucide="thumbs-up" class="flex-none"></i>`
+        : sidebarTypeIcon(it)}
+      <span class="nav-label truncate">${escapeHtml(it.name)}</span>
+      <span class="nav-count">${it.count}</span>
+    </a>`).join('');
+  lucide.createIcons();
+}
+
+function countOf(typeId) { return data.sites.filter((s) => s.typeId === typeId).length; }
+function typeNameOf(typeId) { const t = data.types.find((t) => t.id === typeId); return t ? t.name : '未分类'; }
+
+/* ---------- 内容分组 ---------- */
+let featuredFilter = 'all';
+
+function cardHtml(site) {
+  return `
+  <a class="site-card" href="${escapeHtml(site.url)}" target="_blank" rel="noopener noreferrer" tabindex="0" aria-label="${escapeHtml(site.name)}">
+    ${site.featured ? '<span class="feat-ribbon"><span>荐</span></span>' : ''}
+    ${iconHtml(site, 40)}
+    <div class="flex-1 min-w-0">
+      <div class="site-name truncate">${escapeHtml(site.name)}</div>
+      <div class="site-intro">${escapeHtml(site.intro)}</div>
+    </div>
+    <div class="site-intro-full">${escapeHtml(site.intro)}<div class="mt-1 text-[11px]" style="color:#9DA2AC">${escapeHtml(site.url)}</div></div>
+  </a>`;
+}
+
+function renderGroups() {
+  const groups = [];
+  /* 精选推荐：跨类型聚合 + 类型 chips 过滤 */
+  const featured = data.sites.filter((s) => s.featured);
+  if (featured.length) {
+    const chips = [{ id: 'all', name: '全部', count: featured.length }]
+      .concat(data.types
+        .map((t) => ({ id: t.id, name: t.name, count: featured.filter((s) => s.typeId === t.id).length }))
+        .filter((t) => t.count > 0));
+    const shown = featuredFilter === 'all' ? featured : featured.filter((s) => s.typeId === featuredFilter);
+    groups.push(`
+      <section id="group-__featured" class="mb-8 scroll-mt-4" aria-label="精选推荐">
+        <div class="group-title mb-1"><i data-lucide="sparkles" class="w-[18px] h-[18px]" style="color:#E7772D"></i>精选推荐<span class="group-sub">${featured.length} 个网站</span></div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          ${chips.map((c) => `<button type="button" class="chip ${featuredFilter === c.id ? 'is-active' : ''}" data-chip="${c.id}">${escapeHtml(c.name)} <span class="mono text-[11px]">${c.count}</span></button>`).join('')}
+        </div>
+        <div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${shown.map(cardHtml).join('')}</div>
+      </section>`);
+  }
+  /* 各类型分组（按 types 顺序） */
+  data.types.forEach((t) => {
+    const sites = data.sites.filter((s) => s.typeId === t.id);
+    if (!sites.length) return;
+    groups.push(`
+      <section id="group-${t.id}" class="mb-8 scroll-mt-4" aria-label="${escapeHtml(t.name)}">
+        <div class="group-title mb-3">${sidebarTypeIcon(t)}${escapeHtml(t.name)}<span class="group-sub">${sites.length} 个网站</span></div>
+        <div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">${sites.map(cardHtml).join('')}</div>
+      </section>`);
+  });
+  $('#groups').innerHTML = groups.join('');
+  $('#emptyAll').classList.toggle('hidden', groups.length > 0);
+  lucide.createIcons();
+}
+
+function render() { renderNav(); renderGroups(); highlightNav(); }
+
+/* ---------- chips 交互 ---------- */
+$('#groups').addEventListener('click', (event) => {
+  const chip = event.target.closest('[data-chip]');
+  if (!chip) return;
+  featuredFilter = chip.dataset.chip;
+  renderGroups();
+});
+
+/* ---------- 气泡朝向自适应 ----------
+ * 卡片贴近内容区底部时向下空间不足，气泡会被 overflow 容器裁切，
+ * 此时为卡片加 is-flip 让其改为向上展开（CSS 见 .site-card.is-flip）。 */
+function orientBubble(card) {
+  const bubble = card.querySelector('.site-intro-full');
+  if (!bubble) return;
+  const contentRect = $('#content').getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
+  const spaceBelow = contentRect.bottom - cardRect.bottom;
+  const spaceAbove = cardRect.top - contentRect.top;
+  const need = bubble.offsetHeight + 16;
+  card.classList.toggle('is-flip', spaceBelow < need && spaceAbove > need);
+}
+$('#groups').addEventListener('mouseover', (event) => {
+  const card = event.target.closest('.site-card');
+  if (!card || card.contains(event.relatedTarget)) return;  /* 卡内移动不重算 */
+  orientBubble(card);
+});
+$('#groups').addEventListener('focusin', (event) => {
+  const card = event.target.closest('.site-card');
+  if (card) orientBubble(card);
+});
+
+/* ---------- 侧栏收起/展开 ---------- */
+$('#collapseBtn').addEventListener('click', () => {
+  const collapsed = $('#layoutBody').classList.toggle('sidebar-collapsed');
+  $('#sidebar').style.width = collapsed ? '68px' : '220px';
+  $('#collapseBtn').setAttribute('aria-expanded', String(!collapsed));
+});
+
+/* ---------- 滚动定位与高亮联动（scroll spy） ---------- */
+function highlightNav() {
+  const content = $('#content');
+  const sections = [...content.querySelectorAll('section[id^="group-"]')];
+  if (!sections.length) return;
+  const top = content.scrollTop + 24;
+  let currentId = sections[0].id.replace('group-', '');
+  for (const sec of sections) {
+    if (sec.offsetTop <= top) currentId = sec.id.replace('group-', '');
+  }
+  document.querySelectorAll('[data-nav]').forEach((a) => {
+    a.classList.toggle('is-active', a.dataset.nav === currentId);
+  });
+}
+$('#content').addEventListener('scroll', highlightNav, { passive: true });
+$('#typeNav').addEventListener('click', (event) => {
+  const link = event.target.closest('[data-nav]');
+  if (!link) return;
+  /* 锚点定位交给 href，同时立即同步高亮，避免滚动 spy 延迟 */
+  const id = link.dataset.nav;
+  requestAnimationFrame(() => {
+    document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('is-active', a.dataset.nav === id));
+  });
+});
+
+/* ---------- 回到顶部（线性滚动） ----------
+ * 用户要求「线性滑到页面顶部」：位移与时间成正比（原生 behavior:'smooth' 是缓动曲线，不符）。
+ * 时长随距离缩放并限幅；系统开启「减少动态效果」时直接跳顶。 */
+const REDUCED_MOTION = window.matchMedia
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function scrollToTop() {
+  const el = $('#content');
+  const start = el.scrollTop;
+  if (start <= 0) return;
+  if (REDUCED_MOTION) { el.scrollTop = 0; return; }
+  const duration = Math.min(900, Math.max(280, start * 0.5));
+  const t0 = performance.now();
+  const step = (now) => {
+    const p = Math.min(1, (now - t0) / duration);
+    el.scrollTop = start * (1 - p);   /* 线性插值 */
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+$('#totopBtn').addEventListener('click', scrollToTop);
+
+/* ---------- 启动 ---------- */
+render();
+</script>
+</body>
+</html>

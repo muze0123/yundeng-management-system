@@ -144,9 +144,6 @@
 .pr-module .pr-info-card dl{display:grid;grid-template-columns:auto 1fr;gap:4px 8px;margin:0}
 .pr-module .pr-info-card dt{color:#6E7685}
 .pr-module .pr-info-card dd{margin:0}
-.pr-module .pr-note{background:#E4F4FB;color:#3A3F4A;padding:16px;border-radius:8px;font-size:12px;line-height:24px;margin-top:12px}
-.pr-module .pr-note strong{color:#0091D5}
-.pr-module .pr-note ol{padding-left:20px;margin:4px 0 0;list-style:decimal}
 .pr-module .pr-popover{z-index:1150}
 .pr-module .pr-operator-option{width:100%;text-align:left;border:0;padding:8px;background:#FFFFFF;cursor:pointer;border-radius:4px}
 .pr-module .pr-operator-option:hover,.pr-module .pr-operator-option[aria-selected=true]{background:#E6F0FF;color:#0066FF}
@@ -182,6 +179,16 @@
 .pr-module .pr-clamp{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;cursor:help}
 .pr-module .pr-clamp:focus-visible{outline:2px solid #0066FF;outline-offset:2px;border-radius:2px}
 .pr-module .pr-section:last-child{margin-bottom:0}
+.pr-module .pr-region-panel{margin-top:8px;border:1px solid #DFE1E5;border-radius:4px;background:#FFFFFF;overflow:hidden}
+.pr-module .pr-field-content .pr-region-search{height:30px;border:0;border-bottom:1px solid #E8EAED;border-radius:0;font-size:13px}
+.pr-module .pr-field-content .pr-region-search:focus{border-color:#0066FF}
+.pr-module .pr-region-list{overflow:auto;max-height:168px}
+.pr-module .pr-region-option{display:flex;align-items:baseline;gap:6px;width:100%;text-align:left;border:0;background:#FFFFFF;padding:8px 10px;font-size:12px;color:#3A3F4A;cursor:pointer;border-bottom:1px solid #E8EAED;font-family:inherit}
+.pr-module .pr-region-option:last-child{border-bottom:0}
+.pr-module .pr-region-top{flex:none;color:#6E7685}
+.pr-module .pr-region-rest{overflow-wrap:anywhere}
+.pr-module .pr-region-option:hover,.pr-module .pr-region-option.is-active,.pr-module .pr-region-option[aria-selected=true]{background:#E6F0FF;color:#0066FF}
+.pr-module .pr-region-option:hover .pr-region-top,.pr-module .pr-region-option[aria-selected=true] .pr-region-top{color:#0066FF}
 @media(max-width:768px){.pr-module .pr-section{padding:16px}
 .pr-module .pr-modal-body{padding:20px 16px}
 .pr-module .pr-date-times{gap:8px}
@@ -202,7 +209,7 @@
     </div><div id="pr-filter-error" class="pr-error pr-filter-error" role="alert"></div></form></section>
     <!-- 更换历史：新资产动态字段与历史快照分离 -->
     <section class="pr-section" aria-label="代理更换记录"><div class="data-header"><h2>更换记录</h2><span id="pr-count" class="pr-sub font-mono" aria-live="polite"></span><button class="btn btn-primary pr-create" id="pr-create" type="button">${icon('replace')}更换代理</button></div>
-      <div class="pr-table-scroll" id="pr-table-scroll" data-module-scroll tabindex="0" aria-label="更换记录，可横向滚动"><table class="data-table"><thead><tr><th>用户ID</th><th>用户手机号/邮箱</th><th>原代理IP</th><th>新代理IP</th><th>渠道商</th><th>代理类型</th><th>最近登录时间</th><th>代理到期时间</th><th>更换原因</th><th>更换结果</th><th>同步状态</th><th>备注</th><th>操作人</th><th id="pr-sort-th" aria-sort="descending"><button id="pr-sort" class="pr-sort" type="button">操作时间<span class="pr-triangles" aria-hidden="true"><i class="pr-up"></i><i class="pr-down"></i></span></button></th><th>操作</th></tr></thead><tbody id="pr-rows"></tbody></table></div><div id="pr-pagination" class="pagination"></div>
+      <div class="pr-table-scroll" id="pr-table-scroll" data-module-scroll tabindex="0" aria-label="更换记录，可横向滚动"><table class="data-table"><thead><tr><th>用户ID</th><th>用户手机号/邮箱</th><th>原代理IP</th><th>新代理IP</th><th>代理商</th><th>代理类型</th><th>最近登录时间</th><th>代理到期时间</th><th>更换原因</th><th>更换结果</th><th>同步状态</th><th>备注</th><th>操作人</th><th id="pr-sort-th" aria-sort="descending"><button id="pr-sort" class="pr-sort" type="button">操作时间<span class="pr-triangles" aria-hidden="true"><i class="pr-up"></i><i class="pr-down"></i></span></button></th><th>操作</th></tr></thead><tbody id="pr-rows"></tbody></table></div><div id="pr-pagination" class="pagination"></div>
     </section>
     <div id="pr-reason-filter-pop" class="pr-popover pr-method-menu" hidden><div id="pr-reason-filter-list" class="pr-multi-list" role="listbox" aria-multiselectable="true" aria-label="更换原因"></div></div>
     <div id="pr-operator-pop" class="pr-popover pr-method-menu" hidden><input class="control" id="pr-operator-search" placeholder="搜索操作人" aria-label="搜索操作人"><div id="pr-operator-list" class="pr-operator-list" role="listbox" aria-label="操作人"></div></div>
@@ -215,7 +222,7 @@
     const $ = (id) => root.querySelector('#pr-' + id);
     const escape = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const refreshIcons = () => window.lucide?.createIcons();
-    const dbKey = 'yundeng-proxy-replacement-mock-v1';
+    const dbKey = 'yundeng-proxy-replacement-mock-v2';
     const viewKey = 'yundeng-proxy-replacement-view-v1';
     const day = 86400000;
     const clock = () => Date.now();
@@ -229,15 +236,22 @@
     const currentOperator = document.querySelector('.app-account-name')?.textContent.trim() || '数据管理员';
     if (!operators.includes(currentOperator)) operators.unshift(currentOperator);
     const types = ['静态住宅-优质', '静态住宅-标准', '云平台'];
-    const areas = [['中国','浙江','杭州'],['美国','马萨诸塞州','波士顿'],['中国','上海','上海'],['日本','东京都','东京']];
-    // 渠道商仅记录本次更换的来源，不参与新 IP 分配（用户 2026-09-24 确认）。
+    const areas = [['中国','浙江','杭州'],['美国','马萨诸塞州','波士顿'],['中国','上海','上海'],['日本','东京都','东京'],['德国','黑森州','法兰克福']];
+    // 地区层级：去掉相邻重复层级后作为路径（中国-上海 不再重复城市），既做展示也做匹配键。
+    const areaParts = area => Array.isArray(area) ? area.filter((part, i) => part && part !== area[i - 1]) : [];
+    const areaKey = area => areaParts(area).join('/');
+    const regions = areas.map(area => {const parts = areaParts(area);return {key:parts.join('/'), parts, name:parts.join('-')};});
+    // 代理商参与新 IP 分配（用户 2026-10-13 确认，取代原 R-09「仅记录来源、不参与分配」）：
+    // 新 IP 必须同时命中「所选地区 + 所选代理商 + 原代理类型」；areaIdx 为代理商支持的地区下标。
+    // 德国-黑森州-法兰克福仅由云梯科技支持且不铺库存，用于演示「所选地区无可用资源」。
     const channels = [
-      {name:'星际云网络',min:42,max:68},
-      {name:'海豚IP服务',min:55,max:88},
-      {name:'极光数据中心',min:38,max:52},
-      {name:'云梯科技',min:66,max:120},
-      {name:'北海网络',min:30,max:45}
-    ];
+      {name:'星际云网络',min:42,max:68,areaIdx:[0,2]},
+      {name:'海豚IP服务',min:55,max:88,areaIdx:[0,1,3]},
+      {name:'极光数据中心',min:38,max:52,areaIdx:[1,3]},
+      {name:'云梯科技',min:66,max:120,areaIdx:[0,1,2,3,4]},
+      {name:'北海网络',min:30,max:45,areaIdx:[2,3]}
+    ].map(channel => ({...channel, regions:channel.areaIdx.map(i => regions[i].key)}));
+    const channelsFor = regionKey => regionKey ? channels.filter(channel => channel.regions.includes(regionKey)) : [];
     const changeReasons = ['下架','断网','卡顿','跳地区','黑白名单','浏览器问题','业务不支持','IP质量与实际不符','复卖','客户自身问题','其他','买错地区','外网（无法认证）'];
     const priceText = value => value===null||value===undefined||value==='' ? '- -' : '￥'+Number(value).toFixed(2)+'/月';
     const channelLabel = channel => channel.name+'　￥'+channel.min.toFixed(2)+'~'+channel.max.toFixed(2)+'/月';
@@ -261,11 +275,22 @@
         records.push({id:'record-'+i,userId:users[i%6].id,oldIp:'198.51.100.'+(80+i),oldArea:[...areas[i%4]],newArea:result==='failed'?null:[...areas[i%4]],newIp:result==='failed'?'':ip,newAssetId:result==='failed'?null:assetId,lastLogin:i===6?null:now-(i+1)*day,result,syncStatus,reason:result==='failed'?'暂无同地区、同类型可用代理，原代理保持不变':syncStatus==='failed'?'环境或指纹同步失败，新代理已生效':'',operator:operators[(i%4)+1],operatedAt:now-i*3*3600000,retries:[],oldChannel:channels[(i+2)%channels.length].name,channel:channels[i%channels.length].name,changeReason:changeReasons[i%changeReasons.length],remark:i%3===0?'客户反馈该 IP 近期频繁被目标站点识别，需要更换':i%3===1?'':'客户主动申请，已确认按原地区同类型替换',oldPrice:Number((42+i*2.75).toFixed(2)),newPrice:result==='failed'?null:Number((38+i*3.5).toFixed(2))});
       }
       const fixtureStates=['running','abnormal','running','expired','refunded','stopped','running'];
-      fixtureStates.forEach((status,i)=>assets.push({id:'source-'+i,owner:i===6?'100002':'100001',ip:'198.51.100.'+(21+i),area:i===2?['德国','黑森州','法兰克福']:areas[0],type:types[i%3],status,expiresAt:now+(i===3?-2:30)*day,purchased:true,lastLogin:now-3600000,envs:i===2?[]:environments(20+i,3),version:1,failNextSync:i===1,channel:channels[i%channels.length].name,price:Number((45+i*4.25).toFixed(2))}));
+      fixtureStates.forEach((status,i)=>assets.push({id:'source-'+i,owner:i===6?'100002':'100001',ip:'198.51.100.'+(21+i),area:i===2?areas[4]:areas[0],type:types[i%3],status,expiresAt:now+(i===3?-2:30)*day,purchased:true,lastLogin:now-3600000,envs:i===2?[]:environments(20+i,3),version:1,failNextSync:i===1,channel:channels[i%channels.length].name,price:Number((45+i*4.25).toFixed(2))}));
       // 同一原代理 IP 存在多个持有者：用于演示「先输入原代理 IP，再输入用户账号时单选关联用户」。
       assets.push({id:'source-0-shared',owner:'100003',ip:'198.51.100.21',area:[...areas[0]],type:types[0],status:'running',expiresAt:now+30*day,purchased:true,lastLogin:now-7200000,envs:environments(31,3),version:1,channel:channels[1].name,price:52.5});
-      // 可用池严格按完整地区及类型匹配；无库存场景不放入德国资源。
-      for(let i=0;i<18;i++) assets.push({id:'inventory-'+i,owner:null,ip:'192.0.2.'+(31+i),area:areas[Math.floor(i/6)%3],type:types[i%3],status:'running',expiresAt:null,purchased:false,envs:[],version:1,lastLogin:null,channel:channels[i%channels.length].name,price:Number((40+(i%6)*4.5).toFixed(2))});
+      // 可用池按「地区 × 代理商 × 类型」逐格铺底，保证任一「地区+代理商」组合都有库存可演示；
+      // 德国-黑森州-法兰克福 刻意不铺库存，用于演示「所选地区无可用资源时失败且不自动降级」。
+      let invSeed = 0;
+      areas.filter(area => areaKey(area) !== '德国/黑森州/法兰克福').forEach(area => {
+        channelsFor(areaKey(area)).forEach(channel => {
+          types.forEach(type => {
+            for (let copy = 0; copy < 2; copy++) {
+              const i = invSeed++;
+              assets.push({id:'inventory-'+i,owner:null,ip:'192.0.2.'+(31+i),area:[...area],type,status:'running',expiresAt:null,purchased:false,envs:[],version:1,lastLogin:null,channel:channel.name,price:Number((38+(i%7)*5.5).toFixed(2))});
+            }
+          });
+        });
+      });
       assets.forEach(a=>a.envs.forEach(e=>{e.proxyIp=a.ip;e.fingerprintIp=a.ip;}));
       records.filter(r=>r.syncStatus==='failed').forEach(r=>{const a=assets.find(a=>a.id===r.newAssetId);a.envs.forEach(e=>e.fingerprintIp=r.oldIp);});
       return {users,assets,records,version:1};
@@ -409,14 +434,16 @@
     $('calendar').addEventListener('input',e=>{if(e.target.id==='pr-start-time')startTime=e.target.value;if(e.target.id==='pr-end-time')endTime=e.target.value;});
 
     // Modal 的焦点、背景滚动与关闭行为统一处理。
-    let modalKind='',returnFocus=null,busy=false,lookupTimer,lookupVersion=0,selectedUser=null,selectedAsset=null,ipOwners=[],userAssets=[],linkMismatchKey='';
+    let modalKind='',returnFocus=null,busy=false,lookupTimer,lookupVersion=0,selectedUser=null,selectedAsset=null,ipOwners=[],userAssets=[],linkMismatchKey='',regionSyncedAssetId='';
     function openModal(title,body,footer) {closePopovers();returnFocus=document.activeElement;modalKind='replace';$('overlay').innerHTML=`<section class="pr-modal" role="dialog" aria-modal="true" aria-labelledby="pr-modal-title"><header class="pr-modal-header"><h2 id="pr-modal-title">${title}</h2><button class="pr-close" data-close aria-label="关闭弹窗">${icon('x','w-5 h-5')}</button></header><div class="pr-modal-body">${body}</div><footer class="pr-modal-footer">${footer}</footer></section>`;$('overlay').hidden=false;document.getElementById('appContent').style.overflow='hidden';refreshIcons();$('overlay').querySelector('input,button')?.focus();}
     function closeModal() {if(busy)return;lookupVersion++;clearTimeout(lookupTimer);$('overlay').hidden=true;$('overlay').innerHTML='';modalKind='';document.getElementById('appContent').style.overflow='';returnFocus?.focus();}
     function openReplacement() {
-      selectedUser=null;selectedAsset=null;ipOwners=[];userAssets=[];linkMismatchKey='';busy=false;
+      selectedUser=null;selectedAsset=null;ipOwners=[];userAssets=[];linkMismatchKey='';regionSyncedAssetId='';busy=false;
       const field=(id,label,hint)=>`<div class="pr-field"><label for="pr-${id}"><span class="pr-required">*</span>${label}：</label><div class="pr-field-content"><div class="pr-counted"><input class="control" id="pr-${id}" maxlength="50" required placeholder="${hint}" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="pr-${id==='account'?'ip-owners':'user-assets'}" aria-describedby="pr-${id}-error pr-${id}-help"><span class="pr-counter font-mono" id="pr-${id}-count">0/50</span></div><div id="pr-${id}-error" class="pr-error" role="alert"></div><div id="pr-${id}-help" class="pr-help" aria-live="polite"></div>${id==='account'?'<div id="pr-ip-owners" class="pr-owner-list" role="listbox" aria-label="代理关联用户" hidden></div>':'<div id="pr-user-assets" class="pr-owner-list" role="listbox" aria-label="用户可更换代理" hidden></div><div id="pr-asset-card" hidden></div>'}</div></div>`;
       const selectField=(id,label,hint,options)=>`<div class="pr-field"><label for="pr-${id}"><span class="pr-required">*</span>${label}：</label><div class="pr-field-content"><select class="control" id="pr-${id}" required aria-describedby="pr-${id}-error"><option value="">${hint}</option>${options}</select><div id="pr-${id}-error" class="pr-error" role="alert"></div></div></div>`;
-      openModal('更换代理',`<form id="pr-replace-form" novalidate>${field('account','用户账号','请输入用户ID/用户手机号/邮箱')}${field('source-ip','原代理IP','请输入用户原代理IP')}${selectField('channel','渠道商','请选择渠道商',channels.map(c=>`<option value="${escape(c.name)}">${escape(channelLabel(c))}</option>`).join(''))}${selectField('change-reason','更换原因','请选择更换原因',changeReasons.map(reason=>`<option value="${escape(reason)}">${escape(reason)}</option>`).join(''))}<div class="pr-field"><label for="pr-remark">备注：</label><div class="pr-field-content"><textarea class="control" id="pr-remark" maxlength="500" rows="4" placeholder="选填，最多 500 字" aria-describedby="pr-remark-count"></textarea><div class="pr-counter pr-counter-block font-mono" id="pr-remark-count">0/500</div></div></div><div class="pr-note"><strong>说明</strong><ol><li>按原代理所属地区和代理类型，自动分配其他可用 IP；无匹配资源时保留原代理。</li><li>新代理继承原到期时间，更换后原代理立即解绑并释放。</li><li>同步更新绑定环境的代理与指纹信息。同步失败时保留新 IP，可在更换记录中重试同步。</li></ol></div><div id="pr-submit-error" class="pr-error" role="alert"></div></form>`,`<button class="btn btn-default" data-close>取消</button><button class="btn btn-primary" type="submit" form="pr-replace-form" id="pr-submit" disabled>提交更换</button>`);
+      // 更换地区：层级展示 + 关键词搜索的单选组件；默认带入原代理 IP 所属地区。
+      const regionField=()=>`<div class="pr-field"><label id="pr-region-label"><span class="pr-required">*</span>更换地区：</label><div class="pr-field-content"><button type="button" class="control date-trigger" id="pr-region-trigger" aria-labelledby="pr-region-label pr-region-text" aria-expanded="false" aria-haspopup="listbox" aria-controls="pr-region-panel"><span id="pr-region-text">请选择更换地区</span>${icon('chevron-down')}</button><input type="hidden" id="pr-region" value=""><div id="pr-region-panel" class="pr-region-panel" hidden><input class="control pr-region-search" id="pr-region-search" placeholder="搜索地区" aria-label="搜索地区" autocomplete="off"><div id="pr-region-list" class="pr-region-list" role="listbox" aria-label="更换地区"></div></div><div id="pr-region-error" class="pr-error" role="alert"></div><div id="pr-region-help" class="pr-help" aria-live="polite"></div></div></div>`;
+      openModal('更换代理',`<form id="pr-replace-form" novalidate>${field('account','用户账号','请输入用户ID/用户手机号/邮箱')}${field('source-ip','原代理IP','请输入用户原代理IP')}${regionField()}${selectField('channel','更换代理商','请先选择更换地区','')}${selectField('change-reason','更换原因','请选择更换原因',changeReasons.map(reason=>`<option value="${escape(reason)}">${escape(reason)}</option>`).join(''))}<div class="pr-field"><label for="pr-remark">备注：</label><div class="pr-field-content"><textarea class="control" id="pr-remark" maxlength="500" rows="4" placeholder="选填，最多 500 字" aria-describedby="pr-remark-count"></textarea><div class="pr-counter pr-counter-block font-mono" id="pr-remark-count">0/500</div></div></div><div id="pr-submit-error" class="pr-error" role="alert"></div></form>`,`<button class="btn btn-default" data-close>取消</button><button class="btn btn-primary" type="submit" form="pr-replace-form" id="pr-submit" disabled>提交更换</button>`);
       $('account').focus();
       for (const id of ['account','source-ip']) {
         const input=$(id),box=$(id==='account'?'ip-owners':'user-assets');
@@ -451,7 +478,41 @@
       $('remark').oninput=()=>{$('remark').value=$('remark').value.slice(0,500);$('remark-count').textContent=$('remark').value.length+'/500';};
       $('channel').onchange=()=>{$('channel-error').textContent='';};
       $('change-reason').onchange=()=>{$('change-reason-error').textContent='';};
+      $('region-trigger').onclick=()=>{
+        if(!$('region-panel').hidden){hideRegionPanel();return;}
+        $('region-panel').hidden=false;$('region-trigger').setAttribute('aria-expanded','true');
+        $('region-search').value='';renderRegionOptions();$('region-search').focus();
+      };
+      $('region-search').oninput=renderRegionOptions;
+      $('region-list').onclick=e=>{const option=e.target.closest('[data-region]');if(!option)return;setRegion(option.dataset.region);hideRegionPanel();$('region-trigger').focus();};
+      renderAgentOptions($('region').value);
       $('replace-form').onsubmit=e=>{e.preventDefault();submitReplacement();};
+    }
+    // ── 更换地区 / 更换代理商联动：弹窗内容每次重建，以下访问一律做空值保护 ──
+    function hideRegionPanel() {const panel=$('region-panel');if(!panel)return;panel.hidden=true;$('region-trigger')?.setAttribute('aria-expanded','false');}
+    // 地区按「国家 + 层级路径」展示，支持在组件内输入关键词过滤。
+    function renderRegionOptions() {
+      const list=$('region-list');if(!list)return;
+      const query=$('region-search').value.trim(),current=$('region').value;
+      const found=regions.filter(region => region.name.includes(query));
+      list.innerHTML=found.length?found.map(region=>`<button type="button" class="pr-region-option" data-region="${escape(region.key)}" role="option" aria-selected="${current===region.key}"><span class="pr-region-top">${escape(region.parts[0])}</span><span class="pr-region-rest">${escape(region.parts.slice(1).join(' / '))}</span></button>`).join(''):'<div class="pr-choice-empty" role="status">未找到匹配的地区</div>';
+    }
+    // 代理商列表由所选地区匹配得出；地区未选时不给选项，避免选到不服务该地区的代理商。
+    function renderAgentOptions(regionKey) {
+      const select=$('channel');if(!select)return;
+      const supported=channelsFor(regionKey);
+      select.innerHTML=`<option value="">${regionKey?(supported.length?'请选择更换代理商':'该地区暂无可选代理商'):'请先选择更换地区'}</option>`+supported.map(channel=>`<option value="${escape(channel.name)}">${escape(channelLabel(channel))}</option>`).join('');
+      select.value='';$('channel-error').textContent='';
+      const help=$('region-help');
+      if(help) help.textContent=regionKey?(supported.length?`该地区支持 ${supported.length} 家代理商：${supported.map(channel=>channel.name).join('、')}`:'该地区暂无合作代理商，请重新选择地区'):'默认带入原代理 IP 所属地区，可改为其他地区';
+    }
+    function setRegion(regionKey) {
+      const region=regions.find(item => item.key===regionKey);
+      $('region').value=region?region.key:'';
+      $('region-text').textContent=region?region.name:'请选择更换地区';
+      $('region-trigger').classList.toggle('has-value',!!region);
+      $('region-error').textContent='';
+      renderAgentOptions(region?region.key:'');
     }
     function eligibility(asset) {if(!asset.purchased)return '仅支持更换用户已购买的代理';const status=statusFor(asset);if(!['running','abnormal'].includes(status))return `该代理${statusText[status]||'当前不可用'}，暂不支持更换`;return '';}
     function matchUser(account) {const key=String(account||'').trim(),lower=key.toLowerCase();if(!key)return null;return db.users.find(u=>u.id===key||u.phone===key||u.email.toLowerCase()===lower)||null;}
@@ -461,7 +522,7 @@
       const card=$('asset-card');
       if(!asset){card.hidden=true;card.innerHTML='';return;}
       card.hidden=false;card.className='pr-info-card';
-      card.innerHTML=`<dl><dt>代理IP：</dt><dd class="font-mono">${escape(asset.ip)}</dd><dt>所属地区：</dt><dd>${escape(areaName(asset.area))}</dd><dt>代理类型：</dt><dd>${escape(asset.type)}</dd><dt>渠道商：</dt><dd>${escape(asset.channel||'- -')}</dd><dt>单价：</dt><dd class="font-mono">${priceText(asset.price)}</dd><dt>最近登录时间：</dt><dd class="font-mono">${asset.lastLogin?format(asset.lastLogin):'- -'}</dd><dt>到期时间：</dt><dd class="font-mono">${asset.expiresAt?format(asset.expiresAt):'- -'}</dd></dl>`;
+      card.innerHTML=`<dl><dt>代理IP：</dt><dd class="font-mono">${escape(asset.ip)}</dd><dt>所属地区：</dt><dd>${escape(areaName(asset.area))}</dd><dt>代理类型：</dt><dd>${escape(asset.type)}</dd><dt>代理商：</dt><dd>${escape(asset.channel||'- -')}</dd><dt>单价：</dt><dd class="font-mono">${priceText(asset.price)}</dd><dt>最近登录时间：</dt><dd class="font-mono">${asset.lastLogin?format(asset.lastLogin):'- -'}</dd><dt>到期时间：</dt><dd class="font-mono">${asset.expiresAt?format(asset.expiresAt):'- -'}</dd></dl>`;
     }
     // 输入文本保留；两侧匹配结果同步失效，旧响应不能恢复提交资格。
     function hideLinkChoices() {
@@ -515,6 +576,8 @@
             const key=selectedUser.id+'|'+ip;if(key!==linkMismatchKey){linkMismatchKey=key;toast('用户账号与原代理IP不匹配，无法提交更换');}
           } else {
             selectedAsset=asset;linkMismatchKey='';renderCard(asset);
+            // 默认带入原代理 IP 所属地区；仅在解析到的原代理发生变化时重置，避免覆盖用户手选。
+            if(regionSyncedAssetId!==asset.id){regionSyncedAssetId=asset.id;setRegion(areaKey(asset.area));}
             const error=eligibility(asset);$('source-ip-error').textContent=error;if(error)$('source-ip').setAttribute('aria-invalid','true');
             $('submit').disabled=!!error;
           }
@@ -532,16 +595,19 @@
         $('submit-error').textContent=!matchUser(account)?'未找到该用户，请输入完整用户ID、手机号或邮箱':!selectedUser?'用户账号与原代理IP不匹配，无法提交更换':!selectedAsset?'该原代理 IP 信息无效，请重新输入后查询':ip!==selectedAsset.ip?'原代理IP已变化，请重新查询后重试':eligibility(selectedAsset);
         return;
       }
-      if(!$('channel').value){$('channel-error').textContent='请选择渠道商';$('channel').focus();return;}
+      if(!$('region').value){$('region-error').textContent='请选择更换地区';$('region-trigger').focus();return;}
+      if(!$('channel').value){$('channel-error').textContent='请选择更换代理商';$('channel').focus();return;}
       if(!$('change-reason').value){$('change-reason-error').textContent='请选择更换原因';$('change-reason').focus();return;}
       setBusy(true);
       // 同一文档内原子提交；正式接口须携带幂等键与资产版本。
-      const sourceId=selectedAsset.id,owner=selectedUser.id,version=selectedAsset.version,channel=$('channel').value,changeReason=$('change-reason').value,remark=$('remark').value.trim();
+      const sourceId=selectedAsset.id,owner=selectedUser.id,version=selectedAsset.version,region=$('region').value,channel=$('channel').value,changeReason=$('change-reason').value,remark=$('remark').value.trim();
       setTimeout(()=>{
         const old=db.assets.find(a=>a.id===sourceId);
         if(!old||old.owner!==owner||old.version!==version||eligibility(old)){$('submit-error').textContent='代理信息已变化，请重新查询后重试';selectedAsset=null;setBusy(false);return;}
-        const replacement=db.assets.find(a=>!a.owner&&a.status==='running'&&a.ip!==old.ip&&a.type===old.type&&a.area.every((part,i)=>part===old.area[i]));
-        const record={id:'record-'+crypto.randomUUID(),userId:owner,oldIp:old.ip,oldArea:[...old.area],oldPrice:old.price??null,oldChannel:old.channel??null,newArea:replacement?[...replacement.area]:null,newIp:replacement?.ip||'',newAssetId:replacement?.id||null,newPrice:replacement?(replacement.price??null):null,lastLogin:old.lastLogin,result:replacement?'success':'failed',syncStatus:replacement?'syncing':'na',reason:replacement?'正在同步环境和指纹':'暂无同地区、同类型可用代理，原代理保持不变',channel,changeReason,remark,operator:currentOperator,operatedAt:clock(),retries:[]};
+        // 分配口径（用户 2026-10-13 确认）：所选地区 + 所选代理商 + 原代理类型，排除原 IP；无库存时不降级。
+        const replacement=db.assets.find(a=>!a.owner&&a.status==='running'&&a.ip!==old.ip&&a.type===old.type&&areaKey(a.area)===region&&a.channel===channel);
+        const regionName=regions.find(item=>item.key===region)?.name||region;
+        const record={id:'record-'+crypto.randomUUID(),userId:owner,oldIp:old.ip,oldArea:[...old.area],oldPrice:old.price??null,oldChannel:old.channel??null,newArea:replacement?[...replacement.area]:null,newIp:replacement?.ip||'',newAssetId:replacement?.id||null,newPrice:replacement?(replacement.price??null):null,lastLogin:old.lastLogin,result:replacement?'success':'failed',syncStatus:replacement?'syncing':'na',reason:replacement?'正在同步环境和指纹':`所选地区「${regionName}」与代理商「${channel}」暂无同类型可用代理，原代理保持不变`,channel,changeReason,remark,operator:currentOperator,operatedAt:clock(),retries:[]};
         db.records.unshift(record);
         if(!replacement){persist();renderRecords();$('submit-error').textContent=record.reason;setBusy(false);return;}
         replacement.owner=owner;replacement.purchased=true;replacement.expiresAt=old.expiresAt;replacement.envs=old.envs;replacement.version++;replacement.failNextSync=!!old.failNextSync;
@@ -584,9 +650,12 @@
     });
     $('create').onclick=openReplacement;
     $('overlay').onclick=e=>{if(e.target===$('overlay'))closeModal();};
-    document.addEventListener('pointerdown',e=>{if(!e.target.closest?.('#pr-operator-pop,#pr-operator-trigger,#pr-calendar,#pr-date-trigger,#pr-reason-pop,#pr-reason-filter-pop,#pr-reason-filter-trigger,.pr-help-dot,.pr-help-text'))closePopovers();});
+    document.addEventListener('pointerdown',e=>{
+      if(!e.target.closest?.('#pr-region-panel,#pr-region-trigger'))hideRegionPanel();
+      if(!e.target.closest?.('#pr-operator-pop,#pr-operator-trigger,#pr-calendar,#pr-date-trigger,#pr-reason-pop,#pr-reason-filter-pop,#pr-reason-filter-trigger,.pr-help-dot,.pr-help-text'))closePopovers();
+    });
     document.addEventListener('keydown',e=>{
-      if(e.key==='Escape'){if(!$('overlay').hidden){e.preventDefault();closeModal();}else{const dateOpen=!$('calendar').hidden,opOpen=!$('operator-pop').hidden;closePopovers();if(dateOpen)$('from').focus();if(opOpen)$('operator-trigger').focus();}}
+      if(e.key==='Escape'){if(!$('overlay').hidden){const regionPanel=$('region-panel');if(regionPanel&&!regionPanel.hidden){e.preventDefault();hideRegionPanel();$('region-trigger')?.focus();return;}e.preventDefault();closeModal();}else{const dateOpen=!$('calendar').hidden,opOpen=!$('operator-pop').hidden;closePopovers();if(dateOpen)$('from').focus();if(opOpen)$('operator-trigger').focus();}}
       if(e.key==='Tab'&&!$('overlay').hidden){const focusable=[...$('overlay').querySelectorAll('button:not(:disabled),input:not(:disabled),select:not(:disabled),[tabindex="0"]')].filter(el=>el.offsetParent!==null);const first=focusable[0],last=focusable[focusable.length-1];if(!first){e.preventDefault();return;}if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}}
     });
     root.addEventListener('pointerover',e=>{const t=e.target.closest('.pr-help-dot,.pr-help-text');if(t)openReason(t);});

@@ -1,0 +1,49 @@
+{
+  "module": "proxy-replacement",
+  "init": true,
+  "click": ["#pr-create", "#pr-region-trigger"],
+  "checks": [
+    {
+      "selector": "#pr-region-label",
+      "props": { "textAlign": "right", "width": "90px", "lineHeight": "30px" },
+      "offsetWidth": 90
+    },
+    {
+      "selector": "#pr-region-trigger",
+      "props": { "height": "32px", "width": "400px", "color": "rgb(157, 162, 172)" },
+      "offsetHeight": 32
+    },
+    {
+      "selector": "#pr-region-search",
+      "props": {
+        "height": "30px",
+        "fontSize": "13px",
+        "borderTopWidth": "0px",
+        "borderBottomWidth": "1px",
+        "borderBottomColor": "rgb(232, 234, 237)"
+      },
+      "offsetHeight": 30
+    },
+    {
+      "selector": "#pr-channel",
+      "props": { "height": "30px", "fontSize": "13px" },
+      "offsetHeight": 30
+    },
+    {
+      "selector": "#pr-region-panel",
+      "props": { "display": "block", "borderTopWidth": "1px", "borderTopColor": "rgb(223, 225, 229)" }
+    },
+    {
+      "selector": ".pr-region-option",
+      "props": { "display": "flex", "fontSize": "12px", "paddingTop": "8px", "paddingLeft": "10px" }
+    },
+    {
+      "selector": ".pr-region-top",
+      "props": { "color": "rgb(110, 118, 133)", "fontSize": "12px" }
+    },
+    {
+      "selector": ".pr-region-rest",
+      "props": { "color": "rgb(58, 63, 74)", "fontSize": "12px" }
+    }
+  ]
+}

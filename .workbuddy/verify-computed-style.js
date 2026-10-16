@@ -58,6 +58,13 @@ const html = mod.html;
 const unhide = JSON.stringify(spec.unhide || []);
 const extraClass = JSON.stringify(spec.extraClass || {});
 const checks = JSON.stringify(spec.checks || []);
+/* 可选字段：init / click —— 用于弹窗、抽屉等「运行时才存在」的元素。
+   不先执行模块代码，这些选择器恒为「元素未找到」，测不出任何东西。 */
+const runInit = spec.init ? 'true' : 'false';
+const clicks = JSON.stringify(spec.click || []);
+const moduleScript = spec.init
+  ? '<script>' + fs.readFileSync(modFile, 'utf8').replace(/<\/script/gi, '<\\/script') + '<\/script>'
+  : '';
 const page = `<!doctype html><html><head><meta charset="utf-8"><style>
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0}
@@ -65,8 +72,16 @@ ${css}
 </style></head><body>
 <div id="appContent">${html}</div>
 <pre id="out">PENDING</pre>
+${moduleScript}
 <script>
 (function(){
+  if(${runInit}){
+    var reg=window.YundengModules&&window.YundengModules[${JSON.stringify(modId)}];
+    if(!reg){document.getElementById('out').textContent='RESULT|'+JSON.stringify([{selector:'(init)',error:'模块未注册'}]);return;}
+    try{ reg.init(document.getElementById('appContent')); }
+    catch(e){ document.getElementById('out').textContent='RESULT|'+JSON.stringify([{selector:'(init)',error:'init 抛错: '+e.message}]); return; }
+    ${clicks}.forEach(function(sel){ document.querySelectorAll(sel).forEach(function(el){ el.click(); }); });
+  }
   ${unhide}.forEach(function(id){ var el=document.getElementById(id); if(el) el.hidden=false; });
   var ex=${extraClass}; Object.keys(ex).forEach(function(sel){ var el=document.querySelector(sel); if(el) el.classList.add(ex[sel]); });
   var checks=${checks};

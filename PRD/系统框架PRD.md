@@ -113,6 +113,7 @@
 | 运营中心 / menuGroup | — | 运营中心 | — | 可展开一级菜单，位于代理及套餐管理上方 |
 | 运营中心 / subMenuItem | ops-user-list | 运营用户列表 | `Prototype/modules/ops-user-list.js` | 面向运营的全字段用户运营视图与字段解释 |
 | 运营中心 / subMenuItem | proxy-replacement | 更换代理 | `Prototype/modules/proxy-replacement.js` | 为用户更换已购代理并同步环境与指纹 |
+| 运营中心 / subMenuItem | rebate-management | 返佣管理 | `Prototype/modules/rebate-management.js` | 返佣汇总 / 返佣明细 / 冻结明细 / 邀请明细 / 提现明细 / 返佣设置 六个 Tab；兼容入口 `Prototype/返佣管理.html`；PRD 见 `PRD/运营中心/返佣管理PRD.md` |
 | 代理及套餐管理 / menuItem | proxy-static | 静态代理 | `Prototype/modules/proxy-static.js` | 已完成 |
 | sectionLabel | — | 数据埋点 | — | 灰色、不可点击；位于资源管理之后 |
 | 数据埋点 / menuItem | tracking-overview | 数据概览 | `Prototype/modules/tracking-overview.js` | 对应“概览”，直接进入数据概览 |
